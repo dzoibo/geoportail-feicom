@@ -38,7 +38,7 @@
   });
 
   onMount(async () => {
-    const response = await fetch('../../static/data/gadm41_CMR_1_centroid.geojson');
+    const response = await fetch('./data/gadm41_CMR_1_centroid.geojson');
     geojsonRegionCentroid = await response.json();
     console.log(geojsonRegionCentroid);
   });

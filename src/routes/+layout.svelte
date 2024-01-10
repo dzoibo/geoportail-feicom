@@ -81,6 +81,7 @@
         valeursBeneficiaire = uniqueValues(dataArr, 'Bénéficiaire');
         valeursSourcefinancement = uniqueValues(dataArr, 'Source_financement');
         // Mettez à jour le store avec les valeurs d'attribution uniques
+        // @ts-ignore
         dataStore.set(dataArr);
       },
       error: function (error: any) {
@@ -127,7 +128,7 @@
   <NavHamburger on:click={toggleDrawer} btnClass="ml-3 lg:hidden" />
   <NavBrand href="/" class="lg:ml-64">
     <img
-      src={'../../static/logo-plateforme_little.jpg'}
+      src={'/logo-plateforme_little.jpg'}
       alt="logo-plateforme"
       class="mx-auto max-w-full h-10"
     />

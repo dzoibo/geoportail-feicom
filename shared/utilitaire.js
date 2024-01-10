@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // utilitaires.js
 // @ts-ignore
 export function uniqueValues(tableau, attribut) {
@@ -7,15 +8,19 @@ export function uniqueValues(tableau, attribut) {
 }
 
 // Function to get statistics
+// @ts-ignore
 export function getSumOf(data, key) {
     const statistics = {};
-
+    // @ts-ignore
     data.forEach(item => {
         const value = item[key];
         if (value) {
+            // @ts-ignore
             if (statistics[value]) {
+                // @ts-ignore
                 statistics[value]++;
             } else {
+                // @ts-ignore
                 statistics[value] = 1;
             }
         }
@@ -31,7 +36,7 @@ export function getSumOf(data, key) {
 }
 
 
-
+// @ts-ignore
 export function findMinMax(array, key) {
     if (!array || array.length === 0) {
         return null;
