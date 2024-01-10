@@ -1,2 +1,11 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+<script>
+  // @ts-nocheck
+
+  import Sidebar from '../components/Header.svelte';
+  import Map from '../components/Map.svelte';
+  import { onMount } from 'svelte';
+  import Papa from 'papaparse';
+  import { Img, Heading, P } from 'flowbite-svelte';
+</script>
+
+<Map />

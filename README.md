@@ -1,13 +1,13 @@
-# Responsive Sidebar Layout
+# Plateforme cartographique de visualisation de projets au Cameroun
 
 ## Creating a project
 
 ```bash
 # clone this repo
-git clone git@github.com:shinokada/responsive-sidebar-layout.git
+git clone git@github.com:Tonhauck/plateforme-urbaine-cameroun.git
 
 # install dependencies
-cd responsive-sidebar-layout
+cd plateforme-urbaine-cameroun
 npm i 
 # or using pnmp
 pnpm i

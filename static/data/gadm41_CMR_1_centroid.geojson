@@ -1,0 +1,17 @@
+{
+"type": "FeatureCollection",
+"name": "gadm41_CMR_1_centroid",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "NAME_1": "ADAMAOUA" }, "geometry": { "type": "Point", "coordinates": [ 13.142693052651774, 6.843609123309244 ] } },
+{ "type": "Feature", "properties": { "NAME_1": "CENTRE" }, "geometry": { "type": "Point", "coordinates": [ 11.821363652393693, 4.663359975754394 ] } },
+{ "type": "Feature", "properties": { "NAME_1": "EST" }, "geometry": { "type": "Point", "coordinates": [ 14.209501639285433, 3.797232846101384 ] } },
+{ "type": "Feature", "properties": { "NAME_1": "EXTRÊME-NORD" }, "geometry": { "type": "Point", "coordinates": [ 14.52966116802083, 11.080975955143602 ] } },
+{ "type": "Feature", "properties": { "NAME_1": "LITTORAL" }, "geometry": { "type": "Point", "coordinates": [ 10.117602503398791, 4.259460331216213 ] } },
+{ "type": "Feature", "properties": { "NAME_1": "NORD" }, "geometry": { "type": "Point", "coordinates": [ 13.939100192703334, 8.486703800972103 ] } },
+{ "type": "Feature", "properties": { "NAME_1": "NORD-OUEST" }, "geometry": { "type": "Point", "coordinates": [ 10.370612110655161, 6.366562079487673 ] } },
+{ "type": "Feature", "properties": { "NAME_1": "OUEST" }, "geometry": { "type": "Point", "coordinates": [ 10.651754644528683, 5.502491669688068 ] } },
+{ "type": "Feature", "properties": { "NAME_1": "SUD" }, "geometry": { "type": "Point", "coordinates": [ 11.573285349106062, 2.75481719203311 ] } },
+{ "type": "Feature", "properties": { "NAME_1": "SUD-OUEST" }, "geometry": { "type": "Point", "coordinates": [ 9.29017600672109, 5.198214785453698 ] } }
+]
+}
