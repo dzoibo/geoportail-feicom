@@ -7,6 +7,7 @@
   // Autre fichier, par exemple, votre composant ou page
   import { uniqueValues } from '../../shared/utilitaire';
   import { dataStore } from '../../shared/store.js';
+  import { fetchData } from '../../shared/dataService.js';
 
   import {
     Navbar,
@@ -57,53 +58,50 @@
   }
   let navbarHeight = 0;
   let dataArr: any[] = [];
+  let mandatData: any[] = [];
   let valeursAttribution: any[] = [];
   let valeursDomaine: any[] = [];
   let valeursSecteur: any[] = [];
   let valeursBeneficiaire: any[] = [];
   let valeursSourcefinancement: any[] = [];
+  let loadingData = true;
+
   onMount(async function () {
-    const file =
-      'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGDmlwNMcXwsL8qD4yHrLdmZFvBTYhsguNNFedK7ysi3Tf_jO7vgfr9MccVzJYn-N8t41nBuLiqGCy/pub?gid=1430480319&single=true&output=tsv';
+    try {
+      const { mandatData, dataArr } = await fetchData();
 
-    Papa.parse(file, {
-      download: true,
-      delimiter: '	',
-      header: true,
-      dynamicTyping: true,
-      complete: function (results: { data: any[] }) {
-        console.log(results);
-        // Résout la promesse avec les données
-        dataArr = results.data;
-        valeursAttribution = uniqueValues(dataArr, "Instance d'attribution");
-        valeursSecteur = uniqueValues(dataArr, 'Secteurs');
-        valeursDomaine = uniqueValues(dataArr, 'Domaines');
-        valeursBeneficiaire = uniqueValues(dataArr, 'Bénéficiaire');
-        valeursSourcefinancement = uniqueValues(dataArr, 'Source_financement');
-        // Mettez à jour le store avec les valeurs d'attribution uniques
-        // @ts-ignore
-        dataStore.set(dataArr);
-      },
-      error: function (error: any) {
-        // Rejette la promesse en cas d'erreur
-        reject(error);
+      // Mettez à jour les propriétés individuelles du store
+      dataStore.update((store) => {
+        store.dataArr = dataArr;
+        store.mandatData = mandatData;
+        return store;
+      });
+
+      valeursAttribution = uniqueValues(dataArr, "Instance d'attribution");
+      valeursSecteur = uniqueValues(dataArr, 'Secteurs');
+      valeursDomaine = uniqueValues(dataArr, 'Domaines');
+      valeursBeneficiaire = uniqueValues(dataArr, 'Bénéficiaire');
+      valeursSourcefinancement = uniqueValues(dataArr, 'Source_financement');
+
+      loadingData = false;
+
+      const navbar = document.getElementById('myNavbar'); // Remplacez 'navbar' par l'ID réel de votre navbar
+      if (navbar) {
+        navbarHeight = navbar.clientHeight;
       }
-    });
 
-    const navbar = document.getElementById('myNavbar'); // Remplacez 'navbar' par l'ID réel de votre navbar
-    if (navbar) {
-      navbarHeight = navbar.clientHeight;
-      console.log(navbarHeight);
-    }
-
-    if (width >= breakPoint) {
-      drawerHidden = false;
-      activateClickOutside = false;
-    } else {
-      drawerHidden = true;
-      activateClickOutside = true;
+      if (width >= breakPoint) {
+        drawerHidden = false;
+        activateClickOutside = false;
+      } else {
+        drawerHidden = true;
+        activateClickOutside = true;
+      }
+    } catch (error) {
+      console.error(error);
     }
   });
+
   const toggleSide = () => {
     if (width < breakPoint) {
       drawerHidden = !drawerHidden;
@@ -268,8 +266,10 @@
   class="flex mx-auto w-screen lg:p-0 md:p-4 sm:p-4"
   style="height: calc(100vh - {navbarHeight}px);"
 >
-  <main id="main" class="lg:ml-64 w-screen maplibregl-map">
-    <slot />
+  <main id="main" class="lg:ml-[17rem] w-screen maplibregl-map">
+    {#if !loadingData}
+      <slot />
+    {/if}
   </main>
 </div>
 

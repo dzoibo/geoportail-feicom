@@ -59,3 +59,7 @@ export function findMinMax(array, key) {
 
     return { min, max };
 }
+
+export function findAllObjectsByAttribute(array, nom_attribut, id) {
+    return array.filter(obj => obj[nom_attribut] === id);
+}
