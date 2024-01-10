@@ -167,7 +167,7 @@
               class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
             />
           </svelte:fragment>
-          <Button
+          <Button color="green"
             >Sélection des bénéficiaires<ChevronDownSolid
               class="w-3 h-3 ms-2 text-white dark:text-white"
             /></Button
@@ -187,7 +187,7 @@
               class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
             />
           </svelte:fragment>
-          <Button
+          <Button color="green"
             >Sélection des instances<ChevronDownSolid
               class="w-3 h-3 ms-2 text-white dark:text-white"
             /></Button
@@ -207,7 +207,7 @@
               class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
             />
           </svelte:fragment>
-          <Button
+          <Button color="green"
             >Sélection des projets<ChevronDownSolid
               class="w-3 h-3 ms-2 text-white dark:text-white"
             /></Button
@@ -227,7 +227,7 @@
               class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
             />
           </svelte:fragment>
-          <Button
+          <Button color="green"
             >Sélection des secteurs<ChevronDownSolid
               class="w-3 h-3 ms-2 text-white dark:text-white"
             /></Button
@@ -247,7 +247,7 @@
               class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
             />
           </svelte:fragment>
-          <Button
+          <Button color="green"
             >Sélection des sources de financement<ChevronDownSolid
               class="w-3 h-3 ms-2 text-white dark:text-white"
             /></Button
