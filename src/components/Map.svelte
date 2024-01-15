@@ -1,13 +1,19 @@
 <script>
   // @ts-nocheck
-  import { dataStore } from '../../shared/store';
+  import { dataStore, rangeValue, buttonICSP } from '../../shared/store';
+  import Map from '../components/Map.svelte';
   import {
     getSumOf,
     findMinMax,
     findAllObjectsByAttribute,
-    uniqueValues
+    uniqueValues,
+    calculateTotalByRegion,
+    formattedValue,
+    sumISPValues,
+    transformDataForBarChart,
+    optionForBarChart,
+    optionForLineChart
   } from '../../shared/utilitaire';
-  import Chart from 'chart.js/auto';
   import {
     Drawer,
     Button,
@@ -15,9 +21,16 @@
     SidebarDropdownWrapper,
     Card,
     Listgroup,
-    Avatar
+    Tooltip,
+    Chart
   } from 'flowbite-svelte';
-  import { InfoCircleSolid, ArrowRightOutline, BadgeCheckOutline } from 'flowbite-svelte-icons';
+  import {
+    InfoCircleSolid,
+    ArrowRightOutline,
+    BadgeCheckOutline,
+    DollarOutline,
+    ChartOutline
+  } from 'flowbite-svelte-icons';
   import { sineIn } from 'svelte/easing';
   import {
     MapLibre,
@@ -39,11 +52,15 @@
     SymbolLayer,
     Popup
   } from 'svelte-maplibre';
-  import { onMount, afterUpdate, onDestroy } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
+
   let clickedFeature;
   let trigger = true;
+  let width;
   let dataArr2 = [];
+  let dataForMap = [];
   let mandatData = [];
+  let icspData = [];
   let statisticsPerRegion = [];
   let MinMax = {};
   let geojsonRegionCentroid;
@@ -53,58 +70,90 @@
   let clickedLayerInfo = null; // Variable to store information about the clicked layer
   let anneeDebutMandat = [];
   let anneeFinMandat = [];
+  let showICSP;
+
+  let showFinancement;
+  let valueSliderLanding = 0; // Initialisez avec une valeur par défaut
+  let hidden8 = true;
+  let dataForBarChart = {};
+  let dataForLineChart = {};
+  let optionsForChart = {};
+  let optionsForChartLine = {};
+  export let options;
+  let paintProperties = {
+    'fill-opacity': hoverStateFilter(0.7, 0.4),
+    'fill-color': [
+      'case',
+      ['!=', ['feature-state', 'value'], null],
+      [
+        'interpolate',
+        ['linear'],
+        ['feature-state', 'value'],
+        MinMax.min,
+        'rgba(222,235,247,1)',
+        MinMax.max,
+        'rgba(49,130,189,1)'
+      ],
+      'rgba(255, 255, 255, 0)'
+    ]
+  };
 
   onMount(async () => {
     const response = await fetch('./data/gadm41_CMR_1_centroid.geojson');
     geojsonRegionCentroid = await response.json();
 
-    unsubscribe = await dataStore.subscribe((store) => {
+    unsubscribe = dataStore.subscribe((store) => {
       dataArr2 = store.dataArr;
       mandatData = store.mandatData;
+      icspData = store.icspData;
     });
-  });
 
-  onMount(() => {
-    // Utilisez onMount pour charger le GeoJSON depuis l'URL externe
-    /*  const ctx = document.getElementById('detailMandatForAMunicipality');
-    const chart = new Chart(ctx, {
-      //Type of the chart
-      type: 'pie',
-      data: {
-        //labels on x-axis
-        labels: [],
-        datasets: [
-          {
-            //The label for the dataset which appears in the legend and tooltips.
-            label: 'Price',
-            //data for the line
-            data: [],
-            //styling of the chart
-            backgroundColor: ['rgba(255, 99, 132, 0.2)'],
-            borderColor: ['rgba(255, 99, 132, 1)'],
-            borderWidth: 1
-          }
-        ]
-      },
-      options: {
-        scales: {
-          //make sure Y-axis starts at 0
-          y: {
-            beginAtZero: true
-          }
-        }
-      }
-    }); */
+    // Abonnez-vous au store pour recevoir les mises à jour
+    rangeValue.subscribe(($rangeValue) => {
+      valueSliderLanding = $rangeValue;
+    });
+
+    // Abonnez-vous au store pour recevoir les mises à jour
+    buttonICSP.subscribe(($showICSP) => {
+      showICSP = $showICSP; // Mettez à jour la valeur locale avec la valeur du store
+    });
+
+    console.log(showICSP);
+    if (showICSP) {
+      dataForMap = icspData;
+    } else {
+      dataForMap = dataArr2;
+    }
+    console.log(dataForMap);
   });
 
   $: {
-    if (dataArr2.length > 0 && trigger == true) {
-      statisticsPerRegion = getSumOf(dataArr2, 'Région');
-      MinMax = findMinMax(statisticsPerRegion, 'value');
+    if (dataForMap.length > 0 && trigger == true) {
+      if (showICSP) {
+        dataForMap = icspData;
+        statisticsPerRegion = calculateTotalByRegion(dataForMap, valueSliderLanding);
+        console.log(statisticsPerRegion);
+        MinMax = findMinMax(statisticsPerRegion, 'value');
+        console.log(MinMax);
+      } else {
+        dataForMap = dataArr2;
+        statisticsPerRegion = getSumOf(dataForMap, 'Région');
+        console.log(statisticsPerRegion);
+        MinMax = findMinMax(statisticsPerRegion, 'value');
+        console.log(MinMax);
+      }
+
+      paintProperties = getUpdatedPaintProperties(MinMax);
       let trigger = false;
     }
   }
   let hiddenBackdropFalse = true;
+
+  let transitionParamsBottom = {
+    y: 320,
+    duration: 200,
+    easing: sineIn
+  };
 
   let transitionParamsRight = {
     x: 320,
@@ -122,9 +171,56 @@
 
     anneeDebutMandat = uniqueValues(detailsMandatCommune, 'DEBUT MANDAT');
     anneeFinMandat = uniqueValues(detailsMandatCommune, 'FIN MANDAT');
-    console.log(detailsMandatCommune);
+
     // Set hiddenBackdropFalse to false to show the Drawer
     hiddenBackdropFalse = false;
+  }
+
+  function handleLayerClickOnRegion(e) {
+    console.log(e.detail.features?.[0]?.state.Région);
+    // Set the variable with information about the clicked layer
+
+    // Set hiddenBackdropFalse to false to show the Drawer
+    // Exemple d'utilisation
+    const region = e.detail.features?.[0]?.state.Région;
+    const year = valueSliderLanding;
+
+    dataForBarChart.data = transformDataForBarChart(dataForMap, region, year);
+    dataForLineChart.data = sumISPValues(dataForMap, region);
+    console.log(dataForLineChart);
+    dataForLineChart.geo = region;
+
+    dataForBarChart.year = year;
+    dataForBarChart.geo = region;
+
+    // Calcul de la somme des valeurs "y"
+    dataForBarChart.sum = dataForBarChart.data.reduce(
+      (total, currentItem) => total + currentItem.y,
+      0
+    );
+
+    hidden8 = false;
+    return dataForBarChart;
+  }
+
+  function getUpdatedPaintProperties(MinMax) {
+    return {
+      'fill-opacity': hoverStateFilter(0.7, 0.4),
+      'fill-color': [
+        'case',
+        ['!=', ['feature-state', 'value'], null],
+        [
+          'interpolate',
+          ['linear'],
+          ['feature-state', 'value'],
+          MinMax.min,
+          'rgba(222,235,247,1)',
+          MinMax.max,
+          'rgba(49,130,189,1)'
+        ],
+        'rgba(255, 255, 255, 0)'
+      ]
+    };
   }
 
   // On se désabonne pour éviter les fuites de data
@@ -133,6 +229,7 @@
   });
 </script>
 
+<svelte:window bind:innerWidth={width} />
 <Drawer
   placement="right"
   transitionType="fly"
@@ -194,11 +291,105 @@
     </div>
   {/each}
 </Drawer>
+<Drawer
+  placement="bottom"
+  class="lg:ml-[20rem] w-auto h-2/3 lg:h-1/3 xl:h-1/3 "
+  transitionType="fly"
+  transitionParams={transitionParamsBottom}
+  bind:hidden={hidden8}
+  id="sidebar8"
+>
+  {#if width < 562}
+    <div class="flex items-center">
+      <!--     <h5
+      id="drawer-label"
+      class="inline-flex items-center mb-4 text-base font-semibold text-gray-500 dark:text-gray-400"
+    >
+      <InfoCircleSolid class="w-4 h-4 me-2.5" />Info
+    </h5> -->
+
+      <CloseButton on:click={() => (hidden8 = true)} class="mb-4 dark:text-white" />
+    </div>
+  {/if}
+
+  <div class="flex flex-auto" style="background-color:whitesmoke;">
+    <div class="lg:w-1/2 sm:w-full flex sm:m-4 justify-center">
+      <!-- Contenu de la première div -->
+      {#await dataForBarChart then}
+        {#if dataForBarChart}
+          <Card class="!max-w-lg w-full">
+            <!-- Utilisation de h-full pour occuper 100% de la hauteur -->
+            <div
+              class="w-full h-full flex justify-center items-center pb-4 mb-4 border-b border-gray-200 dark:border-gray-700"
+            >
+              <div class="flex items-center">
+                <div
+                  class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center me-3"
+                >
+                  <DollarOutline class="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                </div>
+                <div>
+                  <h5 class="leading-none text-2xl font-bold text-gray-900 dark:text-white pb-1">
+                    ICSP pour {dataForBarChart.geo}
+                  </h5>
+                  <p class="text-sm font-normal text-gray-500 dark:text-gray-400">
+                    <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">
+                      Total ICSP en {dataForBarChart.year} :
+                    </dt>
+                    <dd class="text-gray-900 text-sm dark:text-white font-semibold">
+                      {formattedValue(dataForBarChart.sum)}
+                    </dd>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {#await optionForBarChart(dataForBarChart.data) then options}
+              <!-- Utilisation de h-auto pour que la hauteur s'adapte au contenu -->
+              <Chart {options} />
+            {/await}
+          </Card>
+        {/if}
+      {/await}
+    </div>
+    <div class="lg:w-1/2 sm:w-full sm:m-4 flex justify-center">
+      <!-- Contenu de la deuxième div -->
+      {#await dataForLineChart then}
+        {#if dataForLineChart}
+          <!-- Utilisation de h-full pour occuper 100% de la hauteur -->
+          <Card class="!max-w-lg w-full">
+            <div
+              class="w-full flex justify-center items-center pb-4 mb-4 border-b border-gray-200 dark:border-gray-700"
+            >
+              <div class="flex items-center">
+                <div
+                  class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center me-3"
+                >
+                  <ChartOutline class="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                </div>
+                <div>
+                  <h5 class="leading-none text-2xl font-bold text-gray-900 dark:text-white pb-1">
+                    Evolution de l'ICSP pour {dataForBarChart.geo}
+                  </h5>
+                  <p class="text-sm font-normal text-gray-500 dark:text-gray-400">
+                    {dataForBarChart.year}
+                  </p>
+                </div>
+              </div>
+            </div>
+            {#await optionForLineChart(dataForLineChart.data.label, dataForLineChart.data.data) then options}
+              <!-- Utilisation de h-auto pour que la hauteur s'adapte au contenu -->
+              <Chart {options} />
+            {/await}
+          </Card>
+        {/if}
+      {/await}
+    </div>
+  </div>
+</Drawer>
 
 <!-- Use the reactive dataArr to update the JoinedData component -->
-{#if dataArr2.length > 0 && trigger == true}
-  <div />
-
+{#if dataForMap.length > 0 && trigger == true}
   <MapLibre
     style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
     center={[12, 6]}
@@ -207,7 +398,6 @@
     let:map
     class="w-screen"
   >
-    <!-- Tu peux également définir l'attribut `standardControls` de la carte pour créer ces contrôles. -->
     <NavigationControl position="top-right" />
     <GeolocateControl position="top-right" fitBoundsOptions={{ maxZoom: 25 }} />
     <FullscreenControl position="top-right" />
@@ -215,31 +405,17 @@
 
     <VectorTileSource url={'pmtiles://data/region.pmtiles'} promoteId={'NAME_1'}>
       <FillLayer
-        paint={{
-          'fill-opacity': hoverStateFilter(0.7, 0.4),
-
-          'fill-opacity': hoverStateFilter(0.7, 0.4),
-          'fill-color': [
-            'case',
-            ['!=', ['feature-state', 'value'], null],
-            [
-              'interpolate',
-              ['linear'],
-              ['feature-state', 'value'],
-              MinMax.min,
-              'rgba(222,235,247,1)',
-              MinMax.max,
-              'rgba(49,130,189,1)'
-            ],
-            'rgba(255, 255, 255, 0)'
-          ]
-        }}
+        paint={paintProperties}
         manageHoverState
         sourceLayer={'regions'}
         maxzoom={8}
-        on:click={(e) => console.log(e.detail.features?.[0]?.state)}
+        on:click={handleLayerClickOnRegion}
       />
+      <!-- on:click={(e) => console.log(e.detail.features?.[0]?.state)} -->
+      <!-- Utilisez la valeur de showICSP dans votre composant -->
+
       <JoinedData data={statisticsPerRegion} idCol="Région" sourceLayer="regions" />
+      <!-- Contenu à afficher si showICSP est vrai -->
     </VectorTileSource>
 
     <GeoJSON data={geojsonRegionCentroid}>
@@ -249,7 +425,13 @@
           {#if feature.properties.NAME_1 === Région}
             <div class="bg-gray-200 rounded-full p-2 shadow align flex flex-col items-center">
               <div class="text-sm font-bold">{feature.properties.NAME_1}</div>
-              <div class="text-sm font-bold">{value} projets</div>
+              {#if showICSP}
+                <!-- Afficher la valeur avec l'unité 'XAF' -->
+                <div class="text-sm font-bold">{formattedValue(value)} XAF</div>
+              {:else}
+                <!-- Afficher la valeur avec l'unité 'projet' -->
+                <div class="text-sm font-bold">{formattedValue(value)} projet</div>
+              {/if}
             </div>
           {/if}
         {/each}

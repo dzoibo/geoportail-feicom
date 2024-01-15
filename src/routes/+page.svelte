@@ -1,11 +1,7 @@
 <script>
   // @ts-nocheck
-
-  import Sidebar from '../components/Header.svelte';
   import Map from '../components/Map.svelte';
-  import { onMount } from 'svelte';
-  import Papa from 'papaparse';
-  import { Img, Heading, P } from 'flowbite-svelte';
+  import { rangeValue } from '../../shared/store.js'; // Update the path as per your project structure
 </script>
 
-<Map />
+<Map showFinancement showICSP />
