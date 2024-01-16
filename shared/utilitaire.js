@@ -5,6 +5,22 @@
 // utilitaires.js
 // @ts-ignore
 export function uniqueValues(tableau, attribut) {
+    // Utilisez filter pour éliminer les valeurs null
+    const filteredArray = tableau.filter(objet => objet[attribut] !== null);
+
+    // Créez un Set avec les valeurs uniques
+    const valeursUniques = new Set(filteredArray.map(objet => objet[attribut]));
+
+    // Créez un tableau de résultats avec la propriété "checked" initialisée à false pour chaque élément
+    const result = Array.from(valeursUniques).map(valeur => ({
+        'key': valeur,
+        checked: false
+    }));
+
+    return result;
+}
+
+export function uniqueValuesInArrayOfObject(tableau, attribut) {
     // @ts-ignore
     const valeursUniques = new Set(tableau.map(objet => objet[attribut]));
     return Array.from(valeursUniques);
@@ -37,6 +53,34 @@ export function getSumOf(data, key) {
 
     return result;
 }
+
+export function getSumPerYear(data, year) {
+    const statistics = {};
+
+    data.forEach(item => {
+        const region = item['Région'];
+        const itemYear = item['Année financement'];
+
+        // Vérifier si l'année correspond à celle spécifiée en argument
+        if (itemYear === year) {
+            if (statistics[region]) {
+                statistics[region]++;
+            } else {
+                statistics[region] = 1;
+            }
+        }
+    });
+
+    // Convertir l'objet de statistiques en un tableau d'objets avec la structure spécifiée
+    const result = Object.entries(statistics).map(([region, count]) => ({
+        'Région': region,
+        'value': count
+    }));
+
+    return result;
+}
+
+
 
 
 export function calculateTotalByRegion(data, year) {
@@ -144,8 +188,24 @@ export function formattedValue(value) {
     return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
 
+export function filtrerObjetsParNoms(dataForMap, nomsFiltres, champ) {
+    if (nomsFiltres.length === 0) {
+        // Si l'array nomsFiltres est vide, retournez simplement l'array original
+        return dataForMap;
+    }
 
-export function optionForBarChart(dataForBarChart, region, year) {
+    // Créez un ensemble (Set) pour une recherche rapide des noms
+    const nomsSet = new Set(nomsFiltres);
+
+    // Utilisez la méthode filter pour filtrer les objets en utilisant le champ spécifié
+    return dataForMap.filter(objet => nomsSet.has(objet[champ]));
+}
+
+
+
+
+
+export function optionForBarChart(dataForBarChart, region) {
     let optionsForChart = {
         colors: ['#1A56DB'],
         series: [{
@@ -176,7 +236,7 @@ export function optionForBarChart(dataForBarChart, region, year) {
             style: {
                 fontFamily: 'Inter, sans-serif'
             },
-            custom: function({ series, seriesIndex, dataPointIndex, w }) {
+            custom: function({ series, seriesIndex, dataPointIndex }) {
                 const formatter = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XAF' });
                 const formattedValue = formatter.format(series[seriesIndex][dataPointIndex]);
                 return `<div class="text-center p-2">${formattedValue}</div>`;
@@ -239,9 +299,7 @@ export function optionForBarChart(dataForBarChart, region, year) {
 }
 
 
-export
-
-function optionForLineChart(label, data, geo) {
+export function optionForLineChart(label, data, geo) {
 
     let optionsForChartLine = {
         chart: {
@@ -261,7 +319,7 @@ function optionForLineChart(label, data, geo) {
             x: {
                 show: false
             },
-            custom: function({ series, seriesIndex, dataPointIndex, w }) {
+            custom: function({ series, seriesIndex, dataPointIndex }) {
                 const formatter = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XAF' });
                 const formattedValue = formatter.format(series[seriesIndex][dataPointIndex]);
                 return `<div class="text-center p-2">${formattedValue}</div>`;

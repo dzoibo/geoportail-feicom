@@ -6,7 +6,13 @@
   import Papa from 'papaparse';
   // Autre fichier, par exemple, votre composant ou page
   import { uniqueValues, findMinMax } from '../../shared/utilitaire';
-  import { dataStore, rangeValue, buttonICSP } from '../../shared/store.js';
+  import {
+    dataStore,
+    rangeValue,
+    buttonICSP,
+    rangeValueAccord,
+    storeIndicateur5
+  } from '../../shared/store.js';
   import { fetchData } from '../../shared/dataService.js';
 
   import {
@@ -66,6 +72,7 @@
   let valeursSecteur: any[] = [];
   let valeursBeneficiaire: any[] = [];
   let valeursSourcefinancement: any[] = [];
+  let array: any[] = [];
   let loadingData = true;
   let drawerWidth = 0;
   let activeUrl;
@@ -75,7 +82,24 @@
     max: any;
     min: any;
   };
+  let minMaxYearAccord: {
+    max: any;
+    min: any;
+  };
   let valueSliderLanding = 0;
+  let valueSliderAccord = 0;
+  let checkedOptions: { [key: string]: boolean } = {};
+  let dropdownSelectionIndicateur5 = { indicateur: '', data: [] };
+  let dropdownSelectionIndicateur4 = { indicateur: '', data: [] };
+  let dropdownSelectionIndicateur3 = { indicateur: '', data: [] };
+  let dropdownSelectionIndicateur2 = { indicateur: '', data: [] };
+  let dropdownSelectionIndicateur1 = { indicateur: '', data: [] };
+  let dropdownSelectionsAll: any[] = [];
+  let indicateur5 = 'Source_financement';
+  let indicateur1 = "Instance d'attribution";
+  let indicateur2 = 'Secteurs';
+  let indicateur3 = 'Domaines';
+  let indicateur4 = 'Bénéficiaire';
 
   onMount(async function () {
     try {
@@ -90,17 +114,37 @@
         return store;
       });
 
-      valeursAttribution = uniqueValues(dataArr, "Instance d'attribution");
-      valeursSecteur = uniqueValues(dataArr, 'Secteurs');
-      valeursDomaine = uniqueValues(dataArr, 'Domaines');
-      valeursBeneficiaire = uniqueValues(dataArr, 'Bénéficiaire');
-      valeursSourcefinancement = uniqueValues(dataArr, 'Source_financement');
+      valeursAttribution = uniqueValues(dataArr, indicateur1);
+      valeursSecteur = uniqueValues(dataArr, indicateur2);
+      valeursDomaine = uniqueValues(dataArr, indicateur3);
+      valeursBeneficiaire = uniqueValues(dataArr, indicateur4);
+      valeursSourcefinancement = uniqueValues(dataArr, indicateur5);
+
+      dropdownSelectionIndicateur5.indicateur = indicateur5;
+      dropdownSelectionIndicateur4.indicateur = indicateur4;
+      dropdownSelectionIndicateur3.indicateur = indicateur3;
+      dropdownSelectionIndicateur2.indicateur = indicateur2;
+      dropdownSelectionIndicateur1.indicateur = indicateur1;
+
+      // Ajoutez les objets à l'array dropdownSelections
+      dropdownSelectionsAll.push(
+        dropdownSelectionIndicateur5,
+        dropdownSelectionIndicateur4,
+        dropdownSelectionIndicateur3,
+        dropdownSelectionIndicateur2,
+        dropdownSelectionIndicateur1
+      );
 
       loadingData = false;
 
       minMaxYear = findMinMax(icspData, 'ANNEE');
+      minMaxYearAccord = findMinMax(dataArr, 'Année financement');
+
       valueSliderLanding = minMaxYear.min;
+      valueSliderAccord = minMaxYearAccord.min;
+
       rangeValue.set(valueSliderLanding);
+      rangeValueAccord.set(valueSliderAccord);
 
       // Sélectionnez l'élément du drawer par son identifiant
       const drawer = document.getElementById('sidebar');
@@ -151,10 +195,13 @@
     let ulClass =
       'flex flex-col p-4 mt-4 md:flex-row md:space-x-8 md:mt-0 md:text-lg md:font-medium';
     rangeValue.set(valueSliderLanding);
-  }
+    rangeValueAccord.set(valueSliderAccord);
 
-  function reject(error: any) {
-    throw new Error('Function not implemented.');
+    storeIndicateur5.update((items) => {
+      //@ts-ignore
+      items = dropdownSelectionIndicateur5;
+      return items;
+    });
   }
 
   $: if (width >= breakPoint) {
@@ -163,6 +210,39 @@
   } else {
     drawerHidden = true;
     activateClickOutside = true;
+  }
+
+  function toggleCheckbox(checkedOptions: { checked: boolean }, array) {
+    checkedOptions.checked = !checkedOptions.checked;
+
+    updateSelectedWords(array); // Mettre à jour les mots sélectionnés
+  }
+
+  function updateSelectedWords(array) {
+    //@ts-ignore
+
+    //Todo Automatisation pour prendre toutes les données des listes déroulantes.
+    dropdownSelectionIndicateur5.data = valeursSourcefinancement
+      .filter((financement) => financement.checked)
+      .map((financement) => financement.key);
+
+    console.log(array);
+
+    return array;
+  }
+
+  function closeDiv(wordToRemove: any, array: { indicateur: string; data: never[] } | undefined) {
+    // Trouvez l'objet correspondant dans valeursSourcefinancement
+    const financement = valeursSourcefinancement.find(
+      (financement) => financement.key === wordToRemove
+    );
+
+    if (financement) {
+      // Mettez à jour la propriété checked de l'objet à false
+      financement.checked = false;
+    }
+
+    updateSelectedWords(array); // Mettre à jour les mots sélectionnés
   }
 </script>
 
@@ -255,13 +335,16 @@
               <Dropdown class="w-48 p-3 overflow-y-auto space-y-1 text-sm">
                 {#each valeursBeneficiaire as beneficiaires}
                   <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                    <Checkbox>{beneficiaires}</Checkbox>
+                    <Checkbox
+                      checked={beneficiaires.checked}
+                      on:change={() => toggleCheckbox(beneficiaires)}>{beneficiaires.key}</Checkbox
+                    >
                   </li>
                 {/each}
               </Dropdown>
             </SidebarDropdownWrapper>
 
-            <SidebarDropdownWrapper label="Instance d'attribution">
+            <SidebarDropdownWrapper label="indicateur1">
               <svelte:fragment slot="icon">
                 <LandmarkOutline
                   class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
@@ -275,7 +358,10 @@
               <Dropdown class="w-48 p-3 overflow-y-auto space-y-1 text-sm">
                 {#each valeursAttribution as instances}
                   <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                    <Checkbox>{instances}</Checkbox>
+                    <Checkbox
+                      checked={instances.checked}
+                      on:change={() => toggleCheckbox(instances)}>{instances.key}</Checkbox
+                    >
                   </li>
                 {/each}
               </Dropdown>
@@ -295,7 +381,9 @@
               <Dropdown class="w-48 p-3 overflow-y-auto  space-y-1 text-sm">
                 {#each valeursDomaine as domaines}
                   <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                    <Checkbox>{domaines}</Checkbox>
+                    <Checkbox checked={domaines.checked} on:change={() => toggleCheckbox(domaines)}
+                      >{domaines.key}</Checkbox
+                    >
                   </li>
                 {/each}
               </Dropdown>
@@ -315,18 +403,34 @@
               <Dropdown class="w-48 p-3 overflow-y-auto  space-y-1 text-sm">
                 {#each valeursSecteur as secteurs}
                   <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                    <Checkbox>{secteurs}</Checkbox>
+                    <Checkbox checked={secteurs.checked} on:change={() => toggleCheckbox(secteurs)}
+                      >{secteurs.key}</Checkbox
+                    >
                   </li>
                 {/each}
               </Dropdown>
+              <div class="px-2 pt-1 pb-2">
+                {#each dropdownSelectionIndicateur2.data as word (word)}
+                  <div
+                    class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-white bg-green-600 rounded-lg"
+                  >
+                    {word}
+                    <CloseButton
+                      on:click={() => closeDiv(word)}
+                      class="absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                    />
+                  </div>
+                {/each}
+              </div>
             </SidebarDropdownWrapper>
 
             <SidebarDropdownWrapper label="Financement">
               <svelte:fragment slot="icon">
                 <DollarOutline
-                  class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                  class="w-auto text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                 />
               </svelte:fragment>
+
               <Button color="green"
                 >Sélection des sources de financement<ChevronDownSolid
                   class="w-3 h-3 ms-2 text-white dark:text-white"
@@ -335,11 +439,43 @@
               <Dropdown class="w-48 p-3 overflow-y-auto  space-y-1 text-sm">
                 {#each valeursSourcefinancement as financement}
                   <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                    <Checkbox>{financement}</Checkbox>
+                    <Checkbox
+                      checked={financement.checked}
+                      on:change={() => toggleCheckbox(financement, dropdownSelectionIndicateur5)}
+                      >{financement.key}</Checkbox
+                    >
                   </li>
                 {/each}
               </Dropdown>
+              <div class="px-2 pt-1 pb-2">
+                {#each dropdownSelectionIndicateur5.data as word (word)}
+                  <div
+                    class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-white bg-green-600 rounded-lg"
+                  >
+                    {word}
+                    <CloseButton
+                      on:click={() => closeDiv(word, dropdownSelectionIndicateur5)}
+                      class="absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                    />
+                  </div>
+                {/each}
+              </div>
             </SidebarDropdownWrapper>
+            <h5
+              class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 dark:text-white"
+            >
+              ANNEE
+            </h5>
+            <SidebarGroup>
+              <Range
+                id="range-minmax"
+                min={minMaxYearAccord.min}
+                max={minMaxYearAccord.max}
+                bind:value={valueSliderAccord}
+                step="1"
+              />
+              <p>Année : {valueSliderAccord}</p>
+            </SidebarGroup>
           </SidebarGroup>
         {/if}
 
@@ -362,7 +498,7 @@
             <h5
               class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 dark:text-white"
             >
-              Année
+              ANNEE
             </h5>
             <Range
               id="range-minmax"
@@ -371,7 +507,7 @@
               bind:value={valueSliderLanding}
               step="1"
             />
-            <p>Value: {valueSliderLanding}</p>
+            <p>Année : {valueSliderLanding}</p>
           </SidebarGroup>
         {/if}
       </SidebarWrapper>

@@ -1,6 +1,12 @@
 <script>
   // @ts-nocheck
-  import { dataStore, rangeValue, buttonICSP } from '../../shared/store';
+  import {
+    dataStore,
+    rangeValue,
+    buttonICSP,
+    rangeValueAccord,
+    storeIndicateur5
+  } from '../../shared/store';
   import Map from '../components/Map.svelte';
   import {
     getSumOf,
@@ -12,7 +18,10 @@
     sumISPValues,
     transformDataForBarChart,
     optionForBarChart,
-    optionForLineChart
+    optionForLineChart,
+    getSumPerYear,
+    uniqueValuesInArrayOfObject,
+    filtrerObjetsParNoms
   } from '../../shared/utilitaire';
   import {
     Drawer,
@@ -64,6 +73,7 @@
   let statisticsPerRegion = [];
   let MinMax = {};
   let geojsonRegionCentroid;
+  let geojsonDepartementCentroid;
   let unsubscribe;
   let nom_commune;
   let detailsMandatCommune = [];
@@ -74,6 +84,9 @@
 
   let showFinancement;
   let valueSliderLanding = 0; // Initialisez avec une valeur par défaut
+  let valueSliderAccord = 0; // Initialisez avec une valeur par défaut
+  let storeIndicateur5ForMap = {};
+  let mapFilterIndicateur5 = {};
   let hidden8 = true;
   let dataForBarChart = {};
   let dataForLineChart = {};
@@ -97,56 +110,6 @@
       'rgba(255, 255, 255, 0)'
     ]
   };
-
-  onMount(async () => {
-    const response = await fetch('./data/gadm41_CMR_1_centroid.geojson');
-    geojsonRegionCentroid = await response.json();
-
-    unsubscribe = dataStore.subscribe((store) => {
-      dataArr2 = store.dataArr;
-      mandatData = store.mandatData;
-      icspData = store.icspData;
-    });
-
-    // Abonnez-vous au store pour recevoir les mises à jour
-    rangeValue.subscribe(($rangeValue) => {
-      valueSliderLanding = $rangeValue;
-    });
-
-    // Abonnez-vous au store pour recevoir les mises à jour
-    buttonICSP.subscribe(($showICSP) => {
-      showICSP = $showICSP; // Mettez à jour la valeur locale avec la valeur du store
-    });
-
-    console.log(showICSP);
-    if (showICSP) {
-      dataForMap = icspData;
-    } else {
-      dataForMap = dataArr2;
-    }
-    console.log(dataForMap);
-  });
-
-  $: {
-    if (dataForMap.length > 0 && trigger == true) {
-      if (showICSP) {
-        dataForMap = icspData;
-        statisticsPerRegion = calculateTotalByRegion(dataForMap, valueSliderLanding);
-        console.log(statisticsPerRegion);
-        MinMax = findMinMax(statisticsPerRegion, 'value');
-        console.log(MinMax);
-      } else {
-        dataForMap = dataArr2;
-        statisticsPerRegion = getSumOf(dataForMap, 'Région');
-        console.log(statisticsPerRegion);
-        MinMax = findMinMax(statisticsPerRegion, 'value');
-        console.log(MinMax);
-      }
-
-      paintProperties = getUpdatedPaintProperties(MinMax);
-      let trigger = false;
-    }
-  }
   let hiddenBackdropFalse = true;
 
   let transitionParamsBottom = {
@@ -161,16 +124,91 @@
     easing: sineIn
   };
 
+  // On mount
+  onMount(async () => {
+    const response = await fetch('./data/gadm41_CMR_1_centroid.geojson');
+    geojsonRegionCentroid = await response.json();
+
+    const responseDepartement = await fetch('./data/departement_centroid.geojson');
+    geojsonDepartementCentroid = await responseDepartement.json();
+
+    unsubscribe = dataStore.subscribe((store) => {
+      dataArr2 = store.dataArr;
+      mandatData = store.mandatData;
+      icspData = store.icspData;
+    });
+
+    // Abonnez-vous au store pour recevoir les mises à jour
+    rangeValue.subscribe(($rangeValue) => {
+      valueSliderLanding = $rangeValue;
+    });
+
+    // Abonnez-vous au store pour recevoir les mises à jour
+    storeIndicateur5.subscribe(($storeIndicateur5) => {
+      storeIndicateur5ForMap = $storeIndicateur5;
+    });
+
+    // Abonnez-vous au store pour recevoir les mises à jour
+    rangeValueAccord.subscribe(($rangeValueAccord) => {
+      valueSliderAccord = $rangeValueAccord;
+    });
+
+    // Abonnez-vous au store pour recevoir les mises à jour
+    buttonICSP.subscribe(($showICSP) => {
+      showICSP = $showICSP; // Mettez à jour la valeur locale avec la valeur du store
+    });
+
+    if (showICSP) {
+      dataForMap = icspData;
+    } else {
+      dataForMap = dataArr2;
+    }
+  });
+
+  // Reactivité
+  $: {
+    if (dataForMap.length > 0 && trigger == true) {
+      console.log(storeIndicateur5ForMap);
+      if (showICSP) {
+        dataForMap = icspData;
+        statisticsPerRegion = calculateTotalByRegion(dataForMap, valueSliderLanding);
+
+        MinMax = findMinMax(statisticsPerRegion, 'value');
+      } else {
+        dataForMap = dataArr2;
+
+        mapFilterIndicateur5 = filtrerObjetsParNoms(
+          dataForMap,
+          storeIndicateur5ForMap.data,
+          storeIndicateur5ForMap.indicateur
+        );
+
+        console.log(mapFilterIndicateur5);
+        statisticsPerRegion = getSumPerYear(mapFilterIndicateur5, valueSliderAccord);
+        if (statisticsPerRegion.length > 0) {
+          MinMax = findMinMax(statisticsPerRegion, 'value');
+          console.log(MinMax);
+        } else {
+          // Gérer le cas où statisticsPerRegion est vide
+          MinMax = { min: 0, max: 0 }; // Vous pouvez attribuer des valeurs par défaut ou effectuer une autre action appropriée en cas d'erreur.
+        }
+      }
+
+      paintProperties = getUpdatedPaintProperties(MinMax);
+      let trigger = false;
+    }
+  }
+
   function handleLayerClick(e) {
     // Set the variable with information about the clicked layer
     clickedLayerInfo = e;
 
     nom_commune = e.detail.features[0].properties.NAME_3;
-    console.log(nom_commune);
+
     detailsMandatCommune = findAllObjectsByAttribute(mandatData, 'COMMUNE', nom_commune);
 
-    anneeDebutMandat = uniqueValues(detailsMandatCommune, 'DEBUT MANDAT');
-    anneeFinMandat = uniqueValues(detailsMandatCommune, 'FIN MANDAT');
+    anneeDebutMandat = uniqueValuesInArrayOfObject(detailsMandatCommune, 'DEBUT MANDAT');
+    anneeFinMandat = uniqueValuesInArrayOfObject(detailsMandatCommune, 'FIN MANDAT');
 
     // Set hiddenBackdropFalse to false to show the Drawer
     hiddenBackdropFalse = false;
@@ -430,7 +468,7 @@
                 <div class="text-sm font-bold">{formattedValue(value)} XAF</div>
               {:else}
                 <!-- Afficher la valeur avec l'unité 'projet' -->
-                <div class="text-sm font-bold">{formattedValue(value)} projet</div>
+                <div class="text-sm font-bold">{formattedValue(value)} projets</div>
               {/if}
             </div>
           {/if}
