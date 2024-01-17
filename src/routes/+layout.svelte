@@ -283,13 +283,9 @@
 <Navbar id="myNavbar" let:hidden let:toggle>
   <NavHamburger onClick={toggleDrawer} btnClass="ml-3 lg:hidden" />
   <NavBrand href="/" class="lg:ml-64">
-    <img
-      src={'/logo-plateforme_little.jpg'}
-      alt="logo-plateforme"
-      class="mx-auto max-w-full h-10"
-    />
+    <img src={'/logo-Feicom.png'} alt="Feicom" class="mx-auto max-w-full h-10" />
     <span class="self-center whitespace-nowrap text-xl font-semibold dark:text-white pl-4">
-      Plateforme Urbaine Cameroun
+      Géoportail du FEICOM
     </span>
   </NavBrand>
   <NavHamburger on:click={toggle} />

@@ -54,11 +54,11 @@ export function getSumOf(data, key) {
     return result;
 }
 
-export function getSumPerYear(data, year) {
+export function getSumPerYear(data, year, scale) {
     const statistics = {};
 
     data.forEach(item => {
-        const region = item['Région'];
+        const region = item[scale];
         const itemYear = item['Année financement'];
 
         // Vérifier si l'année correspond à celle spécifiée en argument
@@ -73,7 +73,7 @@ export function getSumPerYear(data, year) {
 
     // Convertir l'objet de statistiques en un tableau d'objets avec la structure spécifiée
     const result = Object.entries(statistics).map(([region, count]) => ({
-        'Région': region,
+        [scale]: region,
         'value': count
     }));
 
@@ -83,11 +83,11 @@ export function getSumPerYear(data, year) {
 
 
 
-export function calculateTotalByRegion(data, year) {
+export function calculateTotalByRegion(data, year, scale) {
     const totalByRegion = {};
 
     for (const entry of data) {
-        const region = entry.Région;
+        const region = entry[scale];
         const totalString = typeof entry.TOTAL === 'string' ? entry.TOTAL.replace(/\D+/g, '') : '0'; // Supprimer les caractères non numériques
         const total = parseFloat(totalString);
 
@@ -102,7 +102,7 @@ export function calculateTotalByRegion(data, year) {
 
     // Convertir le totalByRegion en la structure souhaitée
     const result = Object.entries(totalByRegion).map(([key, value]) => ({
-        'Région': key,
+        [scale]: key,
         'value': value
     }));
 
@@ -208,6 +208,24 @@ export function rechercheMulticriteres(dataForMap, critères) {
         });
     });
 }
+
+export function rechercheMulticriteresPourFEICOM(dataForMap, nomDepartement, annee) {
+    // Utilisez la méthode filter pour filtrer les objets en utilisant les critères spécifiés
+    return dataForMap.filter(objet => {
+        const champDepartement = "Département";
+        const champAnnee = "Année financement";
+
+        // Vérifiez si le nom du département correspond
+        const correspondNomDepartement = objet[champDepartement] === nomDepartement;
+
+        // Vérifiez si l'année correspond
+        const correspondAnnee = objet[champAnnee] === annee;
+
+        // Retournez true si les deux critères correspondent
+        return correspondNomDepartement && correspondAnnee;
+    });
+}
+
 
 
 

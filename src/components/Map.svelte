@@ -22,7 +22,8 @@
     optionForLineChart,
     getSumPerYear,
     uniqueValuesInArrayOfObject,
-    rechercheMulticriteres
+    rechercheMulticriteres,
+    rechercheMulticriteresPourFEICOM
   } from '../../shared/utilitaire';
   import {
     Drawer,
@@ -82,7 +83,7 @@
   let anneeDebutMandat = [];
   let anneeFinMandat = [];
   let showICSP;
-
+  let currentZoom = 0;
   let showFinancement;
   let valueSliderLanding = 0; // Initialisez avec une valeur par défaut
   let valueSliderAccord = 0; // Initialisez avec une valeur par défaut
@@ -95,6 +96,11 @@
   let dataForLineChart = {};
   let optionsForChart = {};
   let optionsForChartLine = {};
+  let allProject = [];
+  let scale;
+  const zoomMaxRegion = 0;
+  const zoomMaxDep = 6;
+  const zoomMaxMun = 10;
   export let options;
   let paintProperties = {
     'fill-opacity': hoverStateFilter(0.7, 0.4),
@@ -171,22 +177,33 @@
     } else {
       dataForMap = dataArr2;
     }
+    if (currentZoom > zoomMaxDep) {
+      scale = 'Département';
+    } else {
+      scale = 'Région';
+    }
   });
 
   // Reactivité
   $: {
+    if (currentZoom > zoomMaxDep) {
+      scale = 'Département';
+    } else {
+      scale = 'Région';
+    }
     if (dataForMap.length > 0 && trigger == true) {
       if (showICSP) {
         dataForMap = icspData;
-        statisticsPerRegion = calculateTotalByRegion(dataForMap, valueSliderLanding);
+        statisticsPerRegion = calculateTotalByRegion(dataForMap, valueSliderLanding, scale);
 
         MinMax = findMinMax(statisticsPerRegion, 'value');
       } else {
         dataForMap = dataArr2;
 
         mapFilterIndicateur = rechercheMulticriteres(dataForMap, storeIndicateurForMap);
+        statisticsPerRegion = getSumPerYear(mapFilterIndicateur, valueSliderAccord, scale);
 
-        statisticsPerRegion = getSumPerYear(mapFilterIndicateur, valueSliderAccord);
+        console.log(statisticsPerRegion);
         if (statisticsPerRegion.length > 0) {
           MinMax = findMinMax(statisticsPerRegion, 'value');
         } else {
@@ -197,49 +214,57 @@
 
       paintProperties = getUpdatedPaintProperties(MinMax);
       let trigger = false;
+      console.log(currentZoom);
     }
   }
 
   function handleLayerClick(e) {
     // Set the variable with information about the clicked layer
-    clickedLayerInfo = e;
-
-    nom_commune = e.detail.features[0].properties.NAME_3;
-
-    detailsMandatCommune = findAllObjectsByAttribute(mandatData, 'COMMUNE', nom_commune);
-
-    anneeDebutMandat = uniqueValuesInArrayOfObject(detailsMandatCommune, 'DEBUT MANDAT');
-    anneeFinMandat = uniqueValuesInArrayOfObject(detailsMandatCommune, 'FIN MANDAT');
+    if (!showICSP && currentZoom <= zoomMaxMun && currentZoom >= zoomMaxDep) {
+      clickedLayerInfo = e;
+      nom_commune = e.detail.features[0].properties.NAME_2;
+      allProject = rechercheMulticriteresPourFEICOM(dataForMap, nom_commune, valueSliderAccord);
+      console.log(allProject);
+    } else {
+      clickedLayerInfo = e;
+      nom_commune = e.detail.features[0].properties.NAME_3;
+      detailsMandatCommune = findAllObjectsByAttribute(mandatData, 'COMMUNE', nom_commune);
+      anneeDebutMandat = uniqueValuesInArrayOfObject(detailsMandatCommune, 'DEBUT MANDAT');
+      anneeFinMandat = uniqueValuesInArrayOfObject(detailsMandatCommune, 'FIN MANDAT');
+    }
 
     // Set hiddenBackdropFalse to false to show the Drawer
     hiddenBackdropFalse = false;
   }
 
   function handleLayerClickOnRegion(e) {
-    console.log(e.detail.features?.[0]?.state.Région);
-    // Set the variable with information about the clicked layer
+    if (showICSP) {
+      // Set the variable with information about the clicked layer
 
-    // Set hiddenBackdropFalse to false to show the Drawer
-    // Exemple d'utilisation
-    const region = e.detail.features?.[0]?.state.Région;
-    const year = valueSliderLanding;
+      // Set hiddenBackdropFalse to false to show the Drawer
+      // Exemple d'utilisation
+      const region = e.detail.features?.[0]?.state.Région;
+      const year = valueSliderLanding;
 
-    dataForBarChart.data = transformDataForBarChart(dataForMap, region, year);
-    dataForLineChart.data = sumISPValues(dataForMap, region);
-    console.log(dataForLineChart);
-    dataForLineChart.geo = region;
+      dataForBarChart.data = transformDataForBarChart(dataForMap, region, year);
+      dataForLineChart.data = sumISPValues(dataForMap, region);
 
-    dataForBarChart.year = year;
-    dataForBarChart.geo = region;
+      dataForLineChart.geo = region;
 
-    // Calcul de la somme des valeurs "y"
-    dataForBarChart.sum = dataForBarChart.data.reduce(
-      (total, currentItem) => total + currentItem.y,
-      0
-    );
+      dataForBarChart.year = year;
+      dataForBarChart.geo = region;
 
-    hidden8 = false;
-    return dataForBarChart;
+      // Calcul de la somme des valeurs "y"
+      dataForBarChart.sum = dataForBarChart.data.reduce(
+        (total, currentItem) => total + currentItem.y,
+        0
+      );
+
+      hidden8 = false;
+      return dataForBarChart;
+    } else {
+      console.log(e);
+    }
   }
 
   function getUpdatedPaintProperties(MinMax) {
@@ -286,49 +311,61 @@
     </h5>
     <CloseButton on:click={() => (hiddenBackdropFalse = true)} class="mb-4 dark:text-white" />
   </div>
-  <h2 class="mb-6 text-center text-gray-900 text-lg dark:text-gray-400">
-    {clickedLayerInfo.detail.features[0].properties.NAME_3}
-  </h2>
-  {#each anneeDebutMandat as mandatDeb, i}
-    <div id="detailMandatForAMunicipality" class="grid grid-cols-1 gap-4 list-none">
-      <SidebarDropdownWrapper label="Mandat {mandatDeb} - {anneeFinMandat[i]}">
-        <svelte:fragment slot="icon">
-          <BadgeCheckOutline
-            class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-          />
-        </svelte:fragment>
-        {#each detailsMandatCommune as detailMandat}
-          {#if detailMandat['DEBUT MANDAT'] === mandatDeb && detailMandat['FIN MANDAT'] === anneeFinMandat[i]}
-            <Card padding="xl" size="md">
-              <Listgroup class="border-0 dark:!bg-transparent">
-                <div class="flex items-center space-x-4 rtl:space-x-reverse">
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-gray-900 truncate dark:text-white">
-                      {detailMandat.CONSEILLER || ''}
-                    </p>
-                    <p class="text-sm text-gray-900 truncate dark:text-white">
-                      {detailMandat.ROLE || ''}
-                    </p>
-                    <p class="text-sm text-gray-500 truncate dark:text-gray-400">
-                      {detailMandat.TELEPHONE || ''}
-                    </p>
-                    <p class="text-sm text-gray-500 truncate dark:text-gray-400">
-                      {detailMandat.EMAIL || ''}
-                    </p>
+
+  {#if currentZoom >= zoomMaxMun}
+    <h2 class="mb-6 text-center text-gray-900 text-lg dark:text-gray-400">
+      {clickedLayerInfo.detail.features[0].properties.NAME_3}
+    </h2>
+    {#each anneeDebutMandat as mandatDeb, i}
+      <div id="detailMandatForAMunicipality" class="grid grid-cols-1 gap-4 list-none">
+        <SidebarDropdownWrapper label="Mandat {mandatDeb} - {anneeFinMandat[i]}">
+          <svelte:fragment slot="icon">
+            <BadgeCheckOutline
+              class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+            />
+          </svelte:fragment>
+          {#each detailsMandatCommune as detailMandat}
+            {#if detailMandat['DEBUT MANDAT'] === mandatDeb && detailMandat['FIN MANDAT'] === anneeFinMandat[i]}
+              <Card padding="xl" size="md">
+                <Listgroup class="border-0 dark:!bg-transparent">
+                  <div class="flex items-center space-x-4 rtl:space-x-reverse">
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-gray-900 truncate dark:text-white">
+                        {detailMandat.CONSEILLER || ''}
+                      </p>
+                      <p class="text-sm text-gray-900 truncate dark:text-white">
+                        {detailMandat.ROLE || ''}
+                      </p>
+                      <p class="text-sm text-gray-500 truncate dark:text-gray-400">
+                        {detailMandat.TELEPHONE || ''}
+                      </p>
+                      <p class="text-sm text-gray-500 truncate dark:text-gray-400">
+                        {detailMandat.EMAIL || ''}
+                      </p>
+                    </div>
+                    <div
+                      class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white"
+                    >
+                      {detailMandat.PARTI || ''}
+                    </div>
                   </div>
-                  <div
-                    class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white"
-                  >
-                    {detailMandat.PARTI || ''}
-                  </div>
-                </div>
-              </Listgroup>
-            </Card>
-          {/if}
-        {/each}
-      </SidebarDropdownWrapper>
-    </div>
-  {/each}
+                </Listgroup>
+              </Card>
+            {/if}
+          {/each}
+        </SidebarDropdownWrapper>
+      </div>
+    {/each}
+  {:else if !showICSP && currentZoom <= zoomMaxMun && currentZoom >= zoomMaxDep}
+    <h2 class="mb-6 text-center text-gray-900 text-lg dark:text-gray-400">
+      {clickedLayerInfo.detail.features[0].properties.NAME_2}
+    </h2>
+    <ul>
+      {#each allProject as resultat}
+        <li>{resultat.Département} - Année {resultat.Intitulé_projet_initial}</li>
+      {/each}
+    </ul>
+  {/if}
 </Drawer>
 <Drawer
   placement="bottom"
@@ -434,6 +471,7 @@
     center={[12, 6]}
     zoom={5}
     attributionControl={false}
+    on:zoomend={({ detail: { map } }) => (currentZoom = map.getZoom())}
     let:map
     class="w-screen"
   >
@@ -447,7 +485,7 @@
         paint={paintProperties}
         manageHoverState
         sourceLayer={'regions'}
-        maxzoom={8}
+        maxzoom={zoomMaxRegion}
         on:click={handleLayerClickOnRegion}
       />
       <!-- on:click={(e) => console.log(e.detail.features?.[0]?.state)} -->
@@ -479,22 +517,20 @@
 
     <VectorTileSource url={'pmtiles://data/departements.pmtiles'} promoteId={'NAME_2'}>
       <FillLayer
-        paint={{
-          'fill-opacity': 0.6,
-          'fill-color': 'green'
-        }}
+        paint={paintProperties}
+        manageHoverState
         sourceLayer={'departements'}
-        minzoom={6}
-        maxzoom={8}
+        minzoom={zoomMaxDep}
+        on:click={handleLayerClick}
       />
       <LineLayer
         paint={{
           'line-opacity': 1,
           'line-width': 3,
-          'line-color': 'orange'
+          'line-color': 'white'
         }}
         sourceLayer={'departements'}
-        minzoom={6}
+        minzoom={zoomMaxDep}
       />
     </VectorTileSource>
 
@@ -506,7 +542,7 @@
         }}
         manageHoverState
         sourceLayer={'municipalites'}
-        minzoom={8}
+        minzoom={zoomMaxMun}
         }}
         on:click={handleLayerClick}
       />
@@ -516,7 +552,7 @@
           'line-color': 'white'
         }}
         sourceLayer={'municipalites'}
-        minzoom={8}
+        minzoom={zoomMaxMun}
       />
       <SymbolLayer
         paint={{
@@ -542,7 +578,7 @@
             240 // Taille du texte à 5 de zoom
           ]
         }}
-        minzoom={8}
+        minzoom={zoomMaxMun}
         sourceLayer={'municipalites'}
       />
     </VectorTileSource>
