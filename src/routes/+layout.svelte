@@ -113,9 +113,10 @@
       // Mettez à jour les propriétés individuelles du store
       dataStore.update((store) => {
         loadingData = false;
+        store.icspData = icspData;
         store.dataArr = dataArr;
         store.mandatData = mandatData;
-        store.icspData = icspData;
+
         return store;
       });
 
@@ -151,9 +152,6 @@
       rangeValue.set(valueSliderLanding);
       rangeValueAccord.set(valueSliderAccord);
 
-      // Sélectionnez l'élément du drawer par son identifiant
-      const drawer = document.getElementById('sidebar');
-      const navbar = document.getElementById('myNavbar'); // Remplacez 'navbar' par l'ID réel de votre navbar
       // Vérifiez si l'élément a été trouvé
       /*       if (drawer) {
         console.log(drawer);
@@ -164,7 +162,11 @@
       } else {
         console.error("L'élément avec l'ID 'sidebar' n'a pas été trouvé.");
       }
+
 */
+      // Sélectionnez l'élément du drawer par son identifiant
+      const drawer = document.getElementById('sidebar');
+      const navbar = document.getElementById('myNavbar'); // Remplacez 'navbar' par l'ID réel de votre navbar
 
       if (navbar) {
         navbarHeight = navbar.clientHeight;
@@ -278,31 +280,28 @@
 </script>
 
 <svelte:window bind:innerWidth={width} bind:innerHeight={height} />
-<!-- {#if showProgressBar}
-  <Progressbar progress={progressValue} size="h-4" labelInside />
-{/if} -->
-{#if !loadingData}
-  <Navbar id="myNavbar" let:hidden let:toggle>
-    <NavHamburger onClick={toggleDrawer} btnClass="ml-3 lg:hidden" />
-    <NavBrand href="/" class="lg:ml-64">
-      <img
-        src={'/logo-plateforme_little.jpg'}
-        alt="logo-plateforme"
-        class="mx-auto max-w-full h-10"
-      />
-      <span class="self-center whitespace-nowrap text-xl font-semibold dark:text-white pl-4">
-        Plateforme Urbaine Cameroun
-      </span>
-    </NavBrand>
-    <NavHamburger on:click={toggle} />
-    <!--   <NavUl {hidden} {divClass} {ulClass}>
+<Navbar id="myNavbar" let:hidden let:toggle>
+  <NavHamburger onClick={toggleDrawer} btnClass="ml-3 lg:hidden" />
+  <NavBrand href="/" class="lg:ml-64">
+    <img
+      src={'/logo-plateforme_little.jpg'}
+      alt="logo-plateforme"
+      class="mx-auto max-w-full h-10"
+    />
+    <span class="self-center whitespace-nowrap text-xl font-semibold dark:text-white pl-4">
+      Plateforme Urbaine Cameroun
+    </span>
+  </NavBrand>
+  <NavHamburger on:click={toggle} />
+  <!--   <NavUl {hidden} {divClass} {ulClass}>
     <NavLi href="/">Home</NavLi>
     <NavLi href="/pages/about">About</NavLi>
     <NavLi href="https://github.com/shinokada/flowbite-sveltekit-responsive-sidebar-layout"
       >GitHub</NavLi
     >
   </NavUl> -->
-  </Navbar>
+</Navbar>
+{#if !loadingData}
   <Drawer
     transitionType="fly"
     {backdrop}

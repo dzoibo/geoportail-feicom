@@ -332,7 +332,7 @@
 </Drawer>
 <Drawer
   placement="bottom"
-  class="lg:ml-[20rem] w-auto h-2/3 lg:h-1/3 xl:h-1/3 "
+  class="lg:ml-[20rem] w-auto"
   transitionType="fly"
   transitionParams={transitionParamsBottom}
   bind:hidden={hidden8}
