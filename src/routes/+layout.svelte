@@ -11,7 +11,8 @@
     rangeValue,
     buttonICSP,
     rangeValueAccord,
-    storeIndicateur5
+    storeIndicateur5,
+    storeIndicateur
   } from '../../shared/store.js';
   import { fetchData } from '../../shared/dataService.js';
 
@@ -72,7 +73,7 @@
   let valeursSecteur: any[] = [];
   let valeursBeneficiaire: any[] = [];
   let valeursSourcefinancement: any[] = [];
-  let array: any[] = [];
+  let arrayAllIndicateurs: any[] = [];
   let loadingData = true;
   let drawerWidth = 0;
   let activeUrl;
@@ -88,6 +89,7 @@
   };
   let valueSliderLanding = 0;
   let valueSliderAccord = 0;
+  let update = true;
   let checkedOptions: { [key: string]: boolean } = {};
   let dropdownSelectionIndicateur5 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur4 = { indicateur: '', data: [] };
@@ -95,6 +97,7 @@
   let dropdownSelectionIndicateur2 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur1 = { indicateur: '', data: [] };
   let dropdownSelectionsAll: any[] = [];
+
   let indicateur5 = 'Source_financement';
   let indicateur1 = "Instance d'attribution";
   let indicateur2 = 'Secteurs';
@@ -188,6 +191,64 @@
     drawerHidden = false;
   };
 
+  $: if (width >= breakPoint) {
+    drawerHidden = false;
+    activateClickOutside = false;
+  } else {
+    drawerHidden = true;
+    activateClickOutside = true;
+  }
+
+  function toggleCheckbox(checkedOptions: { checked: boolean }, array, unique) {
+    checkedOptions.checked = !checkedOptions.checked;
+
+    updateSelectedWords(array, unique); // Mettre à jour les mots sélectionnés
+  }
+
+  function updateSelectedWords(array, unique) {
+    update = true;
+    //@ts-ignore
+    setTimeout(() => {
+      //Todo Automatisation pour prendre toutes les données des listes déroulantes.
+      array.data = unique.filter((unique) => unique.checked).map((unique) => unique.key);
+      console.log(array);
+
+      // Vérifiez si un objet avec le même indicateur existe déjà dans arrayAllIndicateurs
+      const existingIndicateurIndex = arrayAllIndicateurs.findIndex(
+        (item) => item.indicateur === array.indicateur
+      );
+
+      if (existingIndicateurIndex !== -1) {
+        // Mettez à jour 'data' de l'objet existant
+        arrayAllIndicateurs[existingIndicateurIndex].data = array.data;
+      } else {
+        // Ajoutez un nouvel objet à arrayAllIndicateurs
+        arrayAllIndicateurs.push(array);
+      }
+
+      update = false;
+    }, 10);
+
+    console.log(arrayAllIndicateurs);
+    return array;
+  }
+
+  function closeDiv(
+    wordToRemove: any,
+    array: { indicateur: string; data: never[] } | undefined,
+    unique
+  ) {
+    // Trouvez l'objet correspondant dans valeursSourcefinancement
+    const word = unique.find((value) => value.key === wordToRemove);
+
+    if (word) {
+      // Mettez à jour la propriété checked de l'objet à false
+      word.checked = false;
+    }
+
+    updateSelectedWords(array, unique); // Mettre à jour les mots sélectionnés
+  }
+
   $: {
     activeUrl = $page.url.pathname;
     let spanClass = 'pl-2 self-center text-md text-gray-900 dark:text-white';
@@ -197,52 +258,13 @@
     rangeValue.set(valueSliderLanding);
     rangeValueAccord.set(valueSliderAccord);
 
-    storeIndicateur5.update((items) => {
+    storeIndicateur.update((items) => {
       //@ts-ignore
-      items = dropdownSelectionIndicateur5;
+      items = arrayAllIndicateurs;
       return items;
     });
-  }
 
-  $: if (width >= breakPoint) {
-    drawerHidden = false;
-    activateClickOutside = false;
-  } else {
-    drawerHidden = true;
-    activateClickOutside = true;
-  }
-
-  function toggleCheckbox(checkedOptions: { checked: boolean }, array) {
-    checkedOptions.checked = !checkedOptions.checked;
-
-    updateSelectedWords(array); // Mettre à jour les mots sélectionnés
-  }
-
-  function updateSelectedWords(array) {
-    //@ts-ignore
-
-    //Todo Automatisation pour prendre toutes les données des listes déroulantes.
-    dropdownSelectionIndicateur5.data = valeursSourcefinancement
-      .filter((financement) => financement.checked)
-      .map((financement) => financement.key);
-
-    console.log(array);
-
-    return array;
-  }
-
-  function closeDiv(wordToRemove: any, array: { indicateur: string; data: never[] } | undefined) {
-    // Trouvez l'objet correspondant dans valeursSourcefinancement
-    const financement = valeursSourcefinancement.find(
-      (financement) => financement.key === wordToRemove
-    );
-
-    if (financement) {
-      // Mettez à jour la propriété checked de l'objet à false
-      financement.checked = false;
-    }
-
-    updateSelectedWords(array); // Mettre à jour les mots sélectionnés
+    update = update;
   }
 </script>
 
@@ -337,14 +359,39 @@
                   <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                     <Checkbox
                       checked={beneficiaires.checked}
-                      on:change={() => toggleCheckbox(beneficiaires)}>{beneficiaires.key}</Checkbox
+                      on:change={() =>
+                        toggleCheckbox(
+                          beneficiaires,
+                          dropdownSelectionIndicateur4,
+                          valeursBeneficiaire
+                        )}>{beneficiaires.key}</Checkbox
                     >
                   </li>
                 {/each}
               </Dropdown>
+              <div class="px-2 pt-1 pb-2">
+                {#if arrayAllIndicateurs}
+                  {#each arrayAllIndicateurs as indicateur}
+                    {#if indicateur.indicateur === dropdownSelectionIndicateur4.indicateur}
+                      {#each indicateur.data as word (word)}
+                        <div
+                          class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-green-400 rounded-lg"
+                        >
+                          {word}
+                          <CloseButton
+                            on:click={() =>
+                              closeDiv(word, dropdownSelectionIndicateur4, valeursBeneficiaire)}
+                            class="absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                          />
+                        </div>
+                      {/each}
+                    {/if}
+                  {/each}
+                {/if}
+              </div>
             </SidebarDropdownWrapper>
 
-            <SidebarDropdownWrapper label="indicateur1">
+            <SidebarDropdownWrapper label="Instance">
               <svelte:fragment slot="icon">
                 <LandmarkOutline
                   class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
@@ -360,11 +407,33 @@
                   <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                     <Checkbox
                       checked={instances.checked}
-                      on:change={() => toggleCheckbox(instances)}>{instances.key}</Checkbox
+                      on:change={() =>
+                        toggleCheckbox(instances, dropdownSelectionIndicateur1, valeursAttribution)}
+                      >{instances.key}</Checkbox
                     >
                   </li>
                 {/each}
               </Dropdown>
+              <div class="px-2 pt-1 pb-2">
+                {#if arrayAllIndicateurs}
+                  {#each arrayAllIndicateurs as indicateur}
+                    {#if indicateur.indicateur === dropdownSelectionIndicateur1.indicateur}
+                      {#each indicateur.data as word (word)}
+                        <div
+                          class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-green-400 rounded-lg"
+                        >
+                          {word}
+                          <CloseButton
+                            on:click={() =>
+                              closeDiv(word, dropdownSelectionIndicateur1, valeursAttribution)}
+                            class="absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                          />
+                        </div>
+                      {/each}
+                    {/if}
+                  {/each}
+                {/if}
+              </div>
             </SidebarDropdownWrapper>
 
             <SidebarDropdownWrapper label="Domaine">
@@ -381,12 +450,35 @@
               <Dropdown class="w-48 p-3 overflow-y-auto  space-y-1 text-sm">
                 {#each valeursDomaine as domaines}
                   <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                    <Checkbox checked={domaines.checked} on:change={() => toggleCheckbox(domaines)}
+                    <Checkbox
+                      checked={domaines.checked}
+                      on:change={() =>
+                        toggleCheckbox(domaines, dropdownSelectionIndicateur3, valeursDomaine)}
                       >{domaines.key}</Checkbox
                     >
                   </li>
                 {/each}
               </Dropdown>
+              <div class="px-2 pt-1 pb-2">
+                {#if arrayAllIndicateurs}
+                  {#each arrayAllIndicateurs as indicateur}
+                    {#if indicateur.indicateur === dropdownSelectionIndicateur3.indicateur}
+                      {#each indicateur.data as word (word)}
+                        <div
+                          class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-green-400 rounded-lg"
+                        >
+                          {word}
+                          <CloseButton
+                            on:click={() =>
+                              closeDiv(word, dropdownSelectionIndicateur3, valeursDomaine)}
+                            class="absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                          />
+                        </div>
+                      {/each}
+                    {/if}
+                  {/each}
+                {/if}
+              </div>
             </SidebarDropdownWrapper>
 
             <SidebarDropdownWrapper label="Secteur">
@@ -403,24 +495,34 @@
               <Dropdown class="w-48 p-3 overflow-y-auto  space-y-1 text-sm">
                 {#each valeursSecteur as secteurs}
                   <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                    <Checkbox checked={secteurs.checked} on:change={() => toggleCheckbox(secteurs)}
+                    <Checkbox
+                      checked={secteurs.checked}
+                      on:change={() =>
+                        toggleCheckbox(secteurs, dropdownSelectionIndicateur2, valeursSecteur)}
                       >{secteurs.key}</Checkbox
                     >
                   </li>
                 {/each}
               </Dropdown>
               <div class="px-2 pt-1 pb-2">
-                {#each dropdownSelectionIndicateur2.data as word (word)}
-                  <div
-                    class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-white bg-green-600 rounded-lg"
-                  >
-                    {word}
-                    <CloseButton
-                      on:click={() => closeDiv(word)}
-                      class="absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
-                    />
-                  </div>
-                {/each}
+                {#if arrayAllIndicateurs}
+                  {#each arrayAllIndicateurs as indicateur}
+                    {#if indicateur.indicateur === dropdownSelectionIndicateur2.indicateur}
+                      {#each indicateur.data as word (word)}
+                        <div
+                          class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-green-400 rounded-lg"
+                        >
+                          {word}
+                          <CloseButton
+                            on:click={() =>
+                              closeDiv(word, dropdownSelectionIndicateur2, valeursSecteur)}
+                            class="absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                          />
+                        </div>
+                      {/each}
+                    {/if}
+                  {/each}
+                {/if}
               </div>
             </SidebarDropdownWrapper>
 
@@ -441,24 +543,39 @@
                   <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                     <Checkbox
                       checked={financement.checked}
-                      on:change={() => toggleCheckbox(financement, dropdownSelectionIndicateur5)}
-                      >{financement.key}</Checkbox
+                      on:change={() =>
+                        toggleCheckbox(
+                          financement,
+                          dropdownSelectionIndicateur5,
+                          valeursSourcefinancement
+                        )}>{financement.key}</Checkbox
                     >
                   </li>
                 {/each}
               </Dropdown>
               <div class="px-2 pt-1 pb-2">
-                {#each dropdownSelectionIndicateur5.data as word (word)}
-                  <div
-                    class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-white bg-green-600 rounded-lg"
-                  >
-                    {word}
-                    <CloseButton
-                      on:click={() => closeDiv(word, dropdownSelectionIndicateur5)}
-                      class="absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
-                    />
-                  </div>
-                {/each}
+                {#if arrayAllIndicateurs}
+                  {#each arrayAllIndicateurs as indicateur}
+                    {#if indicateur.indicateur === dropdownSelectionIndicateur5.indicateur}
+                      {#each indicateur.data as word (word)}
+                        <div
+                          class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-green-400 rounded-lg"
+                        >
+                          {word}
+                          <CloseButton
+                            on:click={() =>
+                              closeDiv(
+                                word,
+                                dropdownSelectionIndicateur5,
+                                valeursSourcefinancement
+                              )}
+                            class="absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                          />
+                        </div>
+                      {/each}
+                    {/if}
+                  {/each}
+                {/if}
               </div>
             </SidebarDropdownWrapper>
             <h5

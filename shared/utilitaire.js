@@ -188,17 +188,25 @@ export function formattedValue(value) {
     return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
 
-export function filtrerObjetsParNoms(dataForMap, nomsFiltres, champ) {
-    if (nomsFiltres.length === 0) {
-        // Si l'array nomsFiltres est vide, retournez simplement l'array original
+export function rechercheMulticriteres(dataForMap, critères) {
+    if (critères.length === 0) {
+        // Si le tableau de critères est vide, retournez simplement l'array original
         return dataForMap;
     }
 
-    // Créez un ensemble (Set) pour une recherche rapide des noms
-    const nomsSet = new Set(nomsFiltres);
+    // Utilisez la méthode filter pour filtrer les objets en utilisant les critères spécifiés
+    return dataForMap.filter(objet => {
+        return critères.every(critère => {
+            const champ = critère.indicateur;
+            const valeurs = critère.data;
 
-    // Utilisez la méthode filter pour filtrer les objets en utilisant le champ spécifié
-    return dataForMap.filter(objet => nomsSet.has(objet[champ]));
+            if (valeurs.length === 0) {
+                return true; // Si aucune valeur n'est spécifiée, passez à la prochaine condition
+            }
+
+            return valeurs.includes(objet[champ]);
+        });
+    });
 }
 
 

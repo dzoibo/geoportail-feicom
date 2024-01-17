@@ -5,7 +5,8 @@
     rangeValue,
     buttonICSP,
     rangeValueAccord,
-    storeIndicateur5
+    storeIndicateur5,
+    storeIndicateur
   } from '../../shared/store';
   import Map from '../components/Map.svelte';
   import {
@@ -21,7 +22,7 @@
     optionForLineChart,
     getSumPerYear,
     uniqueValuesInArrayOfObject,
-    filtrerObjetsParNoms
+    rechercheMulticriteres
   } from '../../shared/utilitaire';
   import {
     Drawer,
@@ -86,7 +87,9 @@
   let valueSliderLanding = 0; // Initialisez avec une valeur par défaut
   let valueSliderAccord = 0; // Initialisez avec une valeur par défaut
   let storeIndicateur5ForMap = {};
+  let storeIndicateurForMap = {};
   let mapFilterIndicateur5 = {};
+  let mapFilterIndicateur = {};
   let hidden8 = true;
   let dataForBarChart = {};
   let dataForLineChart = {};
@@ -149,6 +152,11 @@
     });
 
     // Abonnez-vous au store pour recevoir les mises à jour
+    storeIndicateur.subscribe(($storeIndicateur) => {
+      storeIndicateurForMap = $storeIndicateur;
+    });
+
+    // Abonnez-vous au store pour recevoir les mises à jour
     rangeValueAccord.subscribe(($rangeValueAccord) => {
       valueSliderAccord = $rangeValueAccord;
     });
@@ -168,7 +176,6 @@
   // Reactivité
   $: {
     if (dataForMap.length > 0 && trigger == true) {
-      console.log(storeIndicateur5ForMap);
       if (showICSP) {
         dataForMap = icspData;
         statisticsPerRegion = calculateTotalByRegion(dataForMap, valueSliderLanding);
@@ -177,17 +184,11 @@
       } else {
         dataForMap = dataArr2;
 
-        mapFilterIndicateur5 = filtrerObjetsParNoms(
-          dataForMap,
-          storeIndicateur5ForMap.data,
-          storeIndicateur5ForMap.indicateur
-        );
+        mapFilterIndicateur = rechercheMulticriteres(dataForMap, storeIndicateurForMap);
 
-        console.log(mapFilterIndicateur5);
-        statisticsPerRegion = getSumPerYear(mapFilterIndicateur5, valueSliderAccord);
+        statisticsPerRegion = getSumPerYear(mapFilterIndicateur, valueSliderAccord);
         if (statisticsPerRegion.length > 0) {
           MinMax = findMinMax(statisticsPerRegion, 'value');
-          console.log(MinMax);
         } else {
           // Gérer le cas où statisticsPerRegion est vide
           MinMax = { min: 0, max: 0 }; // Vous pouvez attribuer des valeurs par défaut ou effectuer une autre action appropriée en cas d'erreur.
