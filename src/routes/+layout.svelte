@@ -35,7 +35,8 @@
     ButtonGroup,
     Range,
     Radio,
-    Label
+    Label,
+    Progressbar
   } from 'flowbite-svelte';
   import {
     FolderOutline,
@@ -47,9 +48,6 @@
   } from 'flowbite-svelte-icons';
   import { Cog } from 'svelte-heros-v2';
   import { sineIn } from 'svelte/easing';
-
-  //Declare the dispatch
-  const dispatch = createEventDispatcher();
 
   let transitionParams = {
     x: -320,
@@ -90,6 +88,10 @@
   let valueSliderLanding = 0;
   let valueSliderAccord = 0;
   let update = true;
+
+  let showProgressBar = true; // Définissez la variable pour afficher la barre de progression
+  let progressValue = 0; // Initialisez la valeur de la progression
+
   let checkedOptions: { [key: string]: boolean } = {};
   let dropdownSelectionIndicateur5 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur4 = { indicateur: '', data: [] };
@@ -110,17 +112,19 @@
 
       // Mettez à jour les propriétés individuelles du store
       dataStore.update((store) => {
+        loadingData = false;
         store.dataArr = dataArr;
         store.mandatData = mandatData;
         store.icspData = icspData;
-
         return store;
       });
 
       valeursAttribution = uniqueValues(dataArr, indicateur1);
       valeursSecteur = uniqueValues(dataArr, indicateur2);
+
       valeursDomaine = uniqueValues(dataArr, indicateur3);
       valeursBeneficiaire = uniqueValues(dataArr, indicateur4);
+
       valeursSourcefinancement = uniqueValues(dataArr, indicateur5);
 
       dropdownSelectionIndicateur5.indicateur = indicateur5;
@@ -137,8 +141,6 @@
         dropdownSelectionIndicateur2,
         dropdownSelectionIndicateur1
       );
-
-      loadingData = false;
 
       minMaxYear = findMinMax(icspData, 'ANNEE');
       minMaxYearAccord = findMinMax(dataArr, 'Année financement');
@@ -170,6 +172,8 @@
     } catch (error) {
       console.error(error);
     }
+
+    loadData();
   });
 
   onMount(() => {
@@ -266,31 +270,39 @@
 
     update = update;
   }
+  async function loadData() {
+    // Téléchargez votre data ici
+    // Une fois la data téléchargée, masquez la barre de progression
+    showProgressBar = false;
+  }
 </script>
 
 <svelte:window bind:innerWidth={width} bind:innerHeight={height} />
-<Navbar id="myNavbar" let:hidden let:toggle>
-  <NavHamburger onClick={toggleDrawer} btnClass="ml-3 lg:hidden" />
-  <NavBrand href="/" class="lg:ml-64">
-    <img
-      src={'/logo-plateforme_little.jpg'}
-      alt="logo-plateforme"
-      class="mx-auto max-w-full h-10"
-    />
-    <span class="self-center whitespace-nowrap text-xl font-semibold dark:text-white pl-4">
-      Plateforme Urbaine Cameroun
-    </span>
-  </NavBrand>
-  <NavHamburger on:click={toggle} />
-  <!--   <NavUl {hidden} {divClass} {ulClass}>
+<!-- {#if showProgressBar}
+  <Progressbar progress={progressValue} size="h-4" labelInside />
+{/if} -->
+{#if !loadingData}
+  <Navbar id="myNavbar" let:hidden let:toggle>
+    <NavHamburger onClick={toggleDrawer} btnClass="ml-3 lg:hidden" />
+    <NavBrand href="/" class="lg:ml-64">
+      <img
+        src={'/logo-plateforme_little.jpg'}
+        alt="logo-plateforme"
+        class="mx-auto max-w-full h-10"
+      />
+      <span class="self-center whitespace-nowrap text-xl font-semibold dark:text-white pl-4">
+        Plateforme Urbaine Cameroun
+      </span>
+    </NavBrand>
+    <NavHamburger on:click={toggle} />
+    <!--   <NavUl {hidden} {divClass} {ulClass}>
     <NavLi href="/">Home</NavLi>
     <NavLi href="/pages/about">About</NavLi>
     <NavLi href="https://github.com/shinokada/flowbite-sveltekit-responsive-sidebar-layout"
       >GitHub</NavLi
     >
   </NavUl> -->
-</Navbar>
-{#if !loadingData}
+  </Navbar>
   <Drawer
     transitionType="fly"
     {backdrop}
