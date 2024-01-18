@@ -137,7 +137,7 @@ export function sumISPValues(data, region) {
     const averages = {};
 
     for (const entry of data) {
-        if (entry.Région === region) {
+        if (entry.id_REGION === region) {
             const year = entry.ANNEE;
             const total = parseFloat(typeof entry.TOTAL === 'string' ? entry.TOTAL.replace(/\D+/g, '') : '0');
 
@@ -160,7 +160,7 @@ export function sumISPValues(data, region) {
 
 export function transformDataForBarChart(data, region, year) {
     // Filtrer les données pour la région et l'année spécifiées
-    const filteredData = data.filter((entry) => entry.Région === region && entry.ANNEE === year);
+    const filteredData = data.filter((entry) => entry.id_REGION === region && entry.ANNEE === year);
 
     if (filteredData.length === 0) {
         // Aucune donnée correspondante trouvée
@@ -209,22 +209,36 @@ export function rechercheMulticriteres(dataForMap, critères) {
     });
 }
 
-export function rechercheMulticriteresPourFEICOM(dataForMap, nomDepartement, annee) {
-    // Utilisez la méthode filter pour filtrer les objets en utilisant les critères spécifiés
+export function rechercheMulticriteresPourFEICOM(dataForMap, id_couche, scale, annee, dataAllIndicateur) {
     return dataForMap.filter(objet => {
-        const champDepartement = "Département";
+        const champDepartement = scale;
         const champAnnee = "Année financement";
 
         // Vérifiez si le nom du département correspond
-        const correspondNomDepartement = objet[champDepartement] === nomDepartement;
+        const correspondNomDepartement = objet[champDepartement] === id_couche;
 
         // Vérifiez si l'année correspond
         const correspondAnnee = objet[champAnnee] === annee;
 
-        // Retournez true si les deux critères correspondent
-        return correspondNomDepartement && correspondAnnee;
+        // Vérifiez les critères de l'array dataAllIndicateur
+        const critereIndicateur = dataAllIndicateur.every(indicateur => {
+            const champIndicateur = indicateur.indicateur;
+            const valeursIndicateur = indicateur.data;
+
+            // Vérifiez si l'objet a la propriété correspondant à l'indicateur
+            if (!objet.hasOwnProperty(champIndicateur)) {
+                return false;
+            }
+
+            // Vérifiez si la valeur de l'objet correspond à l'une des valeurs de l'indicateur
+            return valeursIndicateur.includes(objet[champIndicateur]);
+        });
+
+        // Retournez true si tous les critères correspondent
+        return correspondNomDepartement && correspondAnnee && critereIndicateur;
     });
 }
+
 
 
 

@@ -3,15 +3,15 @@
 import Papa from "papaparse";
 
 export async function fetchData() {
-    const file =
-        "https://docs.google.com/spreadsheets/d/e/2PACX-1vSGDmlwNMcXwsL8qD4yHrLdmZFvBTYhsguNNFedK7ysi3Tf_jO7vgfr9MccVzJYn-N8t41nBuLiqGCy/pub?gid=1430480319&single=true&output=tsv";
+    const feicom =
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiCvFI_dzAV6jTiAnRq6ikqaeteoXMtZXjpHyk3MfVSYUt3jocJA38mxfdsSYatw/pub?gid=606824651&single=true&output=tsv";
     const mandat =
-        "https://docs.google.com/spreadsheets/d/e/2PACX-1vSGDmlwNMcXwsL8qD4yHrLdmZFvBTYhsguNNFedK7ysi3Tf_jO7vgfr9MccVzJYn-N8t41nBuLiqGCy/pub?gid=1420528268&single=true&output=tsv";
-    const icsp = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSGDmlwNMcXwsL8qD4yHrLdmZFvBTYhsguNNFedK7ysi3Tf_jO7vgfr9MccVzJYn-N8t41nBuLiqGCy/pub?gid=2051137431&single=true&output=tsv";
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiCvFI_dzAV6jTiAnRq6ikqaeteoXMtZXjpHyk3MfVSYUt3jocJA38mxfdsSYatw/pub?gid=647677433&single=true&output=tsv";
+    const icsp = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiCvFI_dzAV6jTiAnRq6ikqaeteoXMtZXjpHyk3MfVSYUt3jocJA38mxfdsSYatw/pub?gid=962052684&single=true&output=tsv";
 
     const [mandatData, dataArr, icspData] = await Promise.all([
         fetchDataFromSheet(mandat),
-        fetchDataFromSheet(file),
+        fetchDataFromSheet(feicom),
         fetchDataFromSheet(icsp),
     ]);
 
