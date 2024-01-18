@@ -33,14 +33,18 @@
     Card,
     Listgroup,
     Tooltip,
-    Chart
+    Chart,
+    Tabs,
+    TabItem
   } from 'flowbite-svelte';
   import {
     InfoCircleSolid,
     ArrowRightOutline,
     BadgeCheckOutline,
     DollarOutline,
-    ChartOutline
+    ChartOutline,
+    LandmarkOutline,
+    GridSolid
   } from 'flowbite-svelte-icons';
   import { sineIn } from 'svelte/easing';
   import {
@@ -222,13 +226,12 @@
 
       paintProperties = getUpdatedPaintProperties(MinMax);
       let trigger = false;
-      console.log(statisticsPerRegion);
     }
   }
 
   function handleLayerClick(e) {
     // Set the variable with information about the clicked layer
-    if (!showICSP && currentZoom <= zoomMaxMun && currentZoom >= zoomMaxDep) {
+    if (!showICSP) {
       clickedLayerInfo = e;
       nom_commune = e.detail.features[0].properties['ref:COG'];
       allProject = rechercheMulticriteresPourFEICOM(
@@ -238,19 +241,16 @@
         valueSliderAccord,
         storeIndicateurForMap
       );
-    } else {
+    }
+    if (currentZoom >= zoomMaxMun) {
       clickedLayerInfo = e;
       nom_commune = e.detail.features[0].properties['ref:COG'];
-      console.log(mandatData);
       detailsMandatCommune = findAllObjectsByAttribute(mandatData, 'id_COMMUNE', nom_commune);
       anneeDebutMandat = uniqueValuesInArrayOfObject(detailsMandatCommune, 'DEBUT MANDAT');
       anneeFinMandat = uniqueValuesInArrayOfObject(detailsMandatCommune, 'FIN MANDAT');
-      console.log(detailsMandatCommune);
     }
-
     // Set hiddenBackdropFalse to false to show the Drawer
     hiddenBackdropFalse = false;
-
     hidden8 = true;
   }
 
@@ -282,7 +282,7 @@
     } else {
       if (!showICSP && currentZoom <= zoomMaxDep) {
         clickedLayerInfo = e;
-        console.log(storeIndicateurForMap);
+
         nom_commune = e.detail.features[0].properties['ref:COG'];
         allProject = rechercheMulticriteresPourFEICOM(
           dataForMap,
@@ -331,98 +331,94 @@
   transitionParams={transitionParamsRight}
   bind:hidden={hiddenBackdropFalse}
   id="sidebar6"
+  class="flex-nowrap"
 >
-  <div class="flex items-center">
+  <Tabs style="underline">
     {#if currentZoom >= zoomMaxMun}
-      <h5
-        id="drawer-label"
-        class="inline-flex items-center mb-4 text-base font-semibold text-gray-500 dark:text-gray-400"
-      >
-        <InfoCircleSolid class="w-4 h-4 me-2.5" />Historique municipal
-      </h5>
-    {:else}
-      <h5
-        id="drawer-label"
-        class="inline-flex items-center mb-4 text-base font-semibold text-gray-500 dark:text-gray-400"
-      >
-        <InfoCircleSolid class="w-4 h-4 me-2.5" />Liste des projets
-      </h5>
+      <TabItem>
+        <div slot="title" class="flex items-center gap-1">
+          <LandmarkOutline size="sm" />
+          Historique municipal
+        </div>
+        <h2 class="mb-6 text-center text-gray-900 text-lg dark:text-gray-400">
+          {clickedLayerInfo.detail.features[0].properties.name}
+        </h2>
+        {#each anneeDebutMandat as mandatDeb, i}
+          <div id="detailMandatForAMunicipality" class="grid grid-cols-1 gap-4 list-none">
+            <SidebarDropdownWrapper label="Mandat {mandatDeb} - {anneeFinMandat[i]}">
+              <svelte:fragment slot="icon">
+                <BadgeCheckOutline
+                  class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                />
+              </svelte:fragment>
+              {#each detailsMandatCommune as detailMandat}
+                {#if detailMandat['DEBUT MANDAT'] === mandatDeb && detailMandat['FIN MANDAT'] === anneeFinMandat[i]}
+                  <Card padding="xl" size="md">
+                    <Listgroup class="border-0 dark:!bg-transparent">
+                      <div class="flex items-center space-x-4 rtl:space-x-reverse">
+                        <div class="flex-1 min-w-0">
+                          <p class="text-sm font-medium text-gray-900 truncate dark:text-white">
+                            {detailMandat.CONSEILLER || ''}
+                          </p>
+                          <p class="text-sm text-gray-900 truncate dark:text-white">
+                            {detailMandat.ROLE || ''}
+                          </p>
+                          <p class="text-sm text-gray-500 truncate dark:text-gray-400">
+                            {detailMandat.TELEPHONE || ''}
+                          </p>
+                          <p class="text-sm text-gray-500 truncate dark:text-gray-400">
+                            {detailMandat.EMAIL || ''}
+                          </p>
+                        </div>
+                        <div
+                          class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white"
+                        >
+                          {detailMandat.PARTI || ''}
+                        </div>
+                      </div>
+                    </Listgroup>
+                  </Card>
+                {/if}
+              {/each}
+            </SidebarDropdownWrapper>
+          </div>
+        {/each}
+      </TabItem>
     {/if}
-
-    <CloseButton on:click={() => (hiddenBackdropFalse = true)} class="mb-4 dark:text-white" />
-  </div>
-
-  {#if currentZoom >= zoomMaxMun}
-    <h2 class="mb-6 text-center text-gray-900 text-lg dark:text-gray-400">
-      {clickedLayerInfo.detail.features[0].properties.name}
-    </h2>
-    {#each anneeDebutMandat as mandatDeb, i}
-      <div id="detailMandatForAMunicipality" class="grid grid-cols-1 gap-4 list-none">
-        <SidebarDropdownWrapper label="Mandat {mandatDeb} - {anneeFinMandat[i]}">
-          <svelte:fragment slot="icon">
-            <BadgeCheckOutline
-              class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-            />
-          </svelte:fragment>
-          {#each detailsMandatCommune as detailMandat}
-            {#if detailMandat['DEBUT MANDAT'] === mandatDeb && detailMandat['FIN MANDAT'] === anneeFinMandat[i]}
-              <Card padding="xl" size="md">
-                <Listgroup class="border-0 dark:!bg-transparent">
-                  <div class="flex items-center space-x-4 rtl:space-x-reverse">
-                    <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium text-gray-900 truncate dark:text-white">
-                        {detailMandat.CONSEILLER || ''}
-                      </p>
-                      <p class="text-sm text-gray-900 truncate dark:text-white">
-                        {detailMandat.ROLE || ''}
-                      </p>
-                      <p class="text-sm text-gray-500 truncate dark:text-gray-400">
-                        {detailMandat.TELEPHONE || ''}
-                      </p>
-                      <p class="text-sm text-gray-500 truncate dark:text-gray-400">
-                        {detailMandat.EMAIL || ''}
-                      </p>
-                    </div>
-                    <div
-                      class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white"
-                    >
-                      {detailMandat.PARTI || ''}
-                    </div>
-                  </div>
-                </Listgroup>
-              </Card>
-            {/if}
-          {/each}
-        </SidebarDropdownWrapper>
+    <TabItem open>
+      <div slot="title" class="flex items-center gap-1">
+        <GridSolid size="sm" />
+        Liste des projets
       </div>
-    {/each}
-  {:else if !showICSP && currentZoom <= zoomMaxMun}
-    <h2 class="mb-6 text-center text-gray-900 text-lg dark:text-gray-400">
-      {clickedLayerInfo.detail.features[0].properties.name}
-    </h2>
-    <ul>
-      {#each allProject as resultat}
-        <Card padding="xl" size="md" class="mb-6">
-          <Listgroup class="border-0 dark:!bg-transparent">
-            <div class="flex items-center space-x-4 rtl:space-x-reverse">
-              <div class="flex-1 min-w-0">
-                {#each Object.keys(resultat) as key}
-                  {#if resultat[key]}
-                    <div>
-                      <span class="text-sm font-medium text-gray-900 dark:text-white">
-                        {key} :
-                      </span>
-                      <span text-sm font-normal>{resultat[key]}</span>
-                    </div>
-                  {/if}
-                {/each}
-              </div>
-            </div></Listgroup
-          >
-        </Card>
-      {/each}
-    </ul>
-  {/if}
+      {#if !showICSP}
+        <h2 class="mb-6 text-center text-gray-900 text-lg dark:text-gray-400">
+          {clickedLayerInfo.detail.features[0].properties.name}
+        </h2>
+        <ul>
+          {#each allProject as resultat}
+            <Card padding="xl" size="md" class="mb-6">
+              <Listgroup class="border-0 dark:!bg-transparent">
+                <div class="flex items-center space-x-4 rtl:space-x-reverse">
+                  <div class="flex-1 min-w-0">
+                    {#each Object.keys(resultat) as key}
+                      {#if resultat[key]}
+                        <div>
+                          <span class="text-sm font-medium text-gray-900 dark:text-white">
+                            {key} :
+                          </span>
+                          <span text-sm font-normal>{resultat[key]}</span>
+                        </div>
+                      {/if}
+                    {/each}
+                  </div>
+                </div></Listgroup
+              >
+            </Card>
+          {/each}
+        </ul>
+      {/if}
+    </TabItem>
+  </Tabs>
 </Drawer>
 
 {#if showICSP && currentZoom < zoomMaxDep}

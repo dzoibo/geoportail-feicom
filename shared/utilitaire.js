@@ -161,7 +161,7 @@ export function sumISPValues(data, region) {
 export function transformDataForBarChart(data, region, year) {
     // Filtrer les données pour la région et l'année spécifiées
     const filteredData = data.filter((entry) => entry.id_REGION === region && entry.ANNEE === year);
-
+    console.log(filteredData)
     if (filteredData.length === 0) {
         // Aucune donnée correspondante trouvée
         return [];
@@ -208,7 +208,6 @@ export function rechercheMulticriteres(dataForMap, critères) {
         });
     });
 }
-
 export function rechercheMulticriteresPourFEICOM(dataForMap, id_couche, scale, annee, dataAllIndicateur) {
     return dataForMap.filter(objet => {
         const champDepartement = scale;
@@ -224,6 +223,10 @@ export function rechercheMulticriteresPourFEICOM(dataForMap, id_couche, scale, a
         const critereIndicateur = dataAllIndicateur.every(indicateur => {
             const champIndicateur = indicateur.indicateur;
             const valeursIndicateur = indicateur.data;
+
+            if (valeursIndicateur.length === 0) {
+                return true; // Aucun critère à vérifier, donc l'objet est toujours inclus
+            }
 
             // Vérifiez si l'objet a la propriété correspondant à l'indicateur
             if (!objet.hasOwnProperty(champIndicateur)) {
