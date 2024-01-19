@@ -106,7 +106,7 @@
   const zoomMaxRegion = 0;
   const zoomMaxDep = 6;
   const zoomMaxMun = 9;
-  export let options;
+
   let openOn = 'hover';
 
   let paintProperties = {
@@ -331,9 +331,8 @@
   transitionParams={transitionParamsRight}
   bind:hidden={hiddenBackdropFalse}
   id="sidebar6"
-  class="flex-nowrap"
 >
-  <Tabs style="underline">
+  <Tabs style="underline" class="!flex-nowrap">
     {#if currentZoom >= zoomMaxMun}
       <TabItem>
         <div slot="title" class="flex items-center gap-1">
