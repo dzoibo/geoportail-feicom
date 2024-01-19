@@ -36,7 +36,9 @@
     Range,
     Radio,
     Label,
-    Progressbar
+    Progressbar,
+    Tabs,
+    TabItem
   } from 'flowbite-svelte';
   import {
     FolderOutline,
@@ -44,7 +46,8 @@
     LandmarkOutline,
     DollarOutline,
     UsersGroupOutline,
-    ChevronDownSolid
+    ChevronDownSolid,
+    CheckPlusCircleOutline
   } from 'flowbite-svelte-icons';
   import { Cog } from 'svelte-heros-v2';
   import { sineIn } from 'svelte/easing';
@@ -304,310 +307,30 @@
     {transitionParams}
     bind:hidden={drawerHidden}
     bind:activateClickOutside
-    class="overflow-scroll pb-32"
+    class="overflow-scroll pb-32 !p-2"
     id="sidebar"
   >
     <div class="flex items-center">
       <CloseButton on:click={() => (drawerHidden = true)} class="mb-4 dark:text-white lg:hidden" />
     </div>
     <Sidebar asideClass="w-54">
-      <SidebarWrapper divClass="overflow-y-auto py-4 px-3 rounded dark:bg-gray-800">
-        <div class="grid grid-cols-2">
-          <Radio
-            name="custom"
+      <SidebarWrapper divClass="overflow-y-auto  rounded dark:bg-gray-800">
+        <Tabs style="underline" class="!flex-nowrap  ">
+          <TabItem
+            open
             on:click={() => {
               showICSP = true;
               showFinancement = false;
               buttonICSP.set(showICSP);
             }}
-            custom
-            checked
           >
-            <div
-              class="inline-flex justify-center items-center p-2 w-full h-full text-lg font-semibold bg-white rounded-lg border border-gray-200 cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-primary-500 peer-checked:border-primary-600 peer-checked:text-primary-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700"
-            >
+            <div slot="title" class="flex items-center gap-1 hover:text-blue-900">
+              <DollarOutline size="sm" />
               ICSP
-            </div></Radio
-          >
-
-          <Radio
-            name="custom"
-            on:click={() => {
-              showICSP = false;
-              showFinancement = true;
-              buttonICSP.set(showICSP);
-            }}
-            custom
-          >
-            <div
-              class="inline-flex justify-center items-center p-2 w-full h-full text-lg font-semibold bg-white rounded-lg border border-gray-200 cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-primary-500 peer-checked:border-primary-600 peer-checked:text-primary-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700"
-            >
-              <span class="flex items-center">Accord de financement</span>
             </div>
-          </Radio>
-        </div>
-
-        <br />
-        {#if showFinancement}
-          <SidebarGroup id="finance">
-            <SidebarDropdownWrapper label="Bénéficiaire">
-              <svelte:fragment slot="icon">
-                <UsersGroupOutline
-                  class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                />
-              </svelte:fragment>
-              <Button color="green"
-                >Sélection des bénéficiaires<ChevronDownSolid
-                  class="w-3 h-3 ms-2 text-white dark:text-white"
-                /></Button
-              >
-              <Dropdown class="w-48 p-3 overflow-y-auto space-y-1 text-sm">
-                {#each valeursBeneficiaire as beneficiaires}
-                  <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                    <Checkbox
-                      checked={beneficiaires.checked}
-                      on:change={() =>
-                        toggleCheckbox(
-                          beneficiaires,
-                          dropdownSelectionIndicateur4,
-                          valeursBeneficiaire
-                        )}>{beneficiaires.key}</Checkbox
-                    >
-                  </li>
-                {/each}
-              </Dropdown>
-              <div class="px-2 pt-1 pb-2">
-                {#if arrayAllIndicateurs}
-                  {#each arrayAllIndicateurs as indicateur}
-                    {#if indicateur.indicateur === dropdownSelectionIndicateur4.indicateur}
-                      {#each indicateur.data as word (word)}
-                        <div
-                          class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-green-400 rounded-lg"
-                        >
-                          {word}
-                          <CloseButton
-                            on:click={() =>
-                              closeDiv(word, dropdownSelectionIndicateur4, valeursBeneficiaire)}
-                            class="absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
-                          />
-                        </div>
-                      {/each}
-                    {/if}
-                  {/each}
-                {/if}
-              </div>
-            </SidebarDropdownWrapper>
-
-            <SidebarDropdownWrapper label="Instance">
-              <svelte:fragment slot="icon">
-                <LandmarkOutline
-                  class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                />
-              </svelte:fragment>
-              <Button color="green"
-                >Sélection des instances<ChevronDownSolid
-                  class="w-3 h-3 ms-2 text-white dark:text-white"
-                /></Button
-              >
-              <Dropdown class="w-48 p-3 overflow-y-auto space-y-1 text-sm">
-                {#each valeursAttribution as instances}
-                  <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                    <Checkbox
-                      checked={instances.checked}
-                      on:change={() =>
-                        toggleCheckbox(instances, dropdownSelectionIndicateur1, valeursAttribution)}
-                      >{instances.key}</Checkbox
-                    >
-                  </li>
-                {/each}
-              </Dropdown>
-              <div class="px-2 pt-1 pb-2">
-                {#if arrayAllIndicateurs}
-                  {#each arrayAllIndicateurs as indicateur}
-                    {#if indicateur.indicateur === dropdownSelectionIndicateur1.indicateur}
-                      {#each indicateur.data as word (word)}
-                        <div
-                          class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-green-400 rounded-lg"
-                        >
-                          {word}
-                          <CloseButton
-                            on:click={() =>
-                              closeDiv(word, dropdownSelectionIndicateur1, valeursAttribution)}
-                            class="absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
-                          />
-                        </div>
-                      {/each}
-                    {/if}
-                  {/each}
-                {/if}
-              </div>
-            </SidebarDropdownWrapper>
-
-            <SidebarDropdownWrapper label="Domaine">
-              <svelte:fragment slot="icon">
-                <FolderOutline
-                  class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                />
-              </svelte:fragment>
-              <Button color="green"
-                >Sélection des projets<ChevronDownSolid
-                  class="w-3 h-3 ms-2 text-white dark:text-white"
-                /></Button
-              >
-              <Dropdown class="w-48 p-3 overflow-y-auto  space-y-1 text-sm">
-                {#each valeursDomaine as domaines}
-                  <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                    <Checkbox
-                      checked={domaines.checked}
-                      on:change={() =>
-                        toggleCheckbox(domaines, dropdownSelectionIndicateur3, valeursDomaine)}
-                      >{domaines.key}</Checkbox
-                    >
-                  </li>
-                {/each}
-              </Dropdown>
-              <div class="px-2 pt-1 pb-2">
-                {#if arrayAllIndicateurs}
-                  {#each arrayAllIndicateurs as indicateur}
-                    {#if indicateur.indicateur === dropdownSelectionIndicateur3.indicateur}
-                      {#each indicateur.data as word (word)}
-                        <div
-                          class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-green-400 rounded-lg"
-                        >
-                          {word}
-                          <CloseButton
-                            on:click={() =>
-                              closeDiv(word, dropdownSelectionIndicateur3, valeursDomaine)}
-                            class="absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
-                          />
-                        </div>
-                      {/each}
-                    {/if}
-                  {/each}
-                {/if}
-              </div>
-            </SidebarDropdownWrapper>
-
-            <SidebarDropdownWrapper label="Secteur">
-              <svelte:fragment slot="icon">
-                <SwatchbookOutline
-                  class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                />
-              </svelte:fragment>
-              <Button color="green"
-                >Sélection des secteurs<ChevronDownSolid
-                  class="w-3 h-3 ms-2 text-white dark:text-white"
-                /></Button
-              >
-              <Dropdown class="w-48 p-3 overflow-y-auto  space-y-1 text-sm">
-                {#each valeursSecteur as secteurs}
-                  <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                    <Checkbox
-                      checked={secteurs.checked}
-                      on:change={() =>
-                        toggleCheckbox(secteurs, dropdownSelectionIndicateur2, valeursSecteur)}
-                      >{secteurs.key}</Checkbox
-                    >
-                  </li>
-                {/each}
-              </Dropdown>
-              <div class="px-2 pt-1 pb-2">
-                {#if arrayAllIndicateurs}
-                  {#each arrayAllIndicateurs as indicateur}
-                    {#if indicateur.indicateur === dropdownSelectionIndicateur2.indicateur}
-                      {#each indicateur.data as word (word)}
-                        <div
-                          class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-green-400 rounded-lg"
-                        >
-                          {word}
-                          <CloseButton
-                            on:click={() =>
-                              closeDiv(word, dropdownSelectionIndicateur2, valeursSecteur)}
-                            class="absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
-                          />
-                        </div>
-                      {/each}
-                    {/if}
-                  {/each}
-                {/if}
-              </div>
-            </SidebarDropdownWrapper>
-
-            <SidebarDropdownWrapper label="Financement">
-              <svelte:fragment slot="icon">
-                <DollarOutline
-                  class="w-auto text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                />
-              </svelte:fragment>
-
-              <Button color="green"
-                >Sélection des sources de financement<ChevronDownSolid
-                  class="w-3 h-3 ms-2 text-white dark:text-white"
-                /></Button
-              >
-              <Dropdown class="w-48 p-3 overflow-y-auto  space-y-1 text-sm">
-                {#each valeursSourcefinancement as financement}
-                  <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                    <Checkbox
-                      checked={financement.checked}
-                      on:change={() =>
-                        toggleCheckbox(
-                          financement,
-                          dropdownSelectionIndicateur5,
-                          valeursSourcefinancement
-                        )}>{financement.key}</Checkbox
-                    >
-                  </li>
-                {/each}
-              </Dropdown>
-              <div class="px-2 pt-1 pb-2">
-                {#if arrayAllIndicateurs}
-                  {#each arrayAllIndicateurs as indicateur}
-                    {#if indicateur.indicateur === dropdownSelectionIndicateur5.indicateur}
-                      {#each indicateur.data as word (word)}
-                        <div
-                          class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-green-400 rounded-lg"
-                        >
-                          {word}
-                          <CloseButton
-                            on:click={() =>
-                              closeDiv(
-                                word,
-                                dropdownSelectionIndicateur5,
-                                valeursSourcefinancement
-                              )}
-                            class="absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
-                          />
-                        </div>
-                      {/each}
-                    {/if}
-                  {/each}
-                {/if}
-              </div>
-            </SidebarDropdownWrapper>
-            <h5
-              class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 dark:text-white"
-            >
-              ANNEE
-            </h5>
-            <SidebarGroup>
-              <Range
-                id="range-minmax"
-                min={minMaxYearAccord.min}
-                max={minMaxYearAccord.max}
-                bind:value={valueSliderAccord}
-                step="1"
-              />
-              <p>Année : {valueSliderAccord}</p>
-            </SidebarGroup>
-          </SidebarGroup>
-        {/if}
-
-        {#if showICSP}
-          <!-- Afficher le SideGroup correspondant à ICSP -->
-          <SidebarGroup id="icsp">
-            <!-- Contenu de votre SideGroup pour ICSP -->
-            <!--      <h5
+            <SidebarGroup id="icsp">
+              <!-- Contenu de votre SideGroup pour ICSP -->
+              <!--      <h5
               class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 dark:text-white"
             >
               Montants des ICSP
@@ -617,23 +340,293 @@
               <Button outline color="dark">Montants annuels</Button>
               <Button outline color="dark">Montants trimestrielles</Button>
             </ButtonGroup> -->
-            <hr />
-            <!-- Contenu de votre SideGroup pour ICSP -->
-            <h5
-              class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 dark:text-white"
-            >
-              ANNEE
-            </h5>
-            <Range
-              id="range-minmax"
-              min={minMaxYear.min}
-              max={minMaxYear.max}
-              bind:value={valueSliderLanding}
-              step="1"
-            />
-            <p>Année : {valueSliderLanding}</p>
-          </SidebarGroup>
-        {/if}
+
+              <!-- Contenu de votre SideGroup pour ICSP -->
+              <h5
+                class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 dark:text-white"
+              >
+                ANNEE
+              </h5>
+              <Range
+                id="range-minmax"
+                min={minMaxYear.min}
+                max={minMaxYear.max}
+                bind:value={valueSliderLanding}
+                step="1"
+              />
+              <p>Année : {valueSliderLanding}</p>
+            </SidebarGroup>
+          </TabItem>
+
+          <TabItem
+            class="hover:text-blue-900"
+            on:click={() => {
+              showICSP = false;
+              showFinancement = true;
+              buttonICSP.set(showICSP);
+            }}
+          >
+            <div slot="title" class="flex items-center gap-1 hover:text-blue-900">
+              <CheckPlusCircleOutline size="sm" />
+              Accord de financement
+            </div>
+            <SidebarGroup id="finance">
+              <SidebarDropdownWrapper label="Bénéficiaire">
+                <svelte:fragment slot="icon">
+                  <UsersGroupOutline
+                    class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                  />
+                </svelte:fragment>
+                <Button color="green"
+                  >Sélection des bénéficiaires<ChevronDownSolid
+                    class="w-3 h-3 ms-2 text-white dark:text-white"
+                  /></Button
+                >
+                <Dropdown class="w-48 p-3 overflow-y-auto space-y-1 text-sm">
+                  {#each valeursBeneficiaire as beneficiaires}
+                    <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                      <Checkbox
+                        checked={beneficiaires.checked}
+                        on:change={() =>
+                          toggleCheckbox(
+                            beneficiaires,
+                            dropdownSelectionIndicateur4,
+                            valeursBeneficiaire
+                          )}>{beneficiaires.key}</Checkbox
+                      >
+                    </li>
+                  {/each}
+                </Dropdown>
+                <div class="px-2 pt-1 pb-2">
+                  {#if arrayAllIndicateurs}
+                    {#each arrayAllIndicateurs as indicateur}
+                      {#if indicateur.indicateur === dropdownSelectionIndicateur4.indicateur}
+                        {#each indicateur.data as word (word)}
+                          <div
+                            class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-green-400 rounded-lg"
+                          >
+                            {word}
+                            <CloseButton
+                              on:click={() =>
+                                closeDiv(word, dropdownSelectionIndicateur4, valeursBeneficiaire)}
+                              class="absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                            />
+                          </div>
+                        {/each}
+                      {/if}
+                    {/each}
+                  {/if}
+                </div>
+              </SidebarDropdownWrapper>
+
+              <SidebarDropdownWrapper label="Instance">
+                <svelte:fragment slot="icon">
+                  <LandmarkOutline
+                    class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                  />
+                </svelte:fragment>
+                <Button color="green"
+                  >Sélection des instances<ChevronDownSolid
+                    class="w-3 h-3 ms-2 text-white dark:text-white"
+                  /></Button
+                >
+                <Dropdown class="w-48 p-3 overflow-y-auto space-y-1 text-sm">
+                  {#each valeursAttribution as instances}
+                    <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                      <Checkbox
+                        checked={instances.checked}
+                        on:change={() =>
+                          toggleCheckbox(
+                            instances,
+                            dropdownSelectionIndicateur1,
+                            valeursAttribution
+                          )}>{instances.key}</Checkbox
+                      >
+                    </li>
+                  {/each}
+                </Dropdown>
+                <div class="px-2 pt-1 pb-2">
+                  {#if arrayAllIndicateurs}
+                    {#each arrayAllIndicateurs as indicateur}
+                      {#if indicateur.indicateur === dropdownSelectionIndicateur1.indicateur}
+                        {#each indicateur.data as word (word)}
+                          <div
+                            class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-green-400 rounded-lg"
+                          >
+                            {word}
+                            <CloseButton
+                              on:click={() =>
+                                closeDiv(word, dropdownSelectionIndicateur1, valeursAttribution)}
+                              class="absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                            />
+                          </div>
+                        {/each}
+                      {/if}
+                    {/each}
+                  {/if}
+                </div>
+              </SidebarDropdownWrapper>
+
+              <SidebarDropdownWrapper label="Domaine">
+                <svelte:fragment slot="icon">
+                  <FolderOutline
+                    class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                  />
+                </svelte:fragment>
+                <Button color="green"
+                  >Sélection des projets<ChevronDownSolid
+                    class="w-3 h-3 ms-2 text-white dark:text-white"
+                  /></Button
+                >
+                <Dropdown class="w-48 p-3 overflow-y-auto  space-y-1 text-sm">
+                  {#each valeursDomaine as domaines}
+                    <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                      <Checkbox
+                        checked={domaines.checked}
+                        on:change={() =>
+                          toggleCheckbox(domaines, dropdownSelectionIndicateur3, valeursDomaine)}
+                        >{domaines.key}</Checkbox
+                      >
+                    </li>
+                  {/each}
+                </Dropdown>
+                <div class="px-2 pt-1 pb-2">
+                  {#if arrayAllIndicateurs}
+                    {#each arrayAllIndicateurs as indicateur}
+                      {#if indicateur.indicateur === dropdownSelectionIndicateur3.indicateur}
+                        {#each indicateur.data as word (word)}
+                          <div
+                            class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-green-400 rounded-lg"
+                          >
+                            {word}
+                            <CloseButton
+                              on:click={() =>
+                                closeDiv(word, dropdownSelectionIndicateur3, valeursDomaine)}
+                              class="absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                            />
+                          </div>
+                        {/each}
+                      {/if}
+                    {/each}
+                  {/if}
+                </div>
+              </SidebarDropdownWrapper>
+
+              <SidebarDropdownWrapper label="Secteur">
+                <svelte:fragment slot="icon">
+                  <SwatchbookOutline
+                    class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                  />
+                </svelte:fragment>
+                <Button color="green"
+                  >Sélection des secteurs<ChevronDownSolid
+                    class="w-3 h-3 ms-2 text-white dark:text-white"
+                  /></Button
+                >
+                <Dropdown class="w-48 p-3 overflow-y-auto  space-y-1 text-sm">
+                  {#each valeursSecteur as secteurs}
+                    <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                      <Checkbox
+                        checked={secteurs.checked}
+                        on:change={() =>
+                          toggleCheckbox(secteurs, dropdownSelectionIndicateur2, valeursSecteur)}
+                        >{secteurs.key}</Checkbox
+                      >
+                    </li>
+                  {/each}
+                </Dropdown>
+                <div class="px-2 pt-1 pb-2">
+                  {#if arrayAllIndicateurs}
+                    {#each arrayAllIndicateurs as indicateur}
+                      {#if indicateur.indicateur === dropdownSelectionIndicateur2.indicateur}
+                        {#each indicateur.data as word (word)}
+                          <div
+                            class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-green-400 rounded-lg"
+                          >
+                            {word}
+                            <CloseButton
+                              on:click={() =>
+                                closeDiv(word, dropdownSelectionIndicateur2, valeursSecteur)}
+                              class="absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                            />
+                          </div>
+                        {/each}
+                      {/if}
+                    {/each}
+                  {/if}
+                </div>
+              </SidebarDropdownWrapper>
+
+              <SidebarDropdownWrapper label="Financement">
+                <svelte:fragment slot="icon">
+                  <DollarOutline
+                    class="w-auto text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                  />
+                </svelte:fragment>
+
+                <Button color="green"
+                  >Sélection des sources de financement<ChevronDownSolid
+                    class="w-3 h-3 ms-2 text-white dark:text-white"
+                  /></Button
+                >
+                <Dropdown class="w-48 p-3 overflow-y-auto  space-y-1 text-sm">
+                  {#each valeursSourcefinancement as financement}
+                    <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                      <Checkbox
+                        checked={financement.checked}
+                        on:change={() =>
+                          toggleCheckbox(
+                            financement,
+                            dropdownSelectionIndicateur5,
+                            valeursSourcefinancement
+                          )}>{financement.key}</Checkbox
+                      >
+                    </li>
+                  {/each}
+                </Dropdown>
+                <div class="px-2 pt-1 pb-2">
+                  {#if arrayAllIndicateurs}
+                    {#each arrayAllIndicateurs as indicateur}
+                      {#if indicateur.indicateur === dropdownSelectionIndicateur5.indicateur}
+                        {#each indicateur.data as word (word)}
+                          <div
+                            class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-green-400 rounded-lg"
+                          >
+                            {word}
+                            <CloseButton
+                              on:click={() =>
+                                closeDiv(
+                                  word,
+                                  dropdownSelectionIndicateur5,
+                                  valeursSourcefinancement
+                                )}
+                              class="absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                            />
+                          </div>
+                        {/each}
+                      {/if}
+                    {/each}
+                  {/if}
+                </div>
+              </SidebarDropdownWrapper>
+              <h5
+                class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 dark:text-white"
+              >
+                ANNEE
+              </h5>
+              <SidebarGroup>
+                <Range
+                  id="range-minmax"
+                  min={minMaxYearAccord.min}
+                  max={minMaxYearAccord.max}
+                  bind:value={valueSliderAccord}
+                  step="1"
+                />
+                <p>Année : {valueSliderAccord}</p>
+              </SidebarGroup>
+            </SidebarGroup>
+          </TabItem>
+        </Tabs>
       </SidebarWrapper>
     </Sidebar>
   </Drawer>

@@ -332,10 +332,10 @@
   bind:hidden={hiddenBackdropFalse}
   id="sidebar6"
 >
-  <Tabs style="underline" class="!flex-nowrap">
+  <Tabs style="underline" class="!flex-nowrap  ">
     {#if currentZoom >= zoomMaxMun}
       <TabItem>
-        <div slot="title" class="flex items-center gap-1">
+        <div slot="title" class="flex items-center gap-1 hover:text-blue-900">
           <LandmarkOutline size="sm" />
           Historique municipal
         </div>
@@ -347,7 +347,7 @@
             <SidebarDropdownWrapper label="Mandat {mandatDeb} - {anneeFinMandat[i]}">
               <svelte:fragment slot="icon">
                 <BadgeCheckOutline
-                  class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                  class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 hover:text-blue-900 dark:group-hover:text-white"
                 />
               </svelte:fragment>
               {#each detailsMandatCommune as detailMandat}
@@ -384,7 +384,7 @@
         {/each}
       </TabItem>
     {/if}
-    <TabItem open>
+    <TabItem open class="hover:text-blue-900">
       <div slot="title" class="flex items-center gap-1">
         <GridSolid size="sm" />
         Liste des projets
