@@ -133,11 +133,11 @@ export function findMinMax(array, key) {
     return { min, max };
 }
 
-export function sumISPValues(data, region) {
+export function sumISPValues(data, region, id_level) {
     const averages = {};
 
     for (const entry of data) {
-        if (entry.id_REGION === region) {
+        if (entry[id_level] === region) {
             const year = entry.ANNEE;
             const total = parseFloat(typeof entry.TOTAL === 'string' ? entry.TOTAL.replace(/\D+/g, '') : '0');
 
@@ -158,9 +158,9 @@ export function sumISPValues(data, region) {
 }
 
 
-export function transformDataForBarChart(data, region, year) {
+export function transformDataForBarChart(data, region, year, id_level) {
     // Filtrer les données pour la région et l'année spécifiées
-    const filteredData = data.filter((entry) => entry.id_REGION === region && entry.ANNEE === year);
+    const filteredData = data.filter((entry) => entry[id_level] === region && entry.ANNEE === year);
     console.log(filteredData)
     if (filteredData.length === 0) {
         // Aucune donnée correspondante trouvée
@@ -171,7 +171,14 @@ export function transformDataForBarChart(data, region, year) {
     const chartData = [];
     for (let i = 1; i <= 4; i++) {
         const ispValue = filteredData[0][`ISP${i}`].replace(/\s+/g, ''); // Supprimer les espaces
-        chartData.push({ x: `ISP${i}`, y: parseFloat(ispValue) });
+
+        // Vérifier si la valeur ISP est null ou vide
+        if (ispValue === null || ispValue === '') {
+            // Traitement pour les valeurs null ou vides (par exemple, définir la valeur y à zéro)
+            chartData.push({ x: `ISP${i}`, y: 0 });
+        } else {
+            chartData.push({ x: `ISP${i}`, y: parseFloat(ispValue) });
+        }
     }
 
     return chartData;
@@ -400,8 +407,10 @@ export function optionForLineChart(label, data, geo) {
         xaxis: {
             categories: label,
             labels: {
-                show: true
+                show: true,
+                maxWidth: 1, // Spécifiez la largeur maximale pour les étiquettes de l'axe des Y
             },
+
             axisBorder: {
                 show: false
             },

@@ -103,11 +103,21 @@
   let optionsForChartLine = {};
   let allProject = [];
   let scale;
-  const zoomMaxRegion = 0;
+  const zoomMaxRegion = 6;
   const zoomMaxDep = 6;
-  const zoomMaxMun = 9;
+  const zoomMaxMun = 6;
 
+  let showDep = false;
+  let showCom = false;
+  let showReg = true;
+  let currentGeo = 'reg';
   let openOn = 'hover';
+
+  // bbox du Cameroun
+  let bbox = [
+    [-6.81, -6.492371],
+    [31.841812, 18.227069]
+  ];
 
   let paintProperties = {
     'fill-opacity': hoverStateFilter(0.7, 0.4),
@@ -196,9 +206,9 @@
 
   // Reactivité
   $: {
-    if (currentZoom > zoomMaxMun) {
+    if (showCom) {
       scale = 'id_COMMUNE';
-    } else if (currentZoom < zoomMaxDep) {
+    } else if (showReg) {
       scale = 'id_REGION';
     } else {
       scale = 'id_DEPARTEMENT';
@@ -241,8 +251,34 @@
         valueSliderAccord,
         storeIndicateurForMap
       );
+    } else {
+      if (showICSP && showCom) {
+        // Set the variable with information about the clicked layer
+        // Set hiddenBackdropFalse to false to show the Drawer
+        // Exemple d'utilisation
+        const region = e.detail.features[0].properties['ref:COG'];
+        const label_reg = e.detail.features[0].properties.name;
+        const year = valueSliderLanding;
+
+        dataForBarChart.data = transformDataForBarChart(dataForMap, region, year, 'id_COMMUNE');
+        dataForLineChart.data = sumISPValues(dataForMap, region, 'id_COMMUNE');
+
+        dataForLineChart.geo = label_reg;
+
+        dataForBarChart.year = year;
+        dataForBarChart.geo = label_reg;
+
+        // Calcul de la somme des valeurs "y"
+        dataForBarChart.sum = dataForBarChart.data.reduce(
+          (total, currentItem) => total + currentItem.y,
+          0
+        );
+
+        hiddenBackdropFalse = false;
+        return dataForBarChart;
+      }
     }
-    if (currentZoom >= zoomMaxMun) {
+    if (showCom) {
       clickedLayerInfo = e;
       nom_commune = e.detail.features[0].properties['ref:COG'];
       detailsMandatCommune = findAllObjectsByAttribute(mandatData, 'id_COMMUNE', nom_commune);
@@ -251,7 +287,6 @@
     }
     // Set hiddenBackdropFalse to false to show the Drawer
     hiddenBackdropFalse = false;
-    hidden8 = true;
   }
 
   function handleLayerClickOnRegion(e) {
@@ -263,8 +298,8 @@
       const label_reg = e.detail.features[0].properties.name;
       const year = valueSliderLanding;
 
-      dataForBarChart.data = transformDataForBarChart(dataForMap, region, year);
-      dataForLineChart.data = sumISPValues(dataForMap, region);
+      dataForBarChart.data = transformDataForBarChart(dataForMap, region, year, 'id_REGION');
+      dataForLineChart.data = sumISPValues(dataForMap, region, 'id_REGION');
 
       dataForLineChart.geo = label_reg;
 
@@ -277,10 +312,10 @@
         0
       );
 
-      hidden8 = false;
+      hiddenBackdropFalse = false;
       return dataForBarChart;
     } else {
-      if (!showICSP && currentZoom <= zoomMaxDep) {
+      if (!showICSP && showReg) {
         clickedLayerInfo = e;
 
         nom_commune = e.detail.features[0].properties['ref:COG'];
@@ -317,6 +352,24 @@
     };
   }
 
+  function toggleLayer(layer) {
+    showReg = layer === 'reg' ? true : false;
+    showDep = layer === 'dep' ? true : false;
+    showCom = layer === 'com' ? true : false;
+
+    // Supprimez la classe "active" de tous les boutons
+    const buttons = document.querySelectorAll('.maplibregl-ctrl-icon');
+    buttons.forEach((button) => {
+      button.classList.remove('active');
+    });
+
+    // Ajoutez la classe "active" uniquement au bouton cliqué
+    const button = document.querySelector(`#${layer}`);
+    if (button) {
+      button.classList.add('active');
+    }
+  }
+
   // On se désabonne pour éviter les fuites de data
   onDestroy(() => {
     unsubscribe;
@@ -326,6 +379,7 @@
 <svelte:window bind:innerWidth={width} />
 <Drawer
   placement="right"
+  class="lg:w-1/4 md:w-1/3 sm:w-1/2 w-2/3 w-auto"
   transitionType="fly"
   backdrop={true}
   transitionParams={transitionParamsRight}
@@ -333,7 +387,7 @@
   id="sidebar6"
 >
   <Tabs style="underline" class="!flex-nowrap  ">
-    {#if currentZoom >= zoomMaxMun}
+    {#if showCom}
       <TabItem>
         <div slot="title" class="flex items-center gap-1 hover:text-blue-900">
           <LandmarkOutline size="sm" />
@@ -384,12 +438,13 @@
         {/each}
       </TabItem>
     {/if}
-    <TabItem open class="hover:text-blue-900">
-      <div slot="title" class="flex items-center gap-1">
-        <GridSolid size="sm" />
-        Liste des projets
-      </div>
-      {#if !showICSP}
+    {#if !showICSP}
+      <TabItem open class="hover:text-blue-900">
+        <div slot="title" class="flex items-center gap-1">
+          <GridSolid size="sm" />
+          Liste des projets
+        </div>
+
         <h2 class="mb-6 text-center text-gray-900 text-lg dark:text-gray-400">
           {clickedLayerInfo.detail.features[0].properties.name}
         </h2>
@@ -415,12 +470,93 @@
             </Card>
           {/each}
         </ul>
-      {/if}
-    </TabItem>
+      </TabItem>
+    {:else}
+      <TabItem open class="hover:text-blue-900">
+        <div slot="title" class="flex items-center gap-1">
+          <GridSolid size="sm" />
+          Stats ICSP
+        </div>
+
+        <div class="lg:w-full sm:w-full lg:h-1/2 sm:h-auto flex justify-center mb-4">
+          <!-- Contenu de la première div -->
+          {#await dataForBarChart then}
+            {#if dataForBarChart}
+              <Card class="!max-w-lg w-full">
+                <!-- Utilisation de h-full pour occuper 100% de la hauteur -->
+                <div
+                  class="w-full h-full flex justify-center items-center pb-4 mb-4 border-b border-gray-200 dark:border-gray-700"
+                >
+                  <div class="flex items-center">
+                    <div
+                      class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center me-3"
+                    >
+                      <DollarOutline class="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                    </div>
+                    <div>
+                      <h5
+                        class="leading-none text-2xl font-bold text-gray-900 dark:text-white pb-1"
+                      >
+                        ICSP pour {dataForBarChart.geo}
+                      </h5>
+                      <p class="text-sm font-normal text-gray-500 dark:text-gray-400">
+                        <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">
+                          Total ICSP en {dataForBarChart.year} :
+                        </dt>
+                        <dd class="text-gray-900 text-sm dark:text-white font-semibold">
+                          {formattedValue(dataForBarChart.sum)}
+                        </dd>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {#await optionForBarChart(dataForBarChart.data) then options}
+                  <!-- Utilisation de h-auto pour que la hauteur s'adapte au contenu -->
+                  <Chart {options} />
+                {/await}
+              </Card>
+            {/if}
+          {/await}
+        </div>
+        <div class="lg:w-full sm:w-full flex justify-center mb-4">
+          <!-- Contenu de la deuxième div -->
+          {#await dataForLineChart then}
+            {#if dataForLineChart}
+              <!-- Utilisation de h-full pour occuper 100% de la hauteur -->
+              <Card class="!max-w-lg w-full">
+                <div
+                  class="w-full flex justify-center items-center pb-4 mb-4 border-b border-gray-200 dark:border-gray-700"
+                >
+                  <div class="flex items-center">
+                    <div
+                      class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center me-3"
+                    >
+                      <ChartOutline class="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                    </div>
+                    <div>
+                      <h5
+                        class="leading-none text-2xl font-bold text-gray-900 dark:text-white pb-1"
+                      >
+                        Evolution de l'ICSP - {dataForBarChart.geo}
+                      </h5>
+                    </div>
+                  </div>
+                </div>
+                {#await optionForLineChart(dataForLineChart.data.label, dataForLineChart.data.data) then options}
+                  <!-- Utilisation de h-auto pour que la hauteur s'adapte au contenu -->
+                  <Chart {options} />
+                {/await}
+              </Card>
+            {/if}
+          {/await}
+        </div></TabItem
+      >
+    {/if}
   </Tabs>
 </Drawer>
 
-{#if showICSP && currentZoom < zoomMaxDep}
+{#if showICSP && !showDep}
   <Drawer
     placement="bottom"
     class="lg:ml-[20rem] w-auto"
@@ -435,77 +571,7 @@
       </div>
     {/if}
 
-    <div class="flex flex-auto" style="background-color:whitesmoke;">
-      <div class="lg:w-1/2 sm:w-full flex sm:m-4 justify-center">
-        <!-- Contenu de la première div -->
-        {#await dataForBarChart then}
-          {#if dataForBarChart}
-            <Card class="!max-w-lg w-full">
-              <!-- Utilisation de h-full pour occuper 100% de la hauteur -->
-              <div
-                class="w-full h-full flex justify-center items-center pb-4 mb-4 border-b border-gray-200 dark:border-gray-700"
-              >
-                <div class="flex items-center">
-                  <div
-                    class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center me-3"
-                  >
-                    <DollarOutline class="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                  </div>
-                  <div>
-                    <h5 class="leading-none text-2xl font-bold text-gray-900 dark:text-white pb-1">
-                      ICSP pour {dataForBarChart.geo}
-                    </h5>
-                    <p class="text-sm font-normal text-gray-500 dark:text-gray-400">
-                      <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">
-                        Total ICSP en {dataForBarChart.year} :
-                      </dt>
-                      <dd class="text-gray-900 text-sm dark:text-white font-semibold">
-                        {formattedValue(dataForBarChart.sum)}
-                      </dd>
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {#await optionForBarChart(dataForBarChart.data) then options}
-                <!-- Utilisation de h-auto pour que la hauteur s'adapte au contenu -->
-                <Chart {options} />
-              {/await}
-            </Card>
-          {/if}
-        {/await}
-      </div>
-      <div class="lg:w-1/2 sm:w-full sm:m-4 flex justify-center">
-        <!-- Contenu de la deuxième div -->
-        {#await dataForLineChart then}
-          {#if dataForLineChart}
-            <!-- Utilisation de h-full pour occuper 100% de la hauteur -->
-            <Card class="!max-w-lg w-full">
-              <div
-                class="w-full flex justify-center items-center pb-4 mb-4 border-b border-gray-200 dark:border-gray-700"
-              >
-                <div class="flex items-center">
-                  <div
-                    class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center me-3"
-                  >
-                    <ChartOutline class="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                  </div>
-                  <div>
-                    <h5 class="leading-none text-2xl font-bold text-gray-900 dark:text-white pb-1">
-                      Evolution de l'ICSP - {dataForBarChart.geo}
-                    </h5>
-                  </div>
-                </div>
-              </div>
-              {#await optionForLineChart(dataForLineChart.data.label, dataForLineChart.data.data) then options}
-                <!-- Utilisation de h-auto pour que la hauteur s'adapte au contenu -->
-                <Chart {options} />
-              {/await}
-            </Card>
-          {/if}
-        {/await}
-      </div>
-    </div>
+    <div class="flex flex-auto" style="background-color:whitesmoke;"></div>
   </Drawer>
 {/if}
 
@@ -515,6 +581,7 @@
     style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
     center={[12, 6]}
     zoom={5}
+    maxBounds={bbox}
     attributionControl={false}
     on:zoomend={({ detail: { map } }) => (currentZoom = map.getZoom())}
     let:map
@@ -525,133 +592,186 @@
     <FullscreenControl position="top-right" />
     <ScaleControl />
 
+    <Control position="top-left" class="flex flex-col gap-y-2">
+      <ControlGroup>
+        <ControlButton id="reg" on:click={() => toggleLayer('reg')}>REG</ControlButton>
+        <ControlButton id="dep" on:click={() => toggleLayer('dep')}>DEP</ControlButton>
+        <ControlButton id="com" on:click={() => toggleLayer('com')}>COM</ControlButton>
+      </ControlGroup>
+    </Control>
+
     <VectorTileSource url={'pmtiles://data/regions.pmtiles'} promoteId={'ref:COG'}>
-      <FillLayer
-        paint={paintProperties}
-        manageHoverState
-        sourceLayer={'regions'}
-        maxzoom={zoomMaxRegion}
-        on:click={handleLayerClickOnRegion}
-      />
-      <LineLayer
-        paint={{
-          'line-opacity': 1,
-          'line-width': 3,
-          'line-color': 'red'
-        }}
-        sourceLayer={'region'}
-        minzoom={zoomMaxDep}
-      />
-      <JoinedData data={statisticsPerRegion} idCol="id_REGION" sourceLayer="regions" />
-      <!-- Contenu à afficher si showICSP est vrai -->
+      {#if showReg}
+        <FillLayer
+          paint={paintProperties}
+          manageHoverState
+          sourceLayer={'regions'}
+          on:click={handleLayerClickOnRegion}
+        />
+        <LineLayer
+          paint={{
+            'line-opacity': 1,
+            'line-width': 3,
+            'line-color': 'red'
+          }}
+          sourceLayer={'region'}
+        />
+        <JoinedData data={statisticsPerRegion} idCol="id_REGION" sourceLayer="regions" />
+        <!-- Contenu à afficher si showICSP est vrai -->
+      {/if}
     </VectorTileSource>
 
     <GeoJSON data={geojsonRegionCentroid}>
-      <JoinedData data={statisticsPerRegion} idCol="id_REGION" />
-      <MarkerLayer let:feature maxzoom={6}>
-        {#each statisticsPerRegion as { id_REGION, value }}
-          {#if feature.properties['ref:COG'] === id_REGION}
-            <div
-              class="bg-gray-100 bg-opacity-50 bg-trans rounded-full p-2 shadow align flex flex-col items-center"
-            >
-              <div class="text-sm font-bold">{feature.properties.name}</div>
-              {#if showICSP}
-                <!-- Afficher la valeur avec l'unité 'XAF' -->
-                <div class="text-sm font-bold">{formattedValue(value)} XAF</div>
-              {:else}
-                <!-- Afficher la valeur avec l'unité 'projet' -->
-                <div class="text-sm font-normal">{formattedValue(value)} projets</div>
-              {/if}
-            </div>
-          {/if}
-        {/each}
-      </MarkerLayer>
+      {#if showReg}
+        <JoinedData data={statisticsPerRegion} idCol="id_REGION" />
+        <MarkerLayer let:feature>
+          {#each statisticsPerRegion as { id_REGION, value }}
+            {#if feature.properties['ref:COG'] === id_REGION}
+              <div
+                class="bg-gray-100 bg-opacity-50 bg-trans rounded-full p-2 shadow align flex flex-col items-center"
+              >
+                <div class="text-sm font-bold">{feature.properties.name}</div>
+                {#if showICSP}
+                  <!-- Afficher la valeur avec l'unité 'XAF' -->
+                  <div class="text-sm font-bold">{formattedValue(value)} XAF</div>
+                {:else}
+                  <!-- Afficher la valeur avec l'unité 'projet' -->
+                  <div class="text-sm font-normal">{formattedValue(value)} projets</div>
+                {/if}
+              </div>
+            {/if}
+          {/each}
+        </MarkerLayer>
+      {/if}
     </GeoJSON>
 
     <VectorTileSource url={'pmtiles://data/departements.pmtiles'} promoteId={'ref:COG'}>
-      <FillLayer
-        paint={paintProperties}
-        manageHoverState
-        sourceLayer={'departements'}
-        minzoom={zoomMaxDep}
-        maxzoom={zoomMaxMun}
-        on:click={handleLayerClick}
-      />
-      <LineLayer
-        paint={{
-          'line-opacity': 1,
-          'line-width': 1,
-          'line-color': 'gray'
-        }}
-        sourceLayer={'departements'}
-        minzoom={zoomMaxDep}
-        maxzoom={zoomMaxMun}
-      />
-
       <JoinedData data={statisticsPerRegion} idCol="id_DEPARTEMENT" sourceLayer="departements" />
+      {#if showDep}
+        <FillLayer
+          paint={paintProperties}
+          manageHoverState
+          sourceLayer={'departements'}
+          on:click={handleLayerClick}
+        />
+        <LineLayer
+          paint={{
+            'line-opacity': 1,
+            'line-width': 1,
+            'line-color': 'gray'
+          }}
+          sourceLayer={'departements'}
+        />
+      {/if}
     </VectorTileSource>
 
-    <GeoJSON data={geojsonDepartementCentroid} promoteId="ref:COG">
-      <JoinedData data={statisticsPerRegion} idCol="id_DEPARTEMENT" />
-      <MarkerLayer let:feature minzoom={zoomMaxDep} maxzoom={zoomMaxMun}>
-        {#each statisticsPerRegion as { id_DEPARTEMENT, value }}
-          {#if feature.properties['ref:COG'] === id_DEPARTEMENT}
-            <div
-              class="bg-gray-100 bg-opacity-50 rounded-full p-2 shadow align flex flex-col items-center"
-            >
-              <div class="text-sm font-bold">{feature.properties.name}</div>
-              {#if showICSP}
-                <!-- Afficher la valeur avec l'unité 'XAF' -->
-                <div class="text-sm font-bold">{formattedValue(value)} XAF</div>
-              {:else}
-                <!-- Afficher la valeur avec l'unité 'projet' -->
-                <div class="text-sm font-normal">{formattedValue(value)} projets</div>
-              {/if}
-              <div class="text-sm font-italic"></div>
-            </div>
-          {/if}
-        {/each}
-      </MarkerLayer>
-    </GeoJSON>
+    {#if showDep}
+      <GeoJSON data={geojsonDepartementCentroid} promoteId="ref:COG">
+        <JoinedData data={statisticsPerRegion} idCol="id_DEPARTEMENT" />
 
+        <MarkerLayer let:feature>
+          {#each statisticsPerRegion as { id_DEPARTEMENT, value }}
+            {#if feature.properties['ref:COG'] === id_DEPARTEMENT}
+              <div
+                class="bg-gray-100 bg-opacity-50 rounded-full p-2 shadow align flex flex-col items-center"
+              >
+                <div class="text-sm font-bold">{feature.properties.name}</div>
+                {#if showICSP}
+                  <!-- Afficher la valeur avec l'unité 'XAF' -->
+                  <div class="text-sm font-bold">{formattedValue(value)} XAF</div>
+                {:else}
+                  <!-- Afficher la valeur avec l'unité 'projet' -->
+                  <div class="text-sm font-normal">{formattedValue(value)} projets</div>
+                {/if}
+                <div class="text-sm font-italic"></div>
+              </div>
+            {/if}
+          {/each}
+        </MarkerLayer>
+      </GeoJSON>
+    {/if}
     <VectorTileSource url={'pmtiles://data/municipalites.pmtiles'} promoteId={'ref:COG'}>
       <JoinedData data={statisticsPerRegion} idCol="id_COMMUNE" sourceLayer="municipalites" />
-      <SymbolLayer
-        paint={{
-          'text-color': '#333',
-          'text-opacity': 1,
-          'text-halo-color': '#eee',
-          'text-halo-width': 0.5,
-          'text-halo-blur': 0.5
-        }}
-        layout={{
-          'text-allow-overlap': false,
-          'text-field': ['get', 'name'],
-          'text-halo-color': '#eee',
-          'text-halo-width': 0.5,
-          'text-halo-blur': 0.5,
-          'text-size': 400
-        }}
-        minzoom={zoomMaxMun}
-        sourceLayer={'municipalites'}
-      />
-      <FillLayer
-        paint={paintProperties}
-        manageHoverState
-        sourceLayer={'municipalites'}
-        minzoom={zoomMaxMun}
-        }}
-        on:click={handleLayerClick}
-      />
-      <LineLayer
-        paint={{
-          'line-opacity': 1,
-          'line-color': 'gray'
-        }}
-        sourceLayer={'municipalites'}
-        minzoom={zoomMaxMun}
-      />
+      {#if showCom}
+        <SymbolLayer
+          paint={{
+            'text-color': '#333',
+            'text-opacity': 1,
+            'text-halo-color': '#eee',
+            'text-halo-width': 0.5,
+            'text-halo-blur': 0.5
+          }}
+          layout={{
+            'text-allow-overlap': false,
+            'text-field': ['get', 'name'],
+            'text-halo-color': '#eee',
+            'text-halo-width': 0.5,
+            'text-halo-blur': 0.5,
+            'text-size': 400
+          }}
+          sourceLayer={'municipalites'}
+        />
+        <FillLayer
+          paint={paintProperties}
+          manageHoverState
+          hoverCursor="pointer"
+          sourceLayer={'municipalites'}
+          }}
+          on:click={handleLayerClick}
+        />
+        <LineLayer
+          paint={{
+            'line-opacity': 1,
+            'line-color': 'gray'
+          }}
+          sourceLayer={'municipalites'}
+        />
+      {/if}
     </VectorTileSource>
+
+    {#if showCom}
+      <GeoJSON data={geojsonMunicipaliteCentroid} promoteId="ref:COG">
+        <JoinedData data={statisticsPerRegion} idCol="id_COMMUNE" />
+        <Popup openOn="hover" let:feature>
+          {#each statisticsPerRegion as { id_COMMUNE, value }}
+            {#if feature.properties['ref:COG'] === id_COMMUNE}
+              <div
+                class="bg-gray-100 bg-opacity-50 rounded-full p-2 shadow align flex flex-col items-center"
+              >
+                <div class="text-sm font-bold">{feature.properties.name}</div>
+                {#if showICSP}
+                  <!-- Afficher la valeur avec l'unité 'XAF' -->
+                  <div class="text-sm font-bold">{formattedValue(value)} XAF</div>
+                {:else}
+                  <!-- Afficher la valeur avec l'unité 'projet' -->
+                  <div class="text-sm font-normal">{formattedValue(value)} projets</div>
+                {/if}
+                <div class="text-sm font-italic"></div>
+              </div>
+            {/if}
+          {/each}
+        </Popup>
+        <SymbolLayer
+          paint={{
+            'text-color': '#333',
+            'text-opacity': 1,
+            'text-halo-color': '#eee',
+            'text-halo-width': 0.5,
+            'text-halo-blur': 0.5
+          }}
+          layout={{
+            'text-allow-overlap': false,
+            'text-field': ['get', 'name'],
+            'text-size': {
+              stops: [
+                [3, 3], // À un niveau de zoom de 3, la taille du texte est de 16
+                [20, 54] // À un niveau de zoom de 5, la taille du texte est de 24
+              ]
+            }
+          }}
+        />
+      </GeoJSON>
+    {/if}
   </MapLibre>
 {/if}
 

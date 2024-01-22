@@ -329,19 +329,6 @@
               ICSP
             </div>
             <SidebarGroup id="icsp">
-              <!-- Contenu de votre SideGroup pour ICSP -->
-              <!--      <h5
-              class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 dark:text-white"
-            >
-              Montants des ICSP
-            </h5>
-            
-            <ButtonGroup>
-              <Button outline color="dark">Montants annuels</Button>
-              <Button outline color="dark">Montants trimestrielles</Button>
-            </ButtonGroup> -->
-
-              <!-- Contenu de votre SideGroup pour ICSP -->
               <h5
                 class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 dark:text-white"
               >
