@@ -90,8 +90,8 @@
   let showICSP;
   let currentZoom = 0;
   let showFinancement;
-  let valueSliderLanding = 0; // Initialisez avec une valeur par défaut
-  let valueSliderAccord = 0; // Initialisez avec une valeur par défaut
+  let valueSliderICSP = 0; // Initialisez avec une valeur par défaut
+  let valueSliderAccord = []; // Initialisez avec une valeur par défaut
   let storeIndicateur5ForMap = {};
   let storeIndicateurForMap = {};
   let mapFilterIndicateur5 = {};
@@ -169,7 +169,7 @@
 
     // Abonnez-vous au store pour recevoir les mises à jour
     rangeValue.subscribe(($rangeValue) => {
-      valueSliderLanding = $rangeValue;
+      valueSliderICSP = $rangeValue;
     });
 
     // Abonnez-vous au store pour recevoir les mises à jour
@@ -217,14 +217,23 @@
     if (dataForMap.length > 0 && trigger == true) {
       if (showICSP) {
         dataForMap = icspData;
-        statisticsPerRegion = calculateTotalByRegion(dataForMap, valueSliderLanding, scale);
-
+        statisticsPerRegion = calculateTotalByRegion(
+          dataForMap,
+          valueSliderICSP[0],
+          valueSliderICSP[1],
+          scale
+        );
         MinMax = findMinMax(statisticsPerRegion, 'value');
       } else {
         dataForMap = dataArr2;
-
+        console.log(valueSliderAccord);
         mapFilterIndicateur = rechercheMulticriteres(dataForMap, storeIndicateurForMap);
-        statisticsPerRegion = getSumPerYear(mapFilterIndicateur, valueSliderAccord, scale);
+        statisticsPerRegion = getSumPerYear(
+          mapFilterIndicateur,
+          valueSliderAccord[0],
+          valueSliderAccord[1],
+          scale
+        );
 
         if (statisticsPerRegion.length > 0) {
           MinMax = findMinMax(statisticsPerRegion, 'value');
@@ -241,52 +250,57 @@
 
   function handleLayerClick(e) {
     // Set the variable with information about the clicked layer
+    clickedLayerInfo = e;
     if (!showICSP) {
-      clickedLayerInfo = e;
       nom_commune = e.detail.features[0].properties['ref:COG'];
       allProject = rechercheMulticriteresPourFEICOM(
         dataForMap,
         nom_commune,
         scale,
-        valueSliderAccord,
+        valueSliderAccord[0],
+        valueSliderAccord[1],
         storeIndicateurForMap
       );
+      hiddenBackdropFalse = false;
     } else {
-      if (showICSP && showCom) {
-        // Set the variable with information about the clicked layer
-        // Set hiddenBackdropFalse to false to show the Drawer
-        // Exemple d'utilisation
-        const region = e.detail.features[0].properties['ref:COG'];
-        const label_reg = e.detail.features[0].properties.name;
-        const year = valueSliderLanding;
+      // Set the variable with information about the clicked layer
+      // Set hiddenBackdropFalse to false to show the Drawer
+      // Exemple d'utilisation
+      const region = e.detail.features[0].properties['ref:COG'];
+      const label_reg = e.detail.features[0].properties.name;
 
-        dataForBarChart.data = transformDataForBarChart(dataForMap, region, year, 'id_COMMUNE');
-        dataForLineChart.data = sumISPValues(dataForMap, region, 'id_COMMUNE');
+      dataForBarChart.data = transformDataForBarChart(
+        dataForMap,
+        region,
+        valueSliderICSP[0],
+        valueSliderICSP[1],
+        'id_COMMUNE'
+      );
+      dataForLineChart.data = sumISPValues(dataForMap, region, 'id_COMMUNE');
 
-        dataForLineChart.geo = label_reg;
+      dataForLineChart.geo = label_reg;
 
-        dataForBarChart.year = year;
-        dataForBarChart.geo = label_reg;
+      dataForBarChart.year = year;
+      dataForBarChart.geo = label_reg;
 
-        // Calcul de la somme des valeurs "y"
-        dataForBarChart.sum = dataForBarChart.data.reduce(
-          (total, currentItem) => total + currentItem.y,
-          0
-        );
+      // Calcul de la somme des valeurs "y"
+      dataForBarChart.sum = dataForBarChart.data.reduce(
+        (total, currentItem) => total + currentItem.y,
+        0
+      );
 
-        hiddenBackdropFalse = false;
-        return dataForBarChart;
+      if (showCom) {
+        nom_commune = e.detail.features[0].properties['ref:COG'];
+        detailsMandatCommune = findAllObjectsByAttribute(mandatData, 'id_COMMUNE', nom_commune);
+        anneeDebutMandat = uniqueValuesInArrayOfObject(detailsMandatCommune, 'DEBUT MANDAT');
+        anneeFinMandat = uniqueValuesInArrayOfObject(detailsMandatCommune, 'FIN MANDAT');
+        console.log(detailsMandatCommune);
       }
+      hiddenBackdropFalse = false;
+      return dataForBarChart;
     }
-    if (showCom) {
-      clickedLayerInfo = e;
-      nom_commune = e.detail.features[0].properties['ref:COG'];
-      detailsMandatCommune = findAllObjectsByAttribute(mandatData, 'id_COMMUNE', nom_commune);
-      anneeDebutMandat = uniqueValuesInArrayOfObject(detailsMandatCommune, 'DEBUT MANDAT');
-      anneeFinMandat = uniqueValuesInArrayOfObject(detailsMandatCommune, 'FIN MANDAT');
-    }
+
     // Set hiddenBackdropFalse to false to show the Drawer
-    hiddenBackdropFalse = false;
   }
 
   function handleLayerClickOnRegion(e) {
@@ -296,9 +310,14 @@
       // Exemple d'utilisation
       const region = e.detail.features?.[0]?.state.id_REGION;
       const label_reg = e.detail.features[0].properties.name;
-      const year = valueSliderLanding;
 
-      dataForBarChart.data = transformDataForBarChart(dataForMap, region, year, 'id_REGION');
+      dataForBarChart.data = transformDataForBarChart(
+        dataForMap,
+        region,
+        valueSliderICSP[0],
+        valueSliderICSP[1],
+        'id_REGION'
+      );
       dataForLineChart.data = sumISPValues(dataForMap, region, 'id_REGION');
 
       dataForLineChart.geo = label_reg;
@@ -323,7 +342,8 @@
           dataForMap,
           nom_commune,
           scale,
-          valueSliderAccord,
+          valueSliderAccord[0],
+          valueSliderAccord[1],
           storeIndicateurForMap
         );
         // Set hiddenBackdropFalse to false to show the Drawer
@@ -386,13 +406,23 @@
   bind:hidden={hiddenBackdropFalse}
   id="sidebar6"
 >
-  <Tabs style="underline" class="!flex-nowrap  ">
+  <Tabs style="underline" class="!flex-nowrap">
     {#if showCom}
+      <Tooltip triggeredBy="#historique" type="auto"
+        >Historique des exécutifs communaux qui se sont succédés
+      </Tooltip>
       <TabItem>
         <div slot="title" class="flex items-center gap-1 hover:text-blue-900">
           <LandmarkOutline size="sm" />
           Historique municipal
+          <h5
+            id="historique"
+            class="inline-flex items-center mb-4 text-sm font-light text-gray-400 dark:text-gray-200"
+          >
+            <InfoCircleSolid class="w-4 h-4 me-2.5" />
+          </h5>
         </div>
+
         <h2 class="mb-6 text-center text-gray-900 text-lg dark:text-gray-400">
           {clickedLayerInfo.detail.features[0].properties.name}
         </h2>
@@ -439,10 +469,17 @@
       </TabItem>
     {/if}
     {#if !showICSP}
-      <TabItem open class="hover:text-blue-900">
+      <Tooltip triggeredBy="#projets" type="auto">Liste de l'ensemble des projets filtrés</Tooltip>
+      <TabItem open class="hover:text-blue-900" id="projets">
         <div slot="title" class="flex items-center gap-1">
           <GridSolid size="sm" />
           Liste des projets
+          <h5
+            id="projets"
+            class="inline-flex items-center mb-4 text-sm font-light text-gray-400 dark:text-gray-200"
+          >
+            <InfoCircleSolid class="w-4 h-4 me-2.5" />
+          </h5>
         </div>
 
         <h2 class="mb-6 text-center text-gray-900 text-lg dark:text-gray-400">
@@ -473,9 +510,18 @@
       </TabItem>
     {:else}
       <TabItem open class="hover:text-blue-900">
+        <Tooltip triggeredBy="#stat" type="auto">
+          Statistique des ICSP dans le temps pour un territoire choisi
+        </Tooltip>
         <div slot="title" class="flex items-center gap-1">
           <GridSolid size="sm" />
           Stats ICSP
+          <h5
+            id="stat"
+            class="inline-flex items-center mb-4 text-sm font-light text-gray-400 dark:text-gray-200"
+          >
+            <InfoCircleSolid class="w-4 h-4 me-2.5" />
+          </h5>
         </div>
 
         <div class="lg:w-full sm:w-full lg:h-1/2 sm:h-auto flex justify-center mb-4">

@@ -54,15 +54,15 @@ export function getSumOf(data, key) {
     return result;
 }
 
-export function getSumPerYear(data, year, scale) {
+export function getSumPerYear(data, startYear, endYear, scale) {
     const statistics = {};
 
     data.forEach(item => {
         const region = item[scale];
-        const itemYear = item['Année financement'];
+        const itemYear = parseInt(item['Année financement']);
 
-        // Vérifier si l'année correspond à celle spécifiée en argument
-        if (itemYear === year) {
+        // Vérifier si l'année se trouve dans la plage spécifiée
+        if (!isNaN(itemYear) && itemYear >= startYear && itemYear <= endYear) {
             if (statistics[region]) {
                 statistics[region]++;
             } else {
@@ -82,16 +82,16 @@ export function getSumPerYear(data, year, scale) {
 
 
 
-
-export function calculateTotalByRegion(data, year, scale) {
+export function calculateTotalByRegion(data, startYear, endYear, scale) {
     const totalByRegion = {};
 
     for (const entry of data) {
         const region = entry[scale];
         const totalString = typeof entry.TOTAL === 'string' ? entry.TOTAL.replace(/\D+/g, '') : '0'; // Supprimer les caractères non numériques
         const total = parseFloat(totalString);
+        const year = parseInt(entry.ANNEE);
 
-        if (!isNaN(total) && entry.ANNEE === year) {
+        if (!isNaN(total) && year >= startYear && year <= endYear) {
             if (!totalByRegion[region]) {
                 totalByRegion[region] = total;
             } else {
@@ -100,7 +100,6 @@ export function calculateTotalByRegion(data, year, scale) {
         }
     }
 
-    // Convertir le totalByRegion en la structure souhaitée
     const result = Object.entries(totalByRegion).map(([key, value]) => ({
         [scale]: key,
         'value': value
@@ -108,6 +107,7 @@ export function calculateTotalByRegion(data, year, scale) {
 
     return result;
 }
+
 
 // @ts-ignore
 export function findMinMax(array, key) {
@@ -158,10 +158,10 @@ export function sumISPValues(data, region, id_level) {
 }
 
 
-export function transformDataForBarChart(data, region, year, id_level) {
-    // Filtrer les données pour la région et l'année spécifiées
-    const filteredData = data.filter((entry) => entry[id_level] === region && entry.ANNEE === year);
-    console.log(filteredData)
+export function transformDataForBarChart(data, region, startYear, endYear, id_level) {
+    // Filtrer les données pour la région et la plage d'années spécifiées
+    const filteredData = data.filter((entry) => entry[id_level] === region && parseInt(entry.ANNEE) >= startYear && parseInt(entry.ANNEE) <= endYear);
+
     if (filteredData.length === 0) {
         // Aucune donnée correspondante trouvée
         return [];
@@ -170,19 +170,26 @@ export function transformDataForBarChart(data, region, year, id_level) {
     // Créer un tableau d'objets pour chaque valeur ISP
     const chartData = [];
     for (let i = 1; i <= 4; i++) {
-        const ispValue = filteredData[0][`ISP${i}`].replace(/\s+/g, ''); // Supprimer les espaces
+        const ispValues = filteredData.map((entry) => {
+            const ispValue = entry[`ISP${i}`];
+            if (typeof ispValue === 'string') {
+                const cleanedValue = ispValue.replace(/\s+/g, '');
+                return !isNaN(parseFloat(cleanedValue)) ? parseFloat(cleanedValue) : 0;
+            } else {
+                return 0;
+            }
+        });
 
-        // Vérifier si la valeur ISP est null ou vide
-        if (ispValue === null || ispValue === '') {
-            // Traitement pour les valeurs null ou vides (par exemple, définir la valeur y à zéro)
-            chartData.push({ x: `ISP${i}`, y: 0 });
-        } else {
-            chartData.push({ x: `ISP${i}`, y: parseFloat(ispValue) });
-        }
+        const ispValueSum = ispValues.reduce((acc, val) => acc + val, 0);
+
+        chartData.push({ x: `ISP${i}`, y: ispValueSum });
     }
 
     return chartData;
 }
+
+
+
 
 
 
@@ -215,7 +222,9 @@ export function rechercheMulticriteres(dataForMap, critères) {
         });
     });
 }
-export function rechercheMulticriteresPourFEICOM(dataForMap, id_couche, scale, annee, dataAllIndicateur) {
+
+
+export function rechercheMulticriteresPourFEICOM(dataForMap, id_couche, scale, startYear, endYear, dataAllIndicateur) {
     return dataForMap.filter(objet => {
         const champDepartement = scale;
         const champAnnee = "Année financement";
@@ -223,8 +232,8 @@ export function rechercheMulticriteresPourFEICOM(dataForMap, id_couche, scale, a
         // Vérifiez si le nom du département correspond
         const correspondNomDepartement = objet[champDepartement] === id_couche;
 
-        // Vérifiez si l'année correspond
-        const correspondAnnee = objet[champAnnee] === annee;
+        // Vérifiez si l'année correspond à la période spécifiée
+        const correspondAnnee = parseInt(objet[champAnnee]) >= startYear && parseInt(objet[champAnnee]) <= endYear;
 
         // Vérifiez les critères de l'array dataAllIndicateur
         const critereIndicateur = dataAllIndicateur.every(indicateur => {

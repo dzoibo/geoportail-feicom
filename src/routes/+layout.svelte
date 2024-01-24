@@ -81,19 +81,34 @@
   let showFinancement = false;
   let showICSP = true;
   let minMaxYear: {
-    max: any;
-    min: any;
+    max: 2000;
+    min: 2022;
   };
-  let minMaxYearAccord: {
-    max: any;
-    min: any;
+  let minMaxYearAccord = {
+    min: 2000,
+    max: 2020
   };
+
+  let valueSliderAccord = [minMaxYearAccord.min, minMaxYearAccord.max];
+
+  let minMaxYearICSP = {
+    min: 2000,
+    max: 2020
+  };
+
+  let valueSlideICSP = [minMaxYearICSP.min, minMaxYearICSP.max];
+
   let valueSliderLanding = 0;
-  let valueSliderAccord = 0;
+
+  let valueSliderAccord2 = 0;
   let update = true;
 
   let showProgressBar = true; // Définissez la variable pour afficher la barre de progression
   let progressValue = 0; // Initialisez la valeur de la progression
+  let minSliderValue = minMaxYearAccord.min;
+  let maxSliderValue = minMaxYearAccord.max;
+  let minSliderICSP = minMaxYearICSP.min;
+  let maxSliderICSP = minMaxYearICSP.max;
 
   let checkedOptions: { [key: string]: boolean } = {};
   let dropdownSelectionIndicateur5 = { indicateur: '', data: [] };
@@ -146,13 +161,14 @@
         dropdownSelectionIndicateur1
       );
 
-      minMaxYear = findMinMax(icspData, 'ANNEE');
+      minMaxYearICSP = findMinMax(icspData, 'ANNEE');
       minMaxYearAccord = findMinMax(dataArr, 'Année financement');
 
-      valueSliderLanding = minMaxYear.min;
-      valueSliderAccord = minMaxYearAccord.min;
+      valueSliderAccord = [minMaxYearAccord.min, minMaxYearAccord.max];
 
-      rangeValue.set(valueSliderLanding);
+      valueSlideICSP = [minMaxYearICSP.min, minMaxYearICSP.max];
+
+      rangeValue.set(valueSlideICSP);
       rangeValueAccord.set(valueSliderAccord);
 
       // Vérifiez si l'élément a été trouvé
@@ -259,13 +275,41 @@
   }
 
   $: {
+    if (minSliderValue <= maxSliderValue) {
+      minSliderValue = minSliderValue;
+    } else {
+      minSliderValue = maxSliderValue;
+    }
+    if (maxSliderValue >= minSliderValue) {
+      maxSliderValue = maxSliderValue;
+    } else {
+      maxSliderValue = minSliderValue;
+    }
+    if (minSliderICSP <= maxSliderICSP) {
+      minSliderICSP = minSliderICSP;
+    } else {
+      minSliderICSP = maxSliderICSP;
+    }
+    if (maxSliderICSP >= minSliderICSP) {
+      maxSliderICSP = maxSliderICSP;
+    } else {
+      maxSliderICSP = minSliderICSP;
+    }
+
+    valueSliderAccord = [minSliderValue, maxSliderValue];
+    valueSlideICSP = [minSliderICSP, maxSliderICSP];
+    //@ts-ignore
+    rangeValue.set(valueSlideICSP);
+    //@ts-ignore
+
+    console.log(valueSliderAccord);
+    rangeValueAccord.set(valueSliderAccord);
+
     activeUrl = $page.url.pathname;
     let spanClass = 'pl-2 self-center text-md text-gray-900 dark:text-white';
     let divClass = 'w-full md:block md:w-auto pr-8';
     let ulClass =
       'flex flex-col p-4 mt-4 md:flex-row md:space-x-8 md:mt-0 md:text-lg md:font-medium';
-    rangeValue.set(valueSliderLanding);
-    rangeValueAccord.set(valueSliderAccord);
 
     storeIndicateur.update((items) => {
       //@ts-ignore
@@ -315,8 +359,9 @@
     </div>
     <Sidebar asideClass="w-54">
       <SidebarWrapper divClass="overflow-y-auto  rounded dark:bg-gray-800">
-        <Tabs style="underline" class="!flex-nowrap  ">
+        <Tabs style="full" class="space-x-0 w-full flex !flex-nowrap">
           <TabItem
+            class="w-full hover:text-blue-900"
             open
             on:click={() => {
               showICSP = true;
@@ -329,24 +374,39 @@
               ICSP
             </div>
             <SidebarGroup id="icsp">
+              <div class="flex items-center space-x-4">
+                <div class="flex-1">
+                  <Range
+                    id="range-max"
+                    min={minMaxYearICSP.min}
+                    max={minMaxYearICSP.max}
+                    bind:value={minSliderICSP}
+                    step="1"
+                  />
+                </div>
+                <div class="flex-1">
+                  <Range
+                    id="range-min"
+                    min={minMaxYearICSP.min}
+                    max={minMaxYearICSP.max}
+                    bind:value={maxSliderICSP}
+                    step="1"
+                  />
+                </div>
+              </div>
+              <p>
+                Visualisation des données pour la période : {minSliderICSP + ' - ' + maxSliderICSP}
+              </p>
               <h5
                 class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 dark:text-white"
               >
                 ANNEE
               </h5>
-              <Range
-                id="range-minmax"
-                min={minMaxYear.min}
-                max={minMaxYear.max}
-                bind:value={valueSliderLanding}
-                step="1"
-              />
-              <p>Année : {valueSliderLanding}</p>
             </SidebarGroup>
           </TabItem>
 
           <TabItem
-            class="hover:text-blue-900"
+            class="hover:text-blue-900  w-full"
             on:click={() => {
               showICSP = false;
               showFinancement = true;
@@ -602,16 +662,39 @@
                 ANNEE
               </h5>
               <SidebarGroup>
-                <Range
-                  id="range-minmax"
-                  min={minMaxYearAccord.min}
-                  max={minMaxYearAccord.max}
-                  bind:value={valueSliderAccord}
-                  step="1"
-                />
-                <p>Année : {valueSliderAccord}</p>
+                <div class="flex items-center space-x-4">
+                  <div class="flex-1">
+                    <Range
+                      id="range-max"
+                      min={minMaxYearAccord.min}
+                      max={minMaxYearAccord.max}
+                      bind:value={minSliderValue}
+                      step="1"
+                    />
+                  </div>
+                  <div class="flex-1">
+                    <Range
+                      id="range-min"
+                      min={minMaxYearAccord.min}
+                      max={minMaxYearAccord.max}
+                      bind:value={maxSliderValue}
+                      step="1"
+                    />
+                  </div>
+                </div>
+                <p>
+                  Visualisation des données pour la période : {minSliderValue +
+                    ' - ' +
+                    maxSliderValue}
+                </p>
               </SidebarGroup>
             </SidebarGroup>
+          </TabItem>
+          <TabItem disabled>
+            <div slot="title" class=" w-full items-center gap-1 hover:text-blue-900">
+              <DollarOutline size="sm" />
+              Dettes
+            </div>
           </TabItem>
         </Tabs>
       </SidebarWrapper>
