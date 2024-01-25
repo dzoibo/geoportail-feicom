@@ -6,7 +6,8 @@
     buttonICSP,
     rangeValueAccord,
     storeIndicateur5,
-    storeIndicateur
+    storeIndicateur,
+    heightNavBar
   } from '../../shared/store';
   import Map from '../components/Map.svelte';
   import {
@@ -106,13 +107,15 @@
   const zoomMaxRegion = 6;
   const zoomMaxDep = 6;
   const zoomMaxMun = 6;
-
+  let heightNavBarForSideBar;
+  let sidebarId;
   let showDep = false;
   let showCom = false;
   let showReg = true;
   let currentGeo = 'reg';
   let openOn = 'hover';
 
+  let heightSideBar;
   // bbox du Cameroun
   let bbox = [
     [-6.81, -6.492371],
@@ -188,6 +191,12 @@
     });
 
     // Abonnez-vous au store pour recevoir les mises à jour
+    heightNavBar.subscribe(($heightNavBar) => {
+      heightNavBarForSideBar = $heightNavBar;
+    });
+    console.log(heightNavBarForSideBar);
+
+    // Abonnez-vous au store pour recevoir les mises à jour
     buttonICSP.subscribe(($showICSP) => {
       showICSP = $showICSP; // Mettez à jour la valeur locale avec la valeur du store
     });
@@ -204,6 +213,9 @@
     }
   });
 
+  // Sélectionnez l'élément du drawer par son identifiant
+  sidebarId = document.getElementById('sidebar6');
+
   // Reactivité
   $: {
     if (showCom) {
@@ -212,6 +224,9 @@
       scale = 'id_REGION';
     } else {
       scale = 'id_DEPARTEMENT';
+    }
+    if (sidebarId) {
+      heightSideBar = sidebarId.offsetHeight;
     }
 
     if (dataForMap.length > 0 && trigger == true) {
@@ -251,6 +266,14 @@
   function handleLayerClick(e) {
     // Set the variable with information about the clicked layer
     clickedLayerInfo = e;
+
+    if (showCom) {
+      nom_commune = e.detail.features[0].properties['ref:COG'];
+      detailsMandatCommune = findAllObjectsByAttribute(mandatData, 'id_COMMUNE', nom_commune);
+      anneeDebutMandat = uniqueValuesInArrayOfObject(detailsMandatCommune, 'DEBUT MANDAT');
+      anneeFinMandat = uniqueValuesInArrayOfObject(detailsMandatCommune, 'FIN MANDAT');
+      console.log(detailsMandatCommune);
+    }
     if (!showICSP) {
       nom_commune = e.detail.features[0].properties['ref:COG'];
       allProject = rechercheMulticriteresPourFEICOM(
@@ -280,7 +303,7 @@
 
       dataForLineChart.geo = label_reg;
 
-      dataForBarChart.year = year;
+      dataForBarChart.year = valueSliderICSP[0] + ' / ' + valueSliderICSP[1];
       dataForBarChart.geo = label_reg;
 
       // Calcul de la somme des valeurs "y"
@@ -288,14 +311,6 @@
         (total, currentItem) => total + currentItem.y,
         0
       );
-
-      if (showCom) {
-        nom_commune = e.detail.features[0].properties['ref:COG'];
-        detailsMandatCommune = findAllObjectsByAttribute(mandatData, 'id_COMMUNE', nom_commune);
-        anneeDebutMandat = uniqueValuesInArrayOfObject(detailsMandatCommune, 'DEBUT MANDAT');
-        anneeFinMandat = uniqueValuesInArrayOfObject(detailsMandatCommune, 'FIN MANDAT');
-        console.log(detailsMandatCommune);
-      }
       hiddenBackdropFalse = false;
       return dataForBarChart;
     }
@@ -322,7 +337,7 @@
 
       dataForLineChart.geo = label_reg;
 
-      dataForBarChart.year = year;
+      dataForBarChart.year = valueSliderICSP[0] + ' / ' + valueSliderICSP[1];
       dataForBarChart.geo = label_reg;
 
       // Calcul de la somme des valeurs "y"
@@ -399,227 +414,220 @@
 <svelte:window bind:innerWidth={width} />
 <Drawer
   placement="right"
-  class="lg:w-1/4 md:w-1/3 sm:w-1/2 w-2/3 w-auto"
+  style="top:{heightNavBarForSideBar}px"
+  class="lg:w-1/3 md:w-1/3 sm:w-1/2 w-2/3 w-auto !p-0"
   transitionType="fly"
   backdrop={true}
   transitionParams={transitionParamsRight}
   bind:hidden={hiddenBackdropFalse}
   id="sidebar6"
 >
-  <Tabs style="underline" class="!flex-nowrap">
-    {#if showCom}
-      <Tooltip triggeredBy="#historique" type="auto"
-        >Historique des exécutifs communaux qui se sont succédés
-      </Tooltip>
-      <TabItem>
-        <div slot="title" class="flex items-center gap-1 hover:text-blue-900">
-          <LandmarkOutline size="sm" />
-          Historique municipal
-          <h5
-            id="historique"
-            class="inline-flex items-center mb-4 text-sm font-light text-gray-400 dark:text-gray-200"
-          >
-            <InfoCircleSolid class="w-4 h-4 me-2.5" />
-          </h5>
-        </div>
-
-        <h2 class="mb-6 text-center text-gray-900 text-lg dark:text-gray-400">
-          {clickedLayerInfo.detail.features[0].properties.name}
-        </h2>
-        {#each anneeDebutMandat as mandatDeb, i}
-          <div id="detailMandatForAMunicipality" class="grid grid-cols-1 gap-4 list-none">
-            <SidebarDropdownWrapper label="Mandat {mandatDeb} - {anneeFinMandat[i]}">
-              <svelte:fragment slot="icon">
-                <BadgeCheckOutline
-                  class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 hover:text-blue-900 dark:group-hover:text-white"
-                />
-              </svelte:fragment>
-              {#each detailsMandatCommune as detailMandat}
-                {#if detailMandat['DEBUT MANDAT'] === mandatDeb && detailMandat['FIN MANDAT'] === anneeFinMandat[i]}
-                  <Card padding="xl" size="md">
-                    <Listgroup class="border-0 dark:!bg-transparent">
-                      <div class="flex items-center space-x-4 rtl:space-x-reverse">
-                        <div class="flex-1 min-w-0">
-                          <p class="text-sm font-medium text-gray-900 truncate dark:text-white">
-                            {detailMandat.CONSEILLER || ''}
-                          </p>
-                          <p class="text-sm text-gray-900 truncate dark:text-white">
-                            {detailMandat.ROLE || ''}
-                          </p>
-                          <p class="text-sm text-gray-500 truncate dark:text-gray-400">
-                            {detailMandat.TELEPHONE || ''}
-                          </p>
-                          <p class="text-sm text-gray-500 truncate dark:text-gray-400">
-                            {detailMandat.EMAIL || ''}
-                          </p>
-                        </div>
-                        <div
-                          class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white"
-                        >
-                          {detailMandat.PARTI || ''}
-                        </div>
-                      </div>
-                    </Listgroup>
-                  </Card>
-                {/if}
-              {/each}
-            </SidebarDropdownWrapper>
-          </div>
-        {/each}
-      </TabItem>
-    {/if}
-    {#if !showICSP}
-      <Tooltip triggeredBy="#projets" type="auto">Liste de l'ensemble des projets filtrés</Tooltip>
-      <TabItem open class="hover:text-blue-900" id="projets">
-        <div slot="title" class="flex items-center gap-1">
-          <GridSolid size="sm" />
-          Liste des projets
-          <h5
-            id="projets"
-            class="inline-flex items-center mb-4 text-sm font-light text-gray-400 dark:text-gray-200"
-          >
-            <InfoCircleSolid class="w-4 h-4 me-2.5" />
-          </h5>
-        </div>
-
-        <h2 class="mb-6 text-center text-gray-900 text-lg dark:text-gray-400">
-          {clickedLayerInfo.detail.features[0].properties.name}
-        </h2>
-        <ul>
-          {#each allProject as resultat}
-            <Card padding="xl" size="md" class="mb-6">
-              <Listgroup class="border-0 dark:!bg-transparent">
-                <div class="flex items-center space-x-4 rtl:space-x-reverse">
-                  <div class="flex-1 min-w-0">
-                    {#each Object.keys(resultat) as key}
-                      {#if resultat[key]}
-                        <div>
-                          <span class="text-sm font-medium text-gray-900 dark:text-white">
-                            {key} :
-                          </span>
-                          <span text-sm font-normal>{resultat[key]}</span>
-                        </div>
-                      {/if}
-                    {/each}
-                  </div>
-                </div></Listgroup
-              >
-            </Card>
-          {/each}
-        </ul>
-      </TabItem>
-    {:else}
-      <TabItem open class="hover:text-blue-900">
-        <Tooltip triggeredBy="#stat" type="auto">
-          Statistique des ICSP dans le temps pour un territoire choisi
+  <div class="bg-[#00862b14] div-wrapper" style="height:{heightSideBar}px !important">
+    <Tabs style="full" class="space-x-0 w-full flex !flex-nowrap bg-white">
+      {#if showCom}
+        <Tooltip triggeredBy="#historique" type="auto"
+          >Historique des exécutifs communaux qui se sont succédés
         </Tooltip>
-        <div slot="title" class="flex items-center gap-1">
-          <GridSolid size="sm" />
-          Stats ICSP
-          <h5
-            id="stat"
-            class="inline-flex items-center mb-4 text-sm font-light text-gray-400 dark:text-gray-200"
-          >
-            <InfoCircleSolid class="w-4 h-4 me-2.5" />
-          </h5>
-        </div>
+        <TabItem>
+          <div slot="title" class="flex items-center gap-1">
+            <LandmarkOutline size="sm" />
+            Historique municipal
+            <h5
+              id="historique"
+              class="inline-flex items-center mb-4 text-sm font-light text-gray-400 dark:text-gray-200"
+            >
+              <InfoCircleSolid class="w-4 h-4 me-2.5" />
+            </h5>
+          </div>
 
-        <div class="lg:w-full sm:w-full lg:h-1/2 sm:h-auto flex justify-center mb-4">
-          <!-- Contenu de la première div -->
-          {#await dataForBarChart then}
-            {#if dataForBarChart}
-              <Card class="!max-w-lg w-full">
+          <h2 class="mb-6 text-center text-black-900 text-xl poppins-medium">
+            {clickedLayerInfo.detail.features[0].properties.name}
+          </h2>
+          {#each anneeDebutMandat as mandatDeb, i}
+            <div id="detailMandatForAMunicipality" class="gap-4 p-4 list-none">
+              <SidebarDropdownWrapper label="Mandat {mandatDeb} - {anneeFinMandat[i]}">
+                <svelte:fragment slot="icon">
+                  <BadgeCheckOutline
+                    class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 hover:text-blue-900 dark:group-hover:text-white"
+                  />
+                </svelte:fragment>
+                {#each detailsMandatCommune as detailMandat}
+                  {#if detailMandat['DEBUT MANDAT'] === mandatDeb && detailMandat['FIN MANDAT'] === anneeFinMandat[i]}
+                    <Card padding="xl" size="md">
+                      <Listgroup class="border-0 dark:!bg-transparent">
+                        <div class="flex items-center space-x-4 rtl:space-x-reverse">
+                          <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 truncate dark:text-white">
+                              {detailMandat.CONSEILLER || ''}
+                            </p>
+                            <p class="text-sm text-gray-900 truncate dark:text-white">
+                              {detailMandat.ROLE || ''}
+                            </p>
+                            <p class="text-sm text-gray-500 truncate dark:text-gray-400">
+                              {detailMandat.TELEPHONE || ''}
+                            </p>
+                            <p class="text-sm text-gray-500 truncate dark:text-gray-400">
+                              {detailMandat.EMAIL || ''}
+                            </p>
+                          </div>
+                          <div
+                            class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white"
+                          >
+                            {detailMandat.PARTI || ''}
+                          </div>
+                        </div>
+                      </Listgroup>
+                    </Card>
+                  {/if}
+                {/each}
+              </SidebarDropdownWrapper>
+            </div>
+          {/each}
+        </TabItem>
+      {/if}
+      {#if !showICSP}
+        <Tooltip triggeredBy="#projets" type="auto">Liste de l'ensemble des projets filtrés</Tooltip
+        >
+        <TabItem open class="" id="projets">
+          <div slot="title" class="flex items-center gap-1">
+            <GridSolid size="sm" />
+            Liste des projets
+            <h5
+              id="projets"
+              class="inline-flex items-center mb-4 text-sm font-light text-gray-400 dark:text-gray-200"
+            >
+              <InfoCircleSolid class="w-4 h-4 me-2.5" />
+            </h5>
+          </div>
+
+          <h2 class="mb-6 text-center text-black-900 text-xl poppins-medium">
+            {clickedLayerInfo.detail.features[0].properties.name} <br />
+            <span class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">
+              Nombre de projets : {allProject.length}</span
+            >
+          </h2>
+          <ul class="p-4 w-full justify-center">
+            {#each allProject as resultat}
+              <Card padding="xl" size="md" class="mb-6">
+                <Listgroup class="border-0 dark:!bg-transparent">
+                  <div class="flex items-center space-x-4 rtl:space-x-reverse">
+                    <div class="flex-1 min-w-0">
+                      {#each Object.keys(resultat) as key}
+                        {#if resultat[key]}
+                          <div>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white">
+                              {key} :
+                            </span>
+                            <span text-sm font-normal>{resultat[key]}</span>
+                          </div>
+                        {/if}
+                      {/each}
+                    </div>
+                  </div></Listgroup
+                >
+              </Card>
+            {/each}
+          </ul>
+        </TabItem>
+      {:else}
+        <TabItem open class="hover:text-blue-900">
+          <Tooltip triggeredBy="#stat" type="auto">
+            Statistique des ICSP dans le temps pour un territoire choisi
+          </Tooltip>
+          <div slot="title" class="flex items-center gap-1">
+            <GridSolid size="sm" />
+            Stats ICSP
+            <h5
+              id="stat"
+              class="inline-flex items-center mb-4 text-sm font-light text-gray-400 dark:text-gray-200"
+            >
+              <InfoCircleSolid class="w-4 h-4 me-2.5" />
+            </h5>
+          </div>
+
+          <div class="p-4 lg:w-full sm:w-full flex justify-center">
+            <!-- Contenu de la première div -->
+            {#await dataForBarChart then}
+              {#if dataForBarChart}
+                <Card class="!max-w-lg w-full">
+                  <!-- Utilisation de h-full pour occuper 100% de la hauteur -->
+                  <div
+                    class="w-full h-full flex justify-center items-center pb-4 mb-4 border-b border-gray-200 dark:border-gray-700"
+                  >
+                    <div class="flex items-center">
+                      <div
+                        class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center me-3"
+                      >
+                        <DollarOutline class="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                      </div>
+                      <div>
+                        <h5
+                          class="leading-none text-2xl font-bold text-gray-900 dark:text-white pb-1 poppins-medium"
+                        >
+                          ICSP pour le territoire : {dataForBarChart.geo}
+                        </h5>
+                        <p class="text-sm font-normal text-gray-500 dark:text-gray-400">
+                          <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">
+                            Total ICSP pour la période {dataForBarChart.year} :
+                          </dt>
+                          <dd class="text-gray-900 text-sm dark:text-white font-semibold">
+                            {formattedValue(dataForBarChart.sum)}
+                          </dd>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {#await optionForBarChart(dataForBarChart.data) then options}
+                    <!-- Utilisation de h-auto pour que la hauteur s'adapte au contenu -->
+                    <Chart {options} />
+                  {/await}
+                </Card>
+              {/if}
+            {/await}
+          </div>
+          <div class="p-4 lg:w-full sm:w-full flex justify-center mb-4">
+            <!-- Contenu de la deuxième div -->
+            {#await dataForLineChart then}
+              {#if dataForLineChart}
                 <!-- Utilisation de h-full pour occuper 100% de la hauteur -->
-                <div
-                  class="w-full h-full flex justify-center items-center pb-4 mb-4 border-b border-gray-200 dark:border-gray-700"
-                >
-                  <div class="flex items-center">
-                    <div
-                      class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center me-3"
-                    >
-                      <DollarOutline class="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                    </div>
-                    <div>
-                      <h5
-                        class="leading-none text-2xl font-bold text-gray-900 dark:text-white pb-1"
+                <Card class="!max-w-lg w-full">
+                  <div
+                    class="w-full flex justify-center items-center pb-4 mb-4 border-b border-gray-200 dark:border-gray-700"
+                  >
+                    <div class="flex items-center">
+                      <div
+                        class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center me-3"
                       >
-                        ICSP pour {dataForBarChart.geo}
-                      </h5>
-                      <p class="text-sm font-normal text-gray-500 dark:text-gray-400">
-                        <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">
-                          Total ICSP en {dataForBarChart.year} :
-                        </dt>
-                        <dd class="text-gray-900 text-sm dark:text-white font-semibold">
-                          {formattedValue(dataForBarChart.sum)}
-                        </dd>
-                      </p>
+                        <ChartOutline class="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                      </div>
+                      <div>
+                        <h5
+                          class="leading-none text-2xl font-bold text-gray-900 dark:text-white pb-1 poppins-medium"
+                        >
+                          Evolution de l'ICSP <br />
+                          <p class="text-sm font-normal text-gray-500 dark:text-gray-400">
+                            <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">
+                              Territoire : {dataForBarChart.geo}
+                            </dt>
+                          </p>
+                        </h5>
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                {#await optionForBarChart(dataForBarChart.data) then options}
-                  <!-- Utilisation de h-auto pour que la hauteur s'adapte au contenu -->
-                  <Chart {options} />
-                {/await}
-              </Card>
-            {/if}
-          {/await}
-        </div>
-        <div class="lg:w-full sm:w-full flex justify-center mb-4">
-          <!-- Contenu de la deuxième div -->
-          {#await dataForLineChart then}
-            {#if dataForLineChart}
-              <!-- Utilisation de h-full pour occuper 100% de la hauteur -->
-              <Card class="!max-w-lg w-full">
-                <div
-                  class="w-full flex justify-center items-center pb-4 mb-4 border-b border-gray-200 dark:border-gray-700"
-                >
-                  <div class="flex items-center">
-                    <div
-                      class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center me-3"
-                    >
-                      <ChartOutline class="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                    </div>
-                    <div>
-                      <h5
-                        class="leading-none text-2xl font-bold text-gray-900 dark:text-white pb-1"
-                      >
-                        Evolution de l'ICSP - {dataForBarChart.geo}
-                      </h5>
-                    </div>
-                  </div>
-                </div>
-                {#await optionForLineChart(dataForLineChart.data.label, dataForLineChart.data.data) then options}
-                  <!-- Utilisation de h-auto pour que la hauteur s'adapte au contenu -->
-                  <Chart {options} />
-                {/await}
-              </Card>
-            {/if}
-          {/await}
-        </div></TabItem
-      >
-    {/if}
-  </Tabs>
+                  {#await optionForLineChart(dataForLineChart.data.label, dataForLineChart.data.data) then options}
+                    <!-- Utilisation de h-auto pour que la hauteur s'adapte au contenu -->
+                    <Chart {options} />
+                  {/await}
+                </Card>
+              {/if}
+            {/await}
+          </div></TabItem
+        >
+      {/if}
+    </Tabs>
+  </div>
 </Drawer>
-
-{#if showICSP && !showDep}
-  <Drawer
-    placement="bottom"
-    class="lg:ml-[20rem] w-auto"
-    transitionType="fly"
-    transitionParams={transitionParamsBottom}
-    bind:hidden={hidden8}
-    id="sidebar8"
-  >
-    {#if width < 562}
-      <div class="flex items-center">
-        <CloseButton on:click={() => (hidden8 = true)} class="mb-4 dark:text-white" />
-      </div>
-    {/if}
-
-    <div class="flex flex-auto" style="background-color:whitesmoke;"></div>
-  </Drawer>
-{/if}
 
 <!-- Use the reactive dataArr to update the JoinedData component -->
 {#if dataForMap.length > 0 && trigger == true}
@@ -651,6 +659,7 @@
         <FillLayer
           paint={paintProperties}
           manageHoverState
+          hoverCursor="pointer"
           sourceLayer={'regions'}
           on:click={handleLayerClickOnRegion}
         />
@@ -676,13 +685,13 @@
               <div
                 class="bg-gray-100 bg-opacity-50 bg-trans rounded-full p-2 shadow align flex flex-col items-center"
               >
-                <div class="text-sm font-bold">{feature.properties.name}</div>
+                <div class="text-sm poppins-medium">{feature.properties.name}</div>
                 {#if showICSP}
                   <!-- Afficher la valeur avec l'unité 'XAF' -->
-                  <div class="text-sm font-bold">{formattedValue(value)} XAF</div>
+                  <div class="text-sm poppins-light">{formattedValue(value)} XAF</div>
                 {:else}
                   <!-- Afficher la valeur avec l'unité 'projet' -->
-                  <div class="text-sm font-normal">{formattedValue(value)} projets</div>
+                  <div class="text-sm poppins-light">{formattedValue(value)} projets</div>
                 {/if}
               </div>
             {/if}
@@ -695,6 +704,7 @@
       <JoinedData data={statisticsPerRegion} idCol="id_DEPARTEMENT" sourceLayer="departements" />
       {#if showDep}
         <FillLayer
+          hoverCursor="pointer"
           paint={paintProperties}
           manageHoverState
           sourceLayer={'departements'}
@@ -721,13 +731,13 @@
               <div
                 class="bg-gray-100 bg-opacity-50 rounded-full p-2 shadow align flex flex-col items-center"
               >
-                <div class="text-sm font-bold">{feature.properties.name}</div>
+                <div class="text-sm poppins-medium">{feature.properties.name}</div>
                 {#if showICSP}
                   <!-- Afficher la valeur avec l'unité 'XAF' -->
-                  <div class="text-sm font-bold">{formattedValue(value)} XAF</div>
+                  <div class="text-sm poppins-light">{formattedValue(value)} XAF</div>
                 {:else}
                   <!-- Afficher la valeur avec l'unité 'projet' -->
-                  <div class="text-sm font-normal">{formattedValue(value)} projets</div>
+                  <div class="text-sm poppins-light">{formattedValue(value)} projets</div>
                 {/if}
                 <div class="text-sm font-italic"></div>
               </div>
@@ -784,13 +794,13 @@
               <div
                 class="bg-gray-100 bg-opacity-50 rounded-full p-2 shadow align flex flex-col items-center"
               >
-                <div class="text-sm font-bold">{feature.properties.name}</div>
+                <div class="text-sm poppins-medium">{feature.properties.name}</div>
                 {#if showICSP}
                   <!-- Afficher la valeur avec l'unité 'XAF' -->
-                  <div class="text-sm font-bold">{formattedValue(value)} XAF</div>
+                  <div class="text-sm poppins-light">{formattedValue(value)} XAF</div>
                 {:else}
                   <!-- Afficher la valeur avec l'unité 'projet' -->
-                  <div class="text-sm font-normal">{formattedValue(value)} projets</div>
+                  <div class="text-sm poppins-light">{formattedValue(value)} projets</div>
                 {/if}
                 <div class="text-sm font-italic"></div>
               </div>

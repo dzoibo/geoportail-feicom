@@ -17,8 +17,12 @@ export function uniqueValues(tableau, attribut) {
         checked: false
     }));
 
+    // Triez les clés par ordre ascendant
+    result.sort((a, b) => a.key.localeCompare(b.key));
+
     return result;
 }
+
 
 export function uniqueValuesInArrayOfObject(tableau, attribut) {
     // @ts-ignore
@@ -401,11 +405,12 @@ export function optionForLineChart(label, data, geo) {
         },
         grid: {
             show: false,
-            strokeDashArray: 4,
+            strokeDashArray: 0,
             padding: {
-                left: 2,
-                right: 2,
-                top: 0
+                left: 20,
+                right: 10,
+                top: 0,
+                bottom: 0
             }
         },
         series: [{
