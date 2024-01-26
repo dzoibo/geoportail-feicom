@@ -1,4 +1,4 @@
-# Plateforme cartographique de visualisation de projets au Cameroun
+# Geoportail Feicom
 
 ## Creating a project
 

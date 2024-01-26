@@ -49,7 +49,8 @@
     UsersGroupOutline,
     ChevronDownSolid,
     CheckPlusCircleOutline,
-    CalendarMonthOutline
+    CalendarMonthOutline,
+    UserAddOutline
   } from 'flowbite-svelte-icons';
   import { Cog } from 'svelte-heros-v2';
   import { sineIn } from 'svelte/easing';
@@ -82,7 +83,9 @@
   let valeursSecteur: any[] = [];
   let valeursBeneficiaire: any[] = [];
   let valeursSourcefinancement: any[] = [];
+  let valeursPartenaires: any[] = [];
   let arrayAllIndicateurs: any[] = [];
+
   let loadingData = true;
 
   let activeUrl;
@@ -119,6 +122,7 @@
   let maxSliderICSP = minMaxYearICSP.max;
 
   let checkedOptions: { [key: string]: boolean } = {};
+  let dropdownSelectionIndicateur6 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur5 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur4 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur3 = { indicateur: '', data: [] };
@@ -131,6 +135,7 @@
   let indicateur2 = 'Secteurs';
   let indicateur3 = 'Domaines';
   let indicateur4 = 'Bénéficiaire';
+  let indicateur6 = 'Partenaires';
 
   let cardForSideBar =
     'bg-white dark:bg-#23409A-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 divide-gray-200 dark:divide-gray-700 shadow-md p-2 mb-2';
@@ -152,12 +157,12 @@
 
       valeursAttribution = uniqueValues(dataArr, indicateur1);
       valeursSecteur = uniqueValues(dataArr, indicateur2);
-
       valeursDomaine = uniqueValues(dataArr, indicateur3);
       valeursBeneficiaire = uniqueValues(dataArr, indicateur4);
-
       valeursSourcefinancement = uniqueValues(dataArr, indicateur5);
+      valeursPartenaires = uniqueValues(dataArr, indicateur6);
 
+      dropdownSelectionIndicateur6.indicateur = indicateur6;
       dropdownSelectionIndicateur5.indicateur = indicateur5;
       dropdownSelectionIndicateur4.indicateur = indicateur4;
       dropdownSelectionIndicateur3.indicateur = indicateur3;
@@ -166,6 +171,7 @@
 
       // Ajoutez les objets à l'array dropdownSelections
       dropdownSelectionsAll.push(
+        dropdownSelectionIndicateur6,
         dropdownSelectionIndicateur5,
         dropdownSelectionIndicateur4,
         dropdownSelectionIndicateur3,
@@ -734,6 +740,61 @@
                                       word,
                                       dropdownSelectionIndicateur5,
                                       valeursSourcefinancement
+                                    )}
+                                  class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                                />
+                              </div>
+                            {/each}
+                          {/if}
+                        {/each}
+                      {/if}
+                    </div>
+                  </SidebarDropdownWrapper>
+                </SidebarGroup>
+
+                <SidebarGroup class={cardForSideBar}>
+                  <SidebarDropdownWrapper label="Partenaires">
+                    <svelte:fragment slot="icon">
+                      <UserAddOutline
+                        class="w-auto text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                      />
+                    </svelte:fragment>
+
+                    <Button class="bg-[#234099] hover:bg-[#182D73]"
+                      >Sélection des partenaires<ChevronDownSolid
+                        class="w-3 h-3 ms-2 text-white dark:text-white"
+                      /></Button
+                    >
+                    <Dropdown class={dropdownStyle}>
+                      {#each valeursPartenaires as partenaires}
+                        <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                          <Checkbox
+                            checked={partenaires.checked}
+                            on:change={() =>
+                              toggleCheckbox(
+                                partenaires,
+                                dropdownSelectionIndicateur6,
+                                valeursPartenaires
+                              )}>{partenaires.key}</Checkbox
+                          >
+                        </li>
+                      {/each}
+                    </Dropdown>
+                    <div class="px-2 pt-1 pb-2">
+                      {#if arrayAllIndicateurs}
+                        {#each arrayAllIndicateurs as indicateur}
+                          {#if indicateur.indicateur === dropdownSelectionIndicateur6.indicateur}
+                            {#each indicateur.data as word (word)}
+                              <div
+                                class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg"
+                              >
+                                {word}
+                                <CloseButton
+                                  on:click={() =>
+                                    closeDiv(
+                                      word,
+                                      dropdownSelectionIndicateur6,
+                                      valeursPartenaires
                                     )}
                                   class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
                                 />
