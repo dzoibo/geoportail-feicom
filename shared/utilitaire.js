@@ -84,12 +84,54 @@ export function getSumPerYear(data, startYear, endYear, scale) {
     return result;
 }
 
+export function calculateTotalByRegion(data, startYear, endYear, scale, filters) {
+    if (!data || data.length === 0) {
+        return []; // Si data est vide, retourne un tableau vide
+    }
 
+    const areFiltersEmpty = filters.every(filter => filter.data.length === 0);
 
-export function calculateTotalByRegion(data, startYear, endYear, scale) {
+    // Si tous les filtres sont vides, calculer la somme entre les deux dates sans filtre
+    if (areFiltersEmpty) {
+        const totalByRegion = {};
+
+        for (const entry of data) {
+            const region = entry[scale];
+            const totalString = typeof entry.TOTAL === 'string' ? entry.TOTAL.replace(/\D+/g, '') : '0'; // Supprimer les caractères non numériques
+            const total = parseFloat(totalString);
+            const year = parseInt(entry.ANNEE);
+
+            if (!isNaN(total) && year >= startYear && year <= endYear) {
+                if (!totalByRegion[region]) {
+                    totalByRegion[region] = total;
+                } else {
+                    totalByRegion[region] += total;
+                }
+            }
+        }
+
+        const result = Object.entries(totalByRegion).map(([key, value]) => ({
+            [scale]: key,
+            'value': value
+        }));
+
+        return result;
+    }
+
+    // Sinon, appliquer les filtres spécifiés
+    const filteredData = data.filter(entry => {
+        return filters.every(filter => {
+            const filterKey = filter.indicateur;
+            const filterValues = filter.data;
+            const entryValue = entry[filterKey];
+            return (!filterKey || entryValue === undefined || filterValues.includes(entryValue));
+        });
+    });
+
+    // Calculer la somme des valeurs filtrées par région et entre les deux dates
     const totalByRegion = {};
 
-    for (const entry of data) {
+    for (const entry of filteredData) {
         const region = entry[scale];
         const totalString = typeof entry.TOTAL === 'string' ? entry.TOTAL.replace(/\D+/g, '') : '0'; // Supprimer les caractères non numériques
         const total = parseFloat(totalString);
@@ -113,10 +155,11 @@ export function calculateTotalByRegion(data, startYear, endYear, scale) {
 }
 
 
+
 // @ts-ignore
 export function findMinMax(array, key) {
     if (!array || array.length === 0) {
-        return null;
+        return 0;
     }
 
     let min = array[0][key];
@@ -262,7 +305,10 @@ export function rechercheMulticriteresPourFEICOM(dataForMap, id_couche, scale, s
     });
 }
 
-
+export function jsonToItem(data, title) {
+    data = data[title].map((objet) => objet.key);
+    return data
+}
 
 
 

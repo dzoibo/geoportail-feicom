@@ -194,7 +194,6 @@
     heightNavBar.subscribe(($heightNavBar) => {
       heightNavBarForSideBar = $heightNavBar;
     });
-    console.log(heightNavBarForSideBar);
 
     // Abonnez-vous au store pour recevoir les mises à jour
     buttonICSP.subscribe(($showICSP) => {
@@ -231,18 +230,23 @@
 
     if (dataForMap.length > 0 && trigger == true) {
       if (showICSP) {
+        console.log(valueSliderICSP);
         dataForMap = icspData;
         statisticsPerRegion = calculateTotalByRegion(
           dataForMap,
           valueSliderICSP[0],
           valueSliderICSP[1],
-          scale
+          scale,
+          storeIndicateurForMap.icsp
         );
+
+        console.log(statisticsPerRegion);
+
         MinMax = findMinMax(statisticsPerRegion, 'value');
       } else {
         dataForMap = dataArr2;
-        console.log(valueSliderAccord);
-        mapFilterIndicateur = rechercheMulticriteres(dataForMap, storeIndicateurForMap);
+
+        mapFilterIndicateur = rechercheMulticriteres(dataForMap, storeIndicateurForMap.accord);
         statisticsPerRegion = getSumPerYear(
           mapFilterIndicateur,
           valueSliderAccord[0],
@@ -282,7 +286,7 @@
         scale,
         valueSliderAccord[0],
         valueSliderAccord[1],
-        storeIndicateurForMap
+        storeIndicateurForMap.accord
       );
       hiddenBackdropFalse = false;
     } else {
@@ -359,7 +363,7 @@
           scale,
           valueSliderAccord[0],
           valueSliderAccord[1],
-          storeIndicateurForMap
+          storeIndicateurForMap.accord
         );
         // Set hiddenBackdropFalse to false to show the Drawer
         hiddenBackdropFalse = false;

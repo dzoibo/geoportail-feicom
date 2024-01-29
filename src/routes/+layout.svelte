@@ -5,7 +5,8 @@
   import Main from '../components/Map.svelte';
   import Papa from 'papaparse';
   // Autre fichier, par exemple, votre composant ou page
-  import { uniqueValues, findMinMax } from '../../shared/utilitaire';
+  import { uniqueValues, findMinMax, jsonToItem } from '../../shared/utilitaire';
+  import SearchBar from '../components/SearchBar.svelte';
   import {
     dataStore,
     rangeValue,
@@ -13,7 +14,8 @@
     rangeValueAccord,
     storeIndicateur5,
     storeIndicateur,
-    heightNavBar
+    heightNavBar,
+    storeIndicateurICSP
   } from '../../shared/store.js';
   import { fetchData } from '../../shared/dataService.js';
 
@@ -82,10 +84,11 @@
   let valeursDomaine: any[] = [];
   let valeursSecteur: any[] = [];
   let valeursBeneficiaire: any[] = [];
+  let valeursBeneficiaire2: any[] = [];
   let valeursSourcefinancement: any[] = [];
   let valeursPartenaires: any[] = [];
-  let arrayAllIndicateurs: any[] = [];
-
+  let arrayAllIndicateurs = { accord: [], icsp: [] };
+  let arrayAllIndicateursICSP: any[] = [];
   let loadingData = true;
 
   let activeUrl;
@@ -122,6 +125,9 @@
   let maxSliderICSP = minMaxYearICSP.max;
 
   let checkedOptions: { [key: string]: boolean } = {};
+  //ICSP
+  let dropdownSelectionIndicateur7 = { indicateur: '', data: [] };
+  //Accord
   let dropdownSelectionIndicateur6 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur5 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur4 = { indicateur: '', data: [] };
@@ -129,13 +135,17 @@
   let dropdownSelectionIndicateur2 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur1 = { indicateur: '', data: [] };
   let dropdownSelectionsAll: any[] = [];
-
+  //Liste déroulante et search bar
+  let filteredItems: any[] = [];
+  let inputValue = '';
   let indicateur5 = 'Source_financement';
   let indicateur1 = "Instance d'attribution";
   let indicateur2 = 'Secteurs';
   let indicateur3 = 'Domaines';
   let indicateur4 = 'Bénéficiaire';
   let indicateur6 = 'Partenaires';
+
+  let indicateur7 = 'COMMUNE';
 
   let cardForSideBar =
     'bg-white dark:bg-#23409A-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 divide-gray-200 dark:divide-gray-700 shadow-md p-2 mb-2';
@@ -158,10 +168,16 @@
       valeursAttribution = uniqueValues(dataArr, indicateur1);
       valeursSecteur = uniqueValues(dataArr, indicateur2);
       valeursDomaine = uniqueValues(dataArr, indicateur3);
+
       valeursBeneficiaire = uniqueValues(dataArr, indicateur4);
+      valeursBeneficiaire2 = uniqueValues(icspData, indicateur7);
+
       valeursSourcefinancement = uniqueValues(dataArr, indicateur5);
       valeursPartenaires = uniqueValues(dataArr, indicateur6);
 
+      //ICSP
+      dropdownSelectionIndicateur7.indicateur = indicateur7;
+      // ACCORD
       dropdownSelectionIndicateur6.indicateur = indicateur6;
       dropdownSelectionIndicateur5.indicateur = indicateur5;
       dropdownSelectionIndicateur4.indicateur = indicateur4;
@@ -171,6 +187,7 @@
 
       // Ajoutez les objets à l'array dropdownSelections
       dropdownSelectionsAll.push(
+        dropdownSelectionIndicateur7,
         dropdownSelectionIndicateur6,
         dropdownSelectionIndicateur5,
         dropdownSelectionIndicateur4,
@@ -243,13 +260,22 @@
     activateClickOutside = false;
   }
 
-  function toggleCheckbox(checkedOptions: { checked: boolean }, array, unique) {
+  function toggleCheckbox(
+    checkedOptions: { checked: boolean },
+    array: { indicateur: string; data: never[] },
+    unique: any[],
+    section: string
+  ) {
     checkedOptions.checked = !checkedOptions.checked;
 
-    updateSelectedWords(array, unique); // Mettre à jour les mots sélectionnés
+    updateSelectedWords(array, unique, section); // Mettre à jour les mots sélectionnés
   }
 
-  function updateSelectedWords(array, unique) {
+  function updateSelectedWords(
+    array: { indicateur: string; data: never[] } | undefined,
+    unique: any[],
+    section: string
+  ) {
     update = true;
     //@ts-ignore
     setTimeout(() => {
@@ -258,29 +284,29 @@
       console.log(array);
 
       // Vérifiez si un objet avec le même indicateur existe déjà dans arrayAllIndicateurs
-      const existingIndicateurIndex = arrayAllIndicateurs.findIndex(
+      const existingIndicateurIndex = arrayAllIndicateurs[section].findIndex(
         (item) => item.indicateur === array.indicateur
       );
 
       if (existingIndicateurIndex !== -1) {
         // Mettez à jour 'data' de l'objet existant
-        arrayAllIndicateurs[existingIndicateurIndex].data = array.data;
+        arrayAllIndicateurs[section][existingIndicateurIndex].data = array.data;
       } else {
         // Ajoutez un nouvel objet à arrayAllIndicateurs
-        arrayAllIndicateurs.push(array);
+        arrayAllIndicateurs[section].push(array);
       }
 
       update = false;
     }, 10);
 
-    console.log(arrayAllIndicateurs);
     return array;
   }
 
   function closeDiv(
     wordToRemove: any,
     array: { indicateur: string; data: never[] } | undefined,
-    unique
+    unique,
+    section
   ) {
     // Trouvez l'objet correspondant dans valeursSourcefinancement
     const word = unique.find((value) => value.key === wordToRemove);
@@ -290,7 +316,7 @@
       word.checked = false;
     }
 
-    updateSelectedWords(array, unique); // Mettre à jour les mots sélectionnés
+    updateSelectedWords(array, unique, section); // Mettre à jour les mots sélectionnés
   }
 
   $: {
@@ -320,8 +346,6 @@
     //@ts-ignore
     rangeValue.set(valueSlideICSP);
     //@ts-ignore
-
-    console.log(valueSliderAccord);
     rangeValueAccord.set(valueSliderAccord);
 
     activeUrl = $page.url.pathname;
@@ -330,9 +354,15 @@
     let ulClass =
       'flex flex-col p-4 mt-4 md:flex-row md:space-x-8 md:mt-0 md:text-lg md:font-medium';
 
+    console.log(arrayAllIndicateurs);
     storeIndicateur.update((items) => {
       //@ts-ignore
       items = arrayAllIndicateurs;
+      return items;
+    });
+    storeIndicateurICSP.update((items) => {
+      //@ts-ignore
+      items = arrayAllIndicateursICSP;
       return items;
     });
 
@@ -342,6 +372,16 @@
     // Téléchargez votre data ici
     // Une fois la data téléchargée, masquez la barre de progression
     showProgressBar = false;
+  }
+
+  const handleInput = (data) => {
+    return (filteredItems = data.filter((item) =>
+      item.toLowerCase().match(inputValue.toLowerCase())
+    ));
+  };
+
+  function filterBeneficiaires(beneficiaires, filteredItems) {
+    return filteredItems.length === 0 || filteredItems.includes(beneficiaires.key);
   }
 </script>
 
@@ -435,8 +475,75 @@
                   </div>
                 </SidebarDropdownWrapper>
               </SidebarGroup>
+
+              <SidebarGroup class={cardForSideBar}>
+                <SidebarDropdownWrapper label="Bénéficiaire">
+                  <svelte:fragment slot="icon">
+                    <UsersGroupOutline
+                      class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                    />
+                  </svelte:fragment>
+                  <Button class="bg-[#234099] hover:bg-[#182D73]"
+                    >Sélection des bénéficiaires<ChevronDownSolid
+                      class="w-3 h-3 ms-2 text-white dark:text-white"
+                    /></Button
+                  >
+                  <Dropdown class={dropdownStyle}>
+                    <div slot="header" class="p-3">
+                      <SearchBar
+                        bind:inputValue
+                        on:input={handleInput(
+                          jsonToItem({ valeursBeneficiaire2 }, 'valeursBeneficiaire2')
+                        )}
+                      />
+                    </div>
+                    {#each valeursBeneficiaire2 as beneficiaires}
+                      {#if filterBeneficiaires(beneficiaires, filteredItems)}
+                        <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                          <Checkbox
+                            checked={beneficiaires.checked}
+                            on:change={() =>
+                              toggleCheckbox(
+                                beneficiaires,
+                                dropdownSelectionIndicateur7,
+                                valeursBeneficiaire2,
+                                'icsp'
+                              )}>{beneficiaires.key}</Checkbox
+                          >
+                        </li>
+                      {/if}
+                    {/each}
+                  </Dropdown>
+                  <div class="px-2 pt-1 pb-2">
+                    {#if arrayAllIndicateurs.icsp}
+                      {#each arrayAllIndicateurs.icsp as indicateur}
+                        {#if indicateur.indicateur === dropdownSelectionIndicateur7.indicateur}
+                          {#each indicateur.data as word (word)}
+                            <div
+                              class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg"
+                            >
+                              {word}
+                              <CloseButton
+                                on:click={() =>
+                                  closeDiv(
+                                    word,
+                                    dropdownSelectionIndicateur7,
+                                    valeursBeneficiaire2,
+                                    'icsp'
+                                  )}
+                                class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                              />
+                            </div>
+                          {/each}
+                        {/if}
+                      {/each}
+                    {/if}
+                  </div>
+                </SidebarDropdownWrapper>
+              </SidebarGroup>
             </TabItem>
 
+            <!--   ACCORD DE FINANCEMENT -->
             <TabItem
               class="text-xs poppins-medium   w-full"
               on:click={() => {
@@ -503,23 +610,34 @@
                       /></Button
                     >
                     <Dropdown class={dropdownStyle}>
+                      <div slot="header" class="p-3">
+                        <SearchBar
+                          bind:inputValue
+                          on:input={handleInput(
+                            jsonToItem({ valeursBeneficiaire }, 'valeursBeneficiaire')
+                          )}
+                        />
+                      </div>
                       {#each valeursBeneficiaire as beneficiaires}
-                        <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                          <Checkbox
-                            checked={beneficiaires.checked}
-                            on:change={() =>
-                              toggleCheckbox(
-                                beneficiaires,
-                                dropdownSelectionIndicateur4,
-                                valeursBeneficiaire
-                              )}>{beneficiaires.key}</Checkbox
-                          >
-                        </li>
+                        {#if filterBeneficiaires(beneficiaires, filteredItems)}
+                          <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <Checkbox
+                              checked={beneficiaires.checked}
+                              on:change={() =>
+                                toggleCheckbox(
+                                  beneficiaires,
+                                  dropdownSelectionIndicateur4,
+                                  valeursBeneficiaire,
+                                  'accord'
+                                )}>{beneficiaires.key}</Checkbox
+                            >
+                          </li>
+                        {/if}
                       {/each}
                     </Dropdown>
                     <div class="px-2 pt-1 pb-2">
-                      {#if arrayAllIndicateurs}
-                        {#each arrayAllIndicateurs as indicateur}
+                      {#if arrayAllIndicateurs.accord}
+                        {#each arrayAllIndicateurs.accord as indicateur}
                           {#if indicateur.indicateur === dropdownSelectionIndicateur4.indicateur}
                             {#each indicateur.data as word (word)}
                               <div
@@ -531,7 +649,8 @@
                                     closeDiv(
                                       word,
                                       dropdownSelectionIndicateur4,
-                                      valeursBeneficiaire
+                                      valeursBeneficiaire,
+                                      'accord'
                                     )}
                                   class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
                                 />
@@ -565,15 +684,16 @@
                               toggleCheckbox(
                                 instances,
                                 dropdownSelectionIndicateur1,
-                                valeursAttribution
+                                valeursAttribution,
+                                'accord'
                               )}>{instances.key}</Checkbox
                           >
                         </li>
                       {/each}
                     </Dropdown>
                     <div class="px-2 pt-1 pb-2">
-                      {#if arrayAllIndicateurs}
-                        {#each arrayAllIndicateurs as indicateur}
+                      {#if arrayAllIndicateurs.accord}
+                        {#each arrayAllIndicateurs.accord as indicateur}
                           {#if indicateur.indicateur === dropdownSelectionIndicateur1.indicateur}
                             {#each indicateur.data as word (word)}
                               <div
@@ -585,7 +705,8 @@
                                     closeDiv(
                                       word,
                                       dropdownSelectionIndicateur1,
-                                      valeursAttribution
+                                      valeursAttribution,
+                                      'accord'
                                     )}
                                   class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
                                 />
@@ -618,15 +739,16 @@
                               toggleCheckbox(
                                 domaines,
                                 dropdownSelectionIndicateur3,
-                                valeursDomaine
+                                valeursDomaine,
+                                'accord'
                               )}>{domaines.key}</Checkbox
                           >
                         </li>
                       {/each}
                     </Dropdown>
                     <div class="px-2 pt-1 pb-2">
-                      {#if arrayAllIndicateurs}
-                        {#each arrayAllIndicateurs as indicateur}
+                      {#if arrayAllIndicateurs.accord}
+                        {#each arrayAllIndicateurs.accord as indicateur}
                           {#if indicateur.indicateur === dropdownSelectionIndicateur3.indicateur}
                             {#each indicateur.data as word (word)}
                               <div
@@ -639,6 +761,7 @@
                                   class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
                                 />
                               </div>
+                              ,'accord'
                             {/each}
                           {/if}
                         {/each}
@@ -668,15 +791,16 @@
                               toggleCheckbox(
                                 secteurs,
                                 dropdownSelectionIndicateur2,
-                                valeursSecteur
+                                valeursSecteur,
+                                'accord'
                               )}>{secteurs.key}</Checkbox
                           >
                         </li>
                       {/each}
                     </Dropdown>
                     <div class="px-2 pt-1 pb-2">
-                      {#if arrayAllIndicateurs}
-                        {#each arrayAllIndicateurs as indicateur}
+                      {#if arrayAllIndicateurs.accord}
+                        {#each arrayAllIndicateurs.accord as indicateur}
                           {#if indicateur.indicateur === dropdownSelectionIndicateur2.indicateur}
                             {#each indicateur.data as word (word)}
                               <div
@@ -689,6 +813,7 @@
                                   class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
                                 />
                               </div>
+                              ,'accord'
                             {/each}
                           {/if}
                         {/each}
@@ -698,7 +823,7 @@
                 >
 
                 <SidebarGroup class={cardForSideBar}>
-                  <SidebarDropdownWrapper label="Financement">
+                  <SidebarDropdownWrapper label="Sources de financement">
                     <svelte:fragment slot="icon">
                       <DollarOutline
                         class="w-auto text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
@@ -719,15 +844,16 @@
                               toggleCheckbox(
                                 financement,
                                 dropdownSelectionIndicateur5,
-                                valeursSourcefinancement
+                                valeursSourcefinancement,
+                                'accord'
                               )}>{financement.key}</Checkbox
                           >
                         </li>
                       {/each}
                     </Dropdown>
                     <div class="px-2 pt-1 pb-2">
-                      {#if arrayAllIndicateurs}
-                        {#each arrayAllIndicateurs as indicateur}
+                      {#if arrayAllIndicateurs.accord}
+                        {#each arrayAllIndicateurs.accord as indicateur}
                           {#if indicateur.indicateur === dropdownSelectionIndicateur5.indicateur}
                             {#each indicateur.data as word (word)}
                               <div
@@ -739,7 +865,8 @@
                                     closeDiv(
                                       word,
                                       dropdownSelectionIndicateur5,
-                                      valeursSourcefinancement
+                                      valeursSourcefinancement,
+                                      'accord'
                                     )}
                                   class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
                                 />
@@ -774,15 +901,16 @@
                               toggleCheckbox(
                                 partenaires,
                                 dropdownSelectionIndicateur6,
-                                valeursPartenaires
+                                valeursPartenaires,
+                                'accord'
                               )}>{partenaires.key}</Checkbox
                           >
                         </li>
                       {/each}
                     </Dropdown>
                     <div class="px-2 pt-1 pb-2">
-                      {#if arrayAllIndicateurs}
-                        {#each arrayAllIndicateurs as indicateur}
+                      {#if arrayAllIndicateurs.accord}
+                        {#each arrayAllIndicateurs.accord as indicateur}
                           {#if indicateur.indicateur === dropdownSelectionIndicateur6.indicateur}
                             {#each indicateur.data as word (word)}
                               <div
@@ -794,7 +922,8 @@
                                     closeDiv(
                                       word,
                                       dropdownSelectionIndicateur6,
-                                      valeursPartenaires
+                                      valeursPartenaires,
+                                      'accord'
                                     )}
                                   class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
                                 />
