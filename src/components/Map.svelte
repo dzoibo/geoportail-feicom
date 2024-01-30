@@ -9,6 +9,7 @@
     storeIndicateur,
     heightNavBar
   } from '../../shared/store';
+  import Pagination from '../components/Pagination.svelte';
   import Map from '../components/Map.svelte';
   import {
     getSumOf,
@@ -36,7 +37,13 @@
     Tooltip,
     Chart,
     Tabs,
-    TabItem
+    TabItem,
+    Table,
+    TableBody,
+    TableBodyCell,
+    TableBodyRow,
+    TableHead,
+    TableHeadCell
   } from 'flowbite-svelte';
   import {
     InfoCircleSolid,
@@ -113,8 +120,7 @@
   let showCom = false;
   let showReg = true;
   let currentGeo = 'reg';
-  let openOn = 'hover';
-
+  let resultat;
   let heightSideBar;
   // bbox du Cameroun
   let bbox = [
@@ -511,26 +517,24 @@
             >
           </h2>
           <ul class="p-4 w-full justify-center">
-            {#each allProject as resultat}
-              <Card padding="xl" size="md" class="mb-6">
-                <Listgroup class="border-0 dark:!bg-transparent">
-                  <div class="flex items-center space-x-4 rtl:space-x-reverse">
-                    <div class="flex-1 min-w-0">
-                      {#each Object.keys(resultat) as key}
-                        {#if resultat[key]}
-                          <div>
-                            <span class="text-sm font-medium text-gray-900 dark:text-white">
-                              {key} :
-                            </span>
-                            <span text-sm font-normal>{resultat[key]}</span>
-                          </div>
-                        {/if}
-                      {/each}
-                    </div>
-                  </div></Listgroup
-                >
-              </Card>
-            {/each}
+            <Table shadow hoverable={true} striped={true}>
+              <TableHead>
+                <TableHeadCell></TableHeadCell>
+                {#each Object.keys(allProject[0]) as key}
+                  <TableHeadCell>{key}</TableHeadCell>
+                {/each}
+              </TableHead>
+              <TableBody class="divide-y">
+                {#each allProject as project}
+                  <TableBodyRow>
+                    <TableBodyCell></TableBodyCell>
+                    {#each Object.keys(project) as key}
+                      <TableBodyCell>{project[key]}</TableBodyCell>
+                    {/each}
+                  </TableBodyRow>
+                {/each}
+              </TableBody>
+            </Table>
           </ul>
         </TabItem>
       {:else}
@@ -658,6 +662,10 @@
       </ControlGroup>
     </Control>
 
+    <GeoJSON data={'/data/countries.geojson'}>
+      <FillLayer paint={{ 'fill-color': 'black', 'fill-opacity': 0.6 }} />
+    </GeoJSON>
+
     <VectorTileSource url={'pmtiles://data/regions.pmtiles'} promoteId={'ref:COG'}>
       {#if showReg}
         <FillLayer
@@ -728,7 +736,6 @@
     {#if showDep}
       <GeoJSON data={geojsonDepartementCentroid} promoteId="ref:COG">
         <JoinedData data={statisticsPerRegion} idCol="id_DEPARTEMENT" />
-
         <MarkerLayer let:feature>
           {#each statisticsPerRegion as { id_DEPARTEMENT, value }}
             {#if feature.properties['ref:COG'] === id_DEPARTEMENT}
@@ -778,7 +785,8 @@
           sourceLayer={'municipalites'}
           }}
           on:click={handleLayerClick}
-        />
+        ></FillLayer>
+
         <LineLayer
           paint={{
             'line-opacity': 1,
@@ -792,25 +800,6 @@
     {#if showCom}
       <GeoJSON data={geojsonMunicipaliteCentroid} promoteId="ref:COG">
         <JoinedData data={statisticsPerRegion} idCol="id_COMMUNE" />
-        <Popup openOn="hover" let:feature>
-          {#each statisticsPerRegion as { id_COMMUNE, value }}
-            {#if feature.properties['ref:COG'] === id_COMMUNE}
-              <div
-                class="bg-gray-100 bg-opacity-50 rounded-full p-2 shadow align flex flex-col items-center"
-              >
-                <div class="text-sm poppins-medium">{feature.properties.name}</div>
-                {#if showICSP}
-                  <!-- Afficher la valeur avec l'unité 'XAF' -->
-                  <div class="text-sm poppins-light">{formattedValue(value)} XAF</div>
-                {:else}
-                  <!-- Afficher la valeur avec l'unité 'projet' -->
-                  <div class="text-sm poppins-light">{formattedValue(value)} projets</div>
-                {/if}
-                <div class="text-sm font-italic"></div>
-              </div>
-            {/if}
-          {/each}
-        </Popup>
         <SymbolLayer
           paint={{
             'text-color': '#333',
@@ -829,7 +818,7 @@
               ]
             }
           }}
-        />
+        ></SymbolLayer>
       </GeoJSON>
     {/if}
   </MapLibre>
