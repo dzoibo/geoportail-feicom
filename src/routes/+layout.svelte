@@ -39,9 +39,9 @@
     Range,
     Radio,
     Label,
-    Progressbar,
     Tabs,
-    TabItem
+    TabItem,
+    Spinner
   } from 'flowbite-svelte';
   import {
     FolderOutline,
@@ -52,7 +52,9 @@
     ChevronDownSolid,
     CheckPlusCircleOutline,
     CalendarMonthOutline,
-    UserAddOutline
+    UserAddOutline,
+    UserOutline,
+    UsersOutline
   } from 'flowbite-svelte-icons';
   import { Cog } from 'svelte-heros-v2';
   import { sineIn } from 'svelte/easing';
@@ -86,6 +88,8 @@
   let valeursBeneficiaire: any[] = [];
   let valeursBeneficiaire2: any[] = [];
   let valeursSourcefinancement: any[] = [];
+  let valeursDepartement: any[] = [];
+  let valeursRegion: any[] = [];
   let valeursPartenaires: any[] = [];
   let arrayAllIndicateurs = { accord: [], icsp: [] };
   let arrayAllIndicateursICSP: any[] = [];
@@ -125,9 +129,24 @@
   let maxSliderICSP = minMaxYearICSP.max;
 
   let checkedOptions: { [key: string]: boolean } = {};
+  //Liste déroulante et search bar
+  let inputValue = '';
+  let indicateur5 = 'Source_financement';
+  let indicateur1 = "Instance d'attribution";
+  let indicateur2 = 'Secteurs';
+  let indicateur3 = 'Domaines';
+  let indicateur4 = 'Bénéficiaire';
+  let indicateur8 = 'Département';
+  let indicateur9 = 'Région';
+  let indicateur6 = 'Partenaires';
+
+  let indicateur7 = 'COMMUNE';
+  let filteredItems: any[] = [];
   //ICSP
   let dropdownSelectionIndicateur7 = { indicateur: '', data: [] };
   //Accord
+  let dropdownSelectionIndicateur9 = { indicateur: '', data: [] };
+  let dropdownSelectionIndicateur8 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur6 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur5 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur4 = { indicateur: '', data: [] };
@@ -135,17 +154,6 @@
   let dropdownSelectionIndicateur2 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur1 = { indicateur: '', data: [] };
   let dropdownSelectionsAll: any[] = [];
-  //Liste déroulante et search bar
-  let filteredItems: any[] = [];
-  let inputValue = '';
-  let indicateur5 = 'Source_financement';
-  let indicateur1 = "Instance d'attribution";
-  let indicateur2 = 'Secteurs';
-  let indicateur3 = 'Domaines';
-  let indicateur4 = 'Bénéficiaire';
-  let indicateur6 = 'Partenaires';
-
-  let indicateur7 = 'COMMUNE';
 
   let cardForSideBar =
     'bg-white dark:bg-#23409A-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 divide-gray-200 dark:divide-gray-700 shadow-md p-2 mb-2';
@@ -168,16 +176,19 @@
       valeursAttribution = uniqueValues(dataArr, indicateur1);
       valeursSecteur = uniqueValues(dataArr, indicateur2);
       valeursDomaine = uniqueValues(dataArr, indicateur3);
-
       valeursBeneficiaire = uniqueValues(dataArr, indicateur4);
       valeursBeneficiaire2 = uniqueValues(icspData, indicateur7);
-
       valeursSourcefinancement = uniqueValues(dataArr, indicateur5);
       valeursPartenaires = uniqueValues(dataArr, indicateur6);
+      valeursDepartement = uniqueValues(dataArr, indicateur8);
+      valeursRegion = uniqueValues(dataArr, indicateur9);
 
+      console.log(dataArr);
       //ICSP
       dropdownSelectionIndicateur7.indicateur = indicateur7;
       // ACCORD
+      dropdownSelectionIndicateur9.indicateur = indicateur9;
+      dropdownSelectionIndicateur8.indicateur = indicateur8;
       dropdownSelectionIndicateur6.indicateur = indicateur6;
       dropdownSelectionIndicateur5.indicateur = indicateur5;
       dropdownSelectionIndicateur4.indicateur = indicateur4;
@@ -187,6 +198,8 @@
 
       // Ajoutez les objets à l'array dropdownSelections
       dropdownSelectionsAll.push(
+        dropdownSelectionIndicateur9,
+        dropdownSelectionIndicateur8,
         dropdownSelectionIndicateur7,
         dropdownSelectionIndicateur6,
         dropdownSelectionIndicateur5,
@@ -196,28 +209,15 @@
         dropdownSelectionIndicateur1
       );
 
+      // Slider
       minMaxYearICSP = findMinMax(icspData, 'ANNEE');
       minMaxYearAccord = findMinMax(dataArr, 'Année financement');
 
       valueSliderAccord = [minMaxYearAccord.min, minMaxYearAccord.max];
-
       valueSlideICSP = [minMaxYearICSP.min, minMaxYearICSP.max];
-
       rangeValue.set(valueSlideICSP);
       rangeValueAccord.set(valueSliderAccord);
 
-      // Vérifiez si l'élément a été trouvé
-      /*       if (drawer) {
-        console.log(drawer);
-        // Obtenez la largeur calculée du drawer
-        const drawerWidth = drawer.offsetWidth;
-        const widthTotal = navbar.clientWidth;
-        console.log('Largeur de la barre latérale:', drawerWidth, 'pixels');
-      } else {
-        console.error("L'élément avec l'ID 'sidebar' n'a pas été trouvé.");
-      }
-
-*/
       // Sélectionnez l'élément du drawer par son identifiant
       const drawer = document.getElementById('sidebar');
       const navbar = document.getElementById('myNavbar'); // Remplacez 'navbar' par l'ID réel de votre navbar
@@ -281,13 +281,10 @@
     setTimeout(() => {
       //Todo Automatisation pour prendre toutes les données des listes déroulantes.
       array.data = unique.filter((unique) => unique.checked).map((unique) => unique.key);
-      console.log(array);
-
       // Vérifiez si un objet avec le même indicateur existe déjà dans arrayAllIndicateurs
       const existingIndicateurIndex = arrayAllIndicateurs[section].findIndex(
         (item) => item.indicateur === array.indicateur
       );
-
       if (existingIndicateurIndex !== -1) {
         // Mettez à jour 'data' de l'objet existant
         arrayAllIndicateurs[section][existingIndicateurIndex].data = array.data;
@@ -664,6 +661,136 @@
                 </SidebarGroup>
 
                 <SidebarGroup class={cardForSideBar}>
+                  <SidebarDropdownWrapper label="Département">
+                    <svelte:fragment slot="icon">
+                      <UsersOutline
+                        class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                      />
+                    </svelte:fragment>
+                    <Button class="bg-[#234099] hover:bg-[#182D73]"
+                      >Sélection des Département<ChevronDownSolid
+                        class="w-3 h-3 ms-2 text-white dark:text-white"
+                      /></Button
+                    >
+                    <Dropdown class={dropdownStyle}>
+                      <div slot="header" class="p-3">
+                        <SearchBar
+                          bind:inputValue
+                          on:input={handleInput(
+                            jsonToItem({ valeursDepartement }, 'valeursDepartement')
+                          )}
+                        />
+                      </div>
+                      {#each valeursDepartement as departement}
+                        {#if filterBeneficiaires(departement, filteredItems)}
+                          <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <Checkbox
+                              checked={departement.checked}
+                              on:change={() =>
+                                toggleCheckbox(
+                                  departement,
+                                  dropdownSelectionIndicateur8,
+                                  valeursDepartement,
+                                  'accord'
+                                )}>{departement.key}</Checkbox
+                            >
+                          </li>
+                        {/if}
+                      {/each}
+                    </Dropdown>
+                    <div class="px-2 pt-1 pb-2">
+                      {#if arrayAllIndicateurs.accord}
+                        {#each arrayAllIndicateurs.accord as indicateur}
+                          {#if indicateur.indicateur === dropdownSelectionIndicateur8.indicateur}
+                            {#each indicateur.data as word (word)}
+                              <div
+                                class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg"
+                              >
+                                {word}
+                                <CloseButton
+                                  on:click={() =>
+                                    closeDiv(
+                                      word,
+                                      dropdownSelectionIndicateur8,
+                                      valeursDepartement,
+                                      'accord'
+                                    )}
+                                  class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                                />
+                              </div>
+                            {/each}
+                          {/if}
+                        {/each}
+                      {/if}
+                    </div>
+                  </SidebarDropdownWrapper>
+                </SidebarGroup>
+
+                <SidebarGroup class={cardForSideBar}>
+                  <SidebarDropdownWrapper label="Région">
+                    <svelte:fragment slot="icon">
+                      <UserOutline
+                        class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                      />
+                    </svelte:fragment>
+                    <Button class="bg-[#234099] hover:bg-[#182D73]"
+                      >Sélection des Régions<ChevronDownSolid
+                        class="w-3 h-3 ms-2 text-white dark:text-white"
+                      /></Button
+                    >
+                    <Dropdown class={dropdownStyle}>
+                      <div slot="header" class="p-3">
+                        <SearchBar
+                          bind:inputValue
+                          on:input={handleInput(jsonToItem({ valeursRegion }, 'valeursRegion'))}
+                        />
+                      </div>
+                      {#each valeursRegion as region}
+                        {#if filterBeneficiaires(region, filteredItems)}
+                          <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <Checkbox
+                              checked={region.checked}
+                              on:change={() =>
+                                toggleCheckbox(
+                                  region,
+                                  dropdownSelectionIndicateur9,
+                                  valeursRegion,
+                                  'accord'
+                                )}>{region.key}</Checkbox
+                            >
+                          </li>
+                        {/if}
+                      {/each}
+                    </Dropdown>
+                    <div class="px-2 pt-1 pb-2">
+                      {#if arrayAllIndicateurs.accord}
+                        {#each arrayAllIndicateurs.accord as indicateur}
+                          {#if indicateur.indicateur === dropdownSelectionIndicateur9.indicateur}
+                            {#each indicateur.data as word (word)}
+                              <div
+                                class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg"
+                              >
+                                {word}
+                                <CloseButton
+                                  on:click={() =>
+                                    closeDiv(
+                                      word,
+                                      dropdownSelectionIndicateur9,
+                                      valeursRegion,
+                                      'accord'
+                                    )}
+                                  class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                                />
+                              </div>
+                            {/each}
+                          {/if}
+                        {/each}
+                      {/if}
+                    </div>
+                  </SidebarDropdownWrapper>
+                </SidebarGroup>
+
+                <SidebarGroup class={cardForSideBar}>
                   <SidebarDropdownWrapper label="Instance">
                     <svelte:fragment slot="icon">
                       <LandmarkOutline
@@ -948,6 +1075,10 @@
       </Sidebar>
     </div>
   </Drawer>
+{:else}
+  <div class="flex items-center justify-center h-screen">
+    <Spinner color="green" size={12} />
+  </div>
 {/if}
 
 <div
