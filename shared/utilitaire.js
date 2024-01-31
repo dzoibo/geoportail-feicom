@@ -219,11 +219,11 @@ export function transformDataForBarChart(data, region, startYear, endYear, id_le
     for (let i = 1; i <= 4; i++) {
         const ispValues = filteredData.map((entry) => {
             const ispValue = entry[`ISP${i}`];
-            console.log(typeof ispValue);
+
             if (typeof ispValue === 'string') {
                 const cleanedValue = ispValue.replace(/,/g, '.').replace(/\s+/g, '');
                 const floatValue = parseFloat(cleanedValue);
-                console.log(floatValue);
+
                 return !isNaN(floatValue) ? floatValue : 0;
             } else if (typeof ispValue === 'number') {
                 return ispValue;
@@ -237,7 +237,7 @@ export function transformDataForBarChart(data, region, startYear, endYear, id_le
 
 
         chartData.push({ x: `ISP${i}`, y: ispValueSum });
-        console.log(chartData)
+
     }
 
     return chartData;

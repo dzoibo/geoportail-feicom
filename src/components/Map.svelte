@@ -236,7 +236,6 @@
 
     if (dataForMap.length > 0 && trigger == true) {
       if (showICSP) {
-        console.log(valueSliderICSP);
         dataForMap = icspData;
         statisticsPerRegion = calculateTotalByRegion(
           dataForMap,
@@ -245,8 +244,6 @@
           scale,
           storeIndicateurForMap.icsp
         );
-
-        console.log(statisticsPerRegion);
 
         MinMax = findMinMax(statisticsPerRegion, 'value');
       } else {
@@ -282,7 +279,6 @@
       detailsMandatCommune = findAllObjectsByAttribute(mandatData, 'id_COMMUNE', nom_commune);
       anneeDebutMandat = uniqueValuesInArrayOfObject(detailsMandatCommune, 'DEBUT MANDAT');
       anneeFinMandat = uniqueValuesInArrayOfObject(detailsMandatCommune, 'FIN MANDAT');
-      console.log(detailsMandatCommune);
     }
     if (!showICSP) {
       nom_commune = e.detail.features[0].properties['ref:COG'];
@@ -310,9 +306,7 @@
         'id_COMMUNE'
       );
       dataForLineChart.data = sumISPValues(dataForMap, region, 'id_COMMUNE');
-
       dataForLineChart.geo = label_reg;
-
       dataForBarChart.year = valueSliderICSP[0] + ' / ' + valueSliderICSP[1];
       dataForBarChart.geo = label_reg;
 
@@ -322,6 +316,9 @@
         0
       );
       hiddenBackdropFalse = false;
+
+      console.log(dataForBarChart);
+
       return dataForBarChart;
     }
 
@@ -556,7 +553,7 @@
           <div class="p-4 lg:w-full sm:w-full flex justify-center">
             <!-- Contenu de la première div -->
             {#await dataForBarChart then}
-              {#if dataForBarChart}
+              {#if dataForBarChart.data}
                 <Card class="!max-w-lg w-full">
                   <!-- Utilisation de h-full pour occuper 100% de la hauteur -->
                   <div
@@ -597,7 +594,7 @@
           <div class="p-4 lg:w-full sm:w-full flex justify-center mb-4">
             <!-- Contenu de la deuxième div -->
             {#await dataForLineChart then}
-              {#if dataForLineChart}
+              {#if dataForLineChart.data.data}
                 <!-- Utilisation de h-full pour occuper 100% de la hauteur -->
                 <Card class="!max-w-lg w-full">
                   <div

@@ -183,7 +183,6 @@
       valeursDepartement = uniqueValues(dataArr, indicateur8);
       valeursRegion = uniqueValues(dataArr, indicateur9);
 
-      console.log(dataArr);
       //ICSP
       dropdownSelectionIndicateur7.indicateur = indicateur7;
       // ACCORD
@@ -351,7 +350,6 @@
     let ulClass =
       'flex flex-col p-4 mt-4 md:flex-row md:space-x-8 md:mt-0 md:text-lg md:font-medium';
 
-    console.log(arrayAllIndicateurs);
     storeIndicateur.update((items) => {
       //@ts-ignore
       items = arrayAllIndicateurs;
