@@ -97,7 +97,7 @@ export function calculateTotalByRegion(data, startYear, endYear, scale, filters)
 
         for (const entry of data) {
             const region = entry[scale];
-            const totalString = typeof entry.TOTAL === 'string' ? entry.TOTAL.replace(/\D+/g, '') : '0'; // Supprimer les caractères non numériques
+            const totalString = (typeof entry.TOTAL === 'string' ? entry.TOTAL : '').replace(/,/g, '.').replace(/\D+/g, '');
             const total = parseFloat(totalString);
             const year = parseInt(entry.ANNEE);
 
@@ -107,6 +107,7 @@ export function calculateTotalByRegion(data, startYear, endYear, scale, filters)
                 } else {
                     totalByRegion[region] += total;
                 }
+
             }
         }
 
@@ -204,7 +205,6 @@ export function sumISPValues(data, region, id_level) {
     };
 }
 
-
 export function transformDataForBarChart(data, region, startYear, endYear, id_level) {
     // Filtrer les données pour la région et la plage d'années spécifiées
     const filteredData = data.filter((entry) => entry[id_level] === region && parseInt(entry.ANNEE) >= startYear && parseInt(entry.ANNEE) <= endYear);
@@ -219,21 +219,31 @@ export function transformDataForBarChart(data, region, startYear, endYear, id_le
     for (let i = 1; i <= 4; i++) {
         const ispValues = filteredData.map((entry) => {
             const ispValue = entry[`ISP${i}`];
+            console.log(typeof ispValue);
             if (typeof ispValue === 'string') {
-                const cleanedValue = ispValue.replace(/\s+/g, '');
-                return !isNaN(parseFloat(cleanedValue)) ? parseFloat(cleanedValue) : 0;
+                const cleanedValue = ispValue.replace(/,/g, '.').replace(/\s+/g, '');
+                const floatValue = parseFloat(cleanedValue);
+                console.log(floatValue);
+                return !isNaN(floatValue) ? floatValue : 0;
+            } else if (typeof ispValue === 'number') {
+                return ispValue;
             } else {
                 return 0;
             }
         });
 
+
         const ispValueSum = ispValues.reduce((acc, val) => acc + val, 0);
 
+
         chartData.push({ x: `ISP${i}`, y: ispValueSum });
+        console.log(chartData)
     }
 
     return chartData;
 }
+
+
 
 
 
