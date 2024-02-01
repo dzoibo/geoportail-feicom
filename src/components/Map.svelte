@@ -438,7 +438,7 @@
         <TabItem>
           <div slot="title" class="flex items-center gap-1">
             <LandmarkOutline size="sm" />
-            Historique municipal
+            Informations générales des territoires
             <h5
               id="historique"
               class="inline-flex items-center mb-4 text-sm font-light text-gray-400 dark:text-gray-200"

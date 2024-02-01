@@ -429,7 +429,7 @@
             >
               <div slot="title" class="flex items-center gap-1 !rounded-none">
                 <DollarOutline size="sm" />
-                ICSP
+                Finance local
               </div>
               <SidebarGroup class={cardForSideBar} id="icsp">
                 <SidebarDropdownWrapper label="Années">
@@ -549,7 +549,7 @@
             >
               <div slot="title" class="flex items-center gap-1">
                 <CheckPlusCircleOutline size="sm" />
-                Accord de financement
+                Appuis financiers
               </div>
               <SidebarGroup id="finance">
                 <SidebarGroup class={cardForSideBar}>
@@ -591,16 +591,15 @@
                     </div>
                   </SidebarDropdownWrapper>
                 </SidebarGroup>
-
                 <SidebarGroup class={cardForSideBar}>
-                  <SidebarDropdownWrapper label="Bénéficiaire">
+                  <SidebarDropdownWrapper label="Région">
                     <svelte:fragment slot="icon">
-                      <UsersGroupOutline
+                      <UserOutline
                         class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                       />
                     </svelte:fragment>
                     <Button class="bg-[#234099] hover:bg-[#182D73]"
-                      >Sélection des bénéficiaires<ChevronDownSolid
+                      >Sélection des Régions<ChevronDownSolid
                         class="w-3 h-3 ms-2 text-white dark:text-white"
                       /></Button
                     >
@@ -608,23 +607,21 @@
                       <div slot="header" class="p-3">
                         <SearchBar
                           bind:inputValue
-                          on:input={handleInput(
-                            jsonToItem({ valeursBeneficiaire }, 'valeursBeneficiaire')
-                          )}
+                          on:input={handleInput(jsonToItem({ valeursRegion }, 'valeursRegion'))}
                         />
                       </div>
-                      {#each valeursBeneficiaire as beneficiaires}
-                        {#if filterBeneficiaires(beneficiaires, filteredItems)}
+                      {#each valeursRegion as region}
+                        {#if filterBeneficiaires(region, filteredItems)}
                           <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                             <Checkbox
-                              checked={beneficiaires.checked}
+                              checked={region.checked}
                               on:change={() =>
                                 toggleCheckbox(
-                                  beneficiaires,
-                                  dropdownSelectionIndicateur4,
-                                  valeursBeneficiaire,
+                                  region,
+                                  dropdownSelectionIndicateur9,
+                                  valeursRegion,
                                   'accord'
-                                )}>{beneficiaires.key}</Checkbox
+                                )}>{region.key}</Checkbox
                             >
                           </li>
                         {/if}
@@ -633,7 +630,7 @@
                     <div class="px-2 pt-1 pb-2">
                       {#if arrayAllIndicateurs.accord}
                         {#each arrayAllIndicateurs.accord as indicateur}
-                          {#if indicateur.indicateur === dropdownSelectionIndicateur4.indicateur}
+                          {#if indicateur.indicateur === dropdownSelectionIndicateur9.indicateur}
                             {#each indicateur.data as word (word)}
                               <div
                                 class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg"
@@ -643,8 +640,8 @@
                                   on:click={() =>
                                     closeDiv(
                                       word,
-                                      dropdownSelectionIndicateur4,
-                                      valeursBeneficiaire,
+                                      dropdownSelectionIndicateur9,
+                                      valeursRegion,
                                       'accord'
                                     )}
                                   class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
@@ -723,16 +720,15 @@
                     </div>
                   </SidebarDropdownWrapper>
                 </SidebarGroup>
-
                 <SidebarGroup class={cardForSideBar}>
-                  <SidebarDropdownWrapper label="Région">
+                  <SidebarDropdownWrapper label="Bénéficiaire">
                     <svelte:fragment slot="icon">
-                      <UserOutline
+                      <UsersGroupOutline
                         class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                       />
                     </svelte:fragment>
                     <Button class="bg-[#234099] hover:bg-[#182D73]"
-                      >Sélection des Régions<ChevronDownSolid
+                      >Sélection des bénéficiaires<ChevronDownSolid
                         class="w-3 h-3 ms-2 text-white dark:text-white"
                       /></Button
                     >
@@ -740,21 +736,23 @@
                       <div slot="header" class="p-3">
                         <SearchBar
                           bind:inputValue
-                          on:input={handleInput(jsonToItem({ valeursRegion }, 'valeursRegion'))}
+                          on:input={handleInput(
+                            jsonToItem({ valeursBeneficiaire }, 'valeursBeneficiaire')
+                          )}
                         />
                       </div>
-                      {#each valeursRegion as region}
-                        {#if filterBeneficiaires(region, filteredItems)}
+                      {#each valeursBeneficiaire as beneficiaires}
+                        {#if filterBeneficiaires(beneficiaires, filteredItems)}
                           <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                             <Checkbox
-                              checked={region.checked}
+                              checked={beneficiaires.checked}
                               on:change={() =>
                                 toggleCheckbox(
-                                  region,
-                                  dropdownSelectionIndicateur9,
-                                  valeursRegion,
+                                  beneficiaires,
+                                  dropdownSelectionIndicateur4,
+                                  valeursBeneficiaire,
                                   'accord'
-                                )}>{region.key}</Checkbox
+                                )}>{beneficiaires.key}</Checkbox
                             >
                           </li>
                         {/if}
@@ -763,7 +761,7 @@
                     <div class="px-2 pt-1 pb-2">
                       {#if arrayAllIndicateurs.accord}
                         {#each arrayAllIndicateurs.accord as indicateur}
-                          {#if indicateur.indicateur === dropdownSelectionIndicateur9.indicateur}
+                          {#if indicateur.indicateur === dropdownSelectionIndicateur4.indicateur}
                             {#each indicateur.data as word (word)}
                               <div
                                 class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg"
@@ -773,8 +771,8 @@
                                   on:click={() =>
                                     closeDiv(
                                       word,
-                                      dropdownSelectionIndicateur9,
-                                      valeursRegion,
+                                      dropdownSelectionIndicateur4,
+                                      valeursBeneficiaire,
                                       'accord'
                                     )}
                                   class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
@@ -844,58 +842,6 @@
                   </SidebarDropdownWrapper>
                 </SidebarGroup>
                 <SidebarGroup class={cardForSideBar}>
-                  <SidebarDropdownWrapper label="Domaine">
-                    <svelte:fragment slot="icon">
-                      <FolderOutline
-                        class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                      />
-                    </svelte:fragment>
-                    <Button class="bg-[#234099] hover:bg-[#182D73]"
-                      >Sélection des projets<ChevronDownSolid
-                        class="w-3 h-3 ms-2 text-white dark:text-white"
-                      /></Button
-                    >
-                    <Dropdown class={dropdownStyle}>
-                      {#each valeursDomaine as domaines}
-                        <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                          <Checkbox
-                            checked={domaines.checked}
-                            on:change={() =>
-                              toggleCheckbox(
-                                domaines,
-                                dropdownSelectionIndicateur3,
-                                valeursDomaine,
-                                'accord'
-                              )}>{domaines.key}</Checkbox
-                          >
-                        </li>
-                      {/each}
-                    </Dropdown>
-                    <div class="px-2 pt-1 pb-2">
-                      {#if arrayAllIndicateurs.accord}
-                        {#each arrayAllIndicateurs.accord as indicateur}
-                          {#if indicateur.indicateur === dropdownSelectionIndicateur3.indicateur}
-                            {#each indicateur.data as word (word)}
-                              <div
-                                class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg"
-                              >
-                                {word}
-                                <CloseButton
-                                  on:click={() =>
-                                    closeDiv(word, dropdownSelectionIndicateur3, valeursDomaine)}
-                                  class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
-                                />
-                              </div>
-                              ,'accord'
-                            {/each}
-                          {/if}
-                        {/each}
-                      {/if}
-                    </div>
-                  </SidebarDropdownWrapper>
-                </SidebarGroup>
-
-                <SidebarGroup class={cardForSideBar}>
                   <SidebarDropdownWrapper label="Secteur">
                     <svelte:fragment slot="icon">
                       <SwatchbookOutline
@@ -946,6 +892,57 @@
                     </div>
                   </SidebarDropdownWrapper></SidebarGroup
                 >
+                <SidebarGroup class={cardForSideBar}>
+                  <SidebarDropdownWrapper label="Domaine">
+                    <svelte:fragment slot="icon">
+                      <FolderOutline
+                        class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                      />
+                    </svelte:fragment>
+                    <Button class="bg-[#234099] hover:bg-[#182D73]"
+                      >Sélection des projets<ChevronDownSolid
+                        class="w-3 h-3 ms-2 text-white dark:text-white"
+                      /></Button
+                    >
+                    <Dropdown class={dropdownStyle}>
+                      {#each valeursDomaine as domaines}
+                        <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                          <Checkbox
+                            checked={domaines.checked}
+                            on:change={() =>
+                              toggleCheckbox(
+                                domaines,
+                                dropdownSelectionIndicateur3,
+                                valeursDomaine,
+                                'accord'
+                              )}>{domaines.key}</Checkbox
+                          >
+                        </li>
+                      {/each}
+                    </Dropdown>
+                    <div class="px-2 pt-1 pb-2">
+                      {#if arrayAllIndicateurs.accord}
+                        {#each arrayAllIndicateurs.accord as indicateur}
+                          {#if indicateur.indicateur === dropdownSelectionIndicateur3.indicateur}
+                            {#each indicateur.data as word (word)}
+                              <div
+                                class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg"
+                              >
+                                {word}
+                                <CloseButton
+                                  on:click={() =>
+                                    closeDiv(word, dropdownSelectionIndicateur3, valeursDomaine)}
+                                  class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                                />
+                              </div>
+                              ,'accord'
+                            {/each}
+                          {/if}
+                        {/each}
+                      {/if}
+                    </div>
+                  </SidebarDropdownWrapper>
+                </SidebarGroup>
 
                 <SidebarGroup class={cardForSideBar}>
                   <SidebarDropdownWrapper label="Sources de financement">

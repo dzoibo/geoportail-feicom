@@ -317,7 +317,11 @@ export function rechercheMulticriteresPourFEICOM(dataForMap, id_couche, scale, s
 
 export function jsonToItem(data, title) {
     data = data[title].map((objet) => objet.key);
-    return data
+
+    // Supprimez les espaces avant le texte et triez par ordre alphabétique
+    data = data.map((item) => item.trim()).sort((a, b) => a.localeCompare(b, 'fr'));
+
+    return data;
 }
 
 
