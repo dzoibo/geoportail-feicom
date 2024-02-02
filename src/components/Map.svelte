@@ -25,7 +25,8 @@
     getSumPerYear,
     uniqueValuesInArrayOfObject,
     rechercheMulticriteres,
-    rechercheMulticriteresPourFEICOM
+    rechercheMulticriteresPourFEICOM,
+    sortByDescendingOrder
   } from '../../shared/utilitaire';
   import {
     Drawer,
@@ -76,6 +77,7 @@
     Popup
   } from 'svelte-maplibre';
   import { onMount, onDestroy } from 'svelte';
+  import { each } from 'chart.js/helpers';
 
   let clickedFeature;
   let trigger = true;
@@ -277,8 +279,9 @@
     if (showCom) {
       nom_commune = e.detail.features[0].properties['ref:COG'];
       detailsMandatCommune = findAllObjectsByAttribute(mandatData, 'id_COMMUNE', nom_commune);
-      anneeDebutMandat = uniqueValuesInArrayOfObject(detailsMandatCommune, 'DEBUT MANDAT');
-      anneeFinMandat = uniqueValuesInArrayOfObject(detailsMandatCommune, 'FIN MANDAT');
+      anneeDebutMandat = sortByDescendingOrder(detailsMandatCommune, 'DEBUT MANDAT');
+      anneeFinMandat = sortByDescendingOrder(detailsMandatCommune, 'FIN MANDAT');
+      console.log(anneeFinMandat);
     }
     if (!showICSP) {
       nom_commune = e.detail.features[0].properties['ref:COG'];
@@ -433,7 +436,7 @@
     <Tabs style="full" class="space-x-0 w-full flex !flex-nowrap bg-white">
       {#if showCom}
         <Tooltip triggeredBy="#historique" type="auto"
-          >Historique des exécutifs communaux qui se sont succédés
+          >Informations générales sur la commune sélectionnée
         </Tooltip>
         <TabItem>
           <div slot="title" class="flex items-center gap-1">
@@ -447,49 +450,71 @@
             </h5>
           </div>
 
-          <h2 class="mb-6 text-center text-black-900 text-xl poppins-medium">
-            {clickedLayerInfo.detail.features[0].properties.name}
-          </h2>
-          {#each anneeDebutMandat as mandatDeb, i}
-            <div id="detailMandatForAMunicipality" class="gap-4 p-4 list-none">
-              <SidebarDropdownWrapper label="Mandat {mandatDeb} - {anneeFinMandat[i]}">
-                <svelte:fragment slot="icon">
-                  <BadgeCheckOutline
-                    class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 hover:text-blue-900 dark:group-hover:text-white"
-                  />
-                </svelte:fragment>
-                {#each detailsMandatCommune as detailMandat}
-                  {#if detailMandat['DEBUT MANDAT'] === mandatDeb && detailMandat['FIN MANDAT'] === anneeFinMandat[i]}
-                    <Card padding="xl" size="md">
-                      <Listgroup class="border-0 dark:!bg-transparent">
-                        <div class="flex items-center space-x-4 rtl:space-x-reverse">
-                          <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-gray-900 truncate dark:text-white">
-                              {detailMandat.CONSEILLER || ''}
-                            </p>
-                            <p class="text-sm text-gray-900 truncate dark:text-white">
-                              {detailMandat.ROLE || ''}
-                            </p>
-                            <p class="text-sm text-gray-500 truncate dark:text-gray-400">
-                              {detailMandat.TELEPHONE || ''}
-                            </p>
-                            <p class="text-sm text-gray-500 truncate dark:text-gray-400">
-                              {detailMandat.EMAIL || ''}
-                            </p>
-                          </div>
-                          <div
-                            class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white"
-                          >
-                            {detailMandat.PARTI || ''}
-                          </div>
-                        </div>
-                      </Listgroup>
-                    </Card>
+          {#if anneeFinMandat}
+            <div
+              id="detailMandatForAMunicipality"
+              class="p-4 flex justify-center list-none flex justify-center h-full"
+            >
+              <Card padding="xl" class="mb-4 max-w-sm" size="md">
+                <h2 class="mb-6 text-center text-black !uppercase text-4xl poppins-medium">
+                  {clickedLayerInfo.detail.features[0].properties.name}
+                </h2>
+
+                <dl
+                  class="grid max-w-screen-xl grid-cols-2 gap-8 p-4 mx-auto text-gray-900 sm:grid-cols-2 xl:grid-cols-2 dark:text-white sm:p-8"
+                >
+                  {#if anneeFinMandat[0].SUPERFICIE}
+                    <div class="flex flex-col items-center justify-center">
+                      <dt class="mb-2 text-3xl font-extrabold">
+                        {formattedValue(anneeFinMandat[0].SUPERFICIE) || ''}
+                      </dt>
+                      <dd class="text-gray-500 dark:text-gray-400">km²</dd>
+                    </div>
                   {/if}
-                {/each}
-              </SidebarDropdownWrapper>
+                  {#if anneeFinMandat[0].POPULATION}
+                    <div class="flex flex-col items-center justify-center">
+                      <dt class="mb-2 text-3xl font-extrabold">
+                        {formattedValue(anneeFinMandat[0].POPULATION) || ''}
+                      </dt>
+                      <dd class="text-gray-500 dark:text-gray-400">habitants</dd>
+                    </div>
+                  {/if}
+                </dl>
+
+                <Card size="md" class="mb-4 flow-root !shadow-sm">
+                  <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
+                    {#each anneeFinMandat as detailMandat}
+                      {#if detailMandat['FIN MANDAT'] === anneeFinMandat[0]['FIN MANDAT']}
+                        <li class="py-3 sm:py-4">
+                          <div class="flex items-center">
+                            <div class="flex-1 min-w-0 ms-4 mr-4">
+                              <p class="text-sm font-medium text-gray-900 truncate dark:text-white">
+                                {detailMandat.CONSEILLER || ''}
+                              </p>
+                              <p class="text-sm text-gray-500 truncate dark:text-gray-400">
+                                {detailMandat.ROLE || ''}
+                              </p>
+                              <p class="text-sm text-gray-500 truncate dark:text-gray-400">
+                                {detailMandat.TELEPHONE || ''}
+                              </p>
+                              <p class="text-sm text-gray-500 truncate dark:text-gray-400">
+                                {detailMandat.EMAIL || ''}
+                              </p>
+                            </div>
+                            <div
+                              class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white"
+                            >
+                              {detailMandat.PARTI || ''}
+                            </div>
+                          </div>
+                        </li>
+                      {/if}
+                    {/each}
+                  </ul>
+                </Card>
+              </Card>
             </div>
-          {/each}
+          {/if}
         </TabItem>
       {/if}
       {#if !showICSP}

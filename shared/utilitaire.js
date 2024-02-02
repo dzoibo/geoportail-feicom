@@ -254,6 +254,10 @@ export function findAllObjectsByAttribute(array, nom_attribut, id) {
     return array.filter(obj => obj[nom_attribut] === id);
 }
 
+export function sortByDescendingOrder(arr, property) {
+    return arr.sort((a, b) => b[property] - a[property]);
+}
+
 
 export function formattedValue(value) {
     return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
