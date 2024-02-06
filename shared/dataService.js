@@ -3,19 +3,23 @@
 import Papa from "papaparse";
 
 export async function fetchData() {
+
     const feicom =
         "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiCvFI_dzAV6jTiAnRq6ikqaeteoXMtZXjpHyk3MfVSYUt3jocJA38mxfdsSYatw/pub?gid=606824651&single=true&output=tsv";
     const mandat =
         "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiCvFI_dzAV6jTiAnRq6ikqaeteoXMtZXjpHyk3MfVSYUt3jocJA38mxfdsSYatw/pub?gid=647677433&single=true&output=tsv";
     const icsp = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiCvFI_dzAV6jTiAnRq6ikqaeteoXMtZXjpHyk3MfVSYUt3jocJA38mxfdsSYatw/pub?gid=962052684&single=true&output=tsv";
+    const commune = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTiCvFI_dzAV6jTiAnRq6ikqaeteoXMtZXjpHyk3MfVSYUt3jocJA38mxfdsSYatw/pub?gid=961481301&single=true&output=tsv'
 
-    const [mandatData, dataArr, icspData] = await Promise.all([
+    const [mandatData, dataArr, icspData, communeData] = await Promise.all([
+
         fetchDataFromSheet(mandat),
         fetchDataFromSheet(feicom),
         fetchDataFromSheet(icsp),
-    ]);
+        fetchDataFromSheet(commune)
 
-    return { mandatData, dataArr, icspData };
+    ]);
+    return { mandatData, dataArr, icspData, communeData };
 }
 
 // @ts-ignore

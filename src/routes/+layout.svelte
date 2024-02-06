@@ -5,7 +5,12 @@
   import Main from '../components/Map.svelte';
   import Papa from 'papaparse';
   // Autre fichier, par exemple, votre composant ou page
-  import { uniqueValues, findMinMax, jsonToItem } from '../../shared/utilitaire';
+  import {
+    uniqueValues,
+    findMinMax,
+    jsonToItem,
+    removeDuplicatesByAttribute
+  } from '../../shared/utilitaire';
   import SearchBar from '../components/SearchBar.svelte';
   import {
     dataStore,
@@ -81,6 +86,8 @@
 
   let dataArr: any[] = [];
   let mandatData: any[] = [];
+  let communeData: any[] = [];
+  let uniqueBeneficiaireForIDFetch: any[] = [];
   let icspData: any[] = [];
   let valeursAttribution: any[] = [];
   let valeursDomaine: any[] = [];
@@ -161,7 +168,7 @@
   let dropdownStyle = 'w-48 overflow-y-auto py-1 h-48';
   onMount(async function () {
     try {
-      const { mandatData, dataArr, icspData } = await fetchData();
+      const { mandatData, dataArr, icspData, communeData } = await fetchData();
 
       // Mettez à jour les propriétés individuelles du store
       dataStore.update((store) => {
@@ -169,6 +176,7 @@
         store.icspData = icspData;
         store.dataArr = dataArr;
         store.mandatData = mandatData;
+        store.communeData = communeData;
 
         return store;
       });
@@ -176,12 +184,22 @@
       valeursAttribution = uniqueValues(dataArr, indicateur1);
       valeursSecteur = uniqueValues(dataArr, indicateur2);
       valeursDomaine = uniqueValues(dataArr, indicateur3);
-      valeursBeneficiaire = uniqueValues(dataArr, indicateur4);
-      valeursBeneficiaire2 = uniqueValues(icspData, indicateur7);
+      valeursBeneficiaire = uniqueValues(dataArr, indicateur4, true);
+      valeursBeneficiaire2 = uniqueValues(icspData, indicateur7, true);
       valeursSourcefinancement = uniqueValues(dataArr, indicateur5);
       valeursPartenaires = uniqueValues(dataArr, indicateur6);
       valeursDepartement = uniqueValues(dataArr, indicateur8);
       valeursRegion = uniqueValues(dataArr, indicateur9);
+
+      // Fusionnez les deux tableaux en un seul
+      const mergedArray = [...valeursBeneficiaire, ...valeursBeneficiaire2];
+
+      let uniqueBeneficiaireForIDFetch = removeDuplicatesByAttribute(mergedArray, 'id_COMMUNE');
+      // Mettez à jour les propriétés individuelles du store
+      dataStore.update((store) => {
+        store.keyCommuneID_Commune = uniqueBeneficiaireForIDFetch;
+        return store;
+      });
 
       //ICSP
       dropdownSelectionIndicateur7.indicateur = indicateur7;
@@ -273,7 +291,8 @@
   function updateSelectedWords(
     array: { indicateur: string; data: never[] } | undefined,
     unique: any[],
-    section: string
+    section: string,
+    option = false
   ) {
     update = true;
     //@ts-ignore
@@ -496,6 +515,7 @@
                       {#if filterBeneficiaires(beneficiaires, filteredItems)}
                         <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                           <Checkbox
+                            id={beneficiaires.id_COMMUNE}
                             checked={beneficiaires.checked}
                             on:change={() =>
                               toggleCheckbox(
@@ -745,6 +765,7 @@
                         {#if filterBeneficiaires(beneficiaires, filteredItems)}
                           <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                             <Checkbox
+                              id={beneficiaires.id_COMMUNE}
                               checked={beneficiaires.checked}
                               on:change={() =>
                                 toggleCheckbox(

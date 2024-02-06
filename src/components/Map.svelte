@@ -10,7 +10,6 @@
     heightNavBar
   } from '../../shared/store';
   import Pagination from '../components/Pagination.svelte';
-  import Map from '../components/Map.svelte';
   import {
     getSumOf,
     findMinMax,
@@ -26,7 +25,10 @@
     uniqueValuesInArrayOfObject,
     rechercheMulticriteres,
     rechercheMulticriteresPourFEICOM,
-    sortByDescendingOrder
+    sortByDescendingOrder,
+    zoomToFeatureByValue,
+    fetchIdCommunesFromCommunesID,
+    getOverallBbox
   } from '../../shared/utilitaire';
   import {
     Drawer,
@@ -76,6 +78,7 @@
     SymbolLayer,
     Popup
   } from 'svelte-maplibre';
+  import maplibregl from 'maplibre-gl';
   import { onMount, onDestroy } from 'svelte';
   import { each } from 'chart.js/helpers';
 
@@ -86,6 +89,8 @@
   let dataForMap = [];
   let mandatData = [];
   let icspData = [];
+  let communeData = [];
+  let keyCommuneID_Commune = [];
   let statisticsPerRegion = [];
   let MinMax = {};
   let geojsonRegionCentroid;
@@ -124,6 +129,13 @@
   let currentGeo = 'reg';
   let resultat;
   let heightSideBar;
+  // START EXTRACT
+  let map = maplibregl.Map | undefined;
+  let loaded = false;
+
+  let center = [12, 6];
+  let zoom = 5;
+
   // bbox du Cameroun
   let bbox = [
     [-6.81, -6.492371],
@@ -176,6 +188,8 @@
       dataArr2 = store.dataArr;
       mandatData = store.mandatData;
       icspData = store.icspData;
+      communeData = store.communeData;
+      keyCommuneID_Commune = store.keyCommuneID_Commune;
     });
 
     // Abonnez-vous au store pour recevoir les mises à jour
@@ -269,6 +283,57 @@
 
       paintProperties = getUpdatedPaintProperties(MinMax);
       let trigger = false;
+    }
+  }
+
+  $: {
+    // Déclarez l'indicateur dans une variable
+    let indicateur;
+    let communesCommunes = [];
+    let idCommunes = [];
+
+    if (dataForMap.length > 0 && trigger == true) {
+      if (map && loaded) {
+        if (showICSP) {
+          if (storeIndicateurForMap.icsp.length > 0) {
+            indicateur = 'COMMUNE';
+            communesCommunes = storeIndicateurForMap.icsp.find(
+              (item) => item.indicateur === indicateur
+            ).data;
+          }
+        } else {
+          if (storeIndicateurForMap.accord.length > 0) {
+            indicateur = 'Bénéficiaire';
+            communesCommunes = storeIndicateurForMap.accord.find(
+              (item) => item.indicateur === indicateur
+            ).data;
+          }
+        }
+
+        let getID = fetchIdCommunesFromCommunesID(
+          communesCommunes,
+          keyCommuneID_Commune,
+          'id_COMMUNE',
+          'key'
+        );
+
+        let getbbox = fetchIdCommunesFromCommunesID(getID, communeData, 'bbox', 'id_COMMUNE');
+
+        const overallBbox = getOverallBbox(getbbox);
+
+        if (getbbox.length > 0) {
+          console.log(overallBbox);
+          toggleLayer('com');
+          map.fitBounds(overallBbox, {
+            padding: 20, // Espace de marge autour de la BoundingBox
+            maxZoom: 15 // Niveau de zoom maximal
+          });
+        } else {
+          map.fitBounds(bbox, {
+            zoom: zoom // Niveau de zoom maximal
+          });
+        }
+      }
     }
   }
 
@@ -466,7 +531,7 @@
                   {#if anneeFinMandat[0].SUPERFICIE}
                     <div class="flex flex-col items-center justify-center">
                       <dt class="mb-2 text-3xl font-extrabold">
-                        {formattedValue(anneeFinMandat[0].SUPERFICIE) || ''}
+                        {formattedValue(anneeFinMandat[0].SUPERFICIE) || ''}}
                       </dt>
                       <dd class="text-gray-500 dark:text-gray-400">km²</dd>
                     </div>
@@ -474,7 +539,7 @@
                   {#if anneeFinMandat[0].POPULATION}
                     <div class="flex flex-col items-center justify-center">
                       <dt class="mb-2 text-3xl font-extrabold">
-                        {formattedValue(anneeFinMandat[0].POPULATION) || ''}
+                        {formattedValue(anneeFinMandat[0].POPULATION) || ''}}
                       </dt>
                       <dd class="text-gray-500 dark:text-gray-400">habitants</dd>
                     </div>
@@ -488,7 +553,7 @@
                         <li class="py-3 sm:py-4">
                           <div class="flex items-center">
                             <div class="flex-1 min-w-0 ms-4 mr-4">
-                              <p class="text-sm font-medium text-gray-900 truncate dark:text-white">
+                              <p class="text-sm font-medium text-gray-900 dark:text-white">
                                 {detailMandat.CONSEILLER || ''}
                               </p>
                               <p class="text-sm text-gray-500 truncate dark:text-gray-400">
@@ -663,12 +728,13 @@
 {#if dataForMap.length > 0 && trigger == true}
   <MapLibre
     style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
-    center={[12, 6]}
-    zoom={5}
+    {center}
+    {zoom}
     maxBounds={bbox}
     attributionControl={false}
     on:zoomend={({ detail: { map } }) => (currentZoom = map.getZoom())}
-    let:map
+    bind:map
+    bind:loaded
     class="w-screen"
   >
     <NavigationControl position="top-right" />
@@ -684,27 +750,20 @@
       </ControlGroup>
     </Control>
 
-    <GeoJSON data={'/data/countries.geojson'}>
+    <GeoJSON data="/data/countries.geojson">
       <FillLayer paint={{ 'fill-color': 'black', 'fill-opacity': 0.6 }} />
     </GeoJSON>
 
-    <VectorTileSource url={'pmtiles://data/regions.pmtiles'} promoteId={'ref:COG'}>
+    <VectorTileSource url="pmtiles://data/regions.pmtiles" id="regions" promoteId="ref:COG">
       {#if showReg}
         <FillLayer
           paint={paintProperties}
           manageHoverState
           hoverCursor="pointer"
-          sourceLayer={'regions'}
+          sourceLayer="regions"
           on:click={handleLayerClickOnRegion}
         />
-        <LineLayer
-          paint={{
-            'line-opacity': 1,
-            'line-width': 3,
-            'line-color': 'red'
-          }}
-          sourceLayer={'region'}
-        />
+
         <JoinedData data={statisticsPerRegion} idCol="id_REGION" sourceLayer="regions" />
         <!-- Contenu à afficher si showICSP est vrai -->
       {/if}
@@ -734,14 +793,14 @@
       {/if}
     </GeoJSON>
 
-    <VectorTileSource url={'pmtiles://data/departements.pmtiles'} promoteId={'ref:COG'}>
+    <VectorTileSource url="pmtiles://data/departements.pmtiles" promoteId="ref:COG">
       <JoinedData data={statisticsPerRegion} idCol="id_DEPARTEMENT" sourceLayer="departements" />
       {#if showDep}
         <FillLayer
           hoverCursor="pointer"
           paint={paintProperties}
           manageHoverState
-          sourceLayer={'departements'}
+          sourceLayer="departements"
           on:click={handleLayerClick}
         />
         <LineLayer
@@ -750,7 +809,7 @@
             'line-width': 1,
             'line-color': 'gray'
           }}
-          sourceLayer={'departements'}
+          sourceLayer="departements"
         />
       {/if}
     </VectorTileSource>
@@ -779,7 +838,11 @@
         </MarkerLayer>
       </GeoJSON>
     {/if}
-    <VectorTileSource url={'pmtiles://data/municipalites.pmtiles'} promoteId={'ref:COG'}>
+    <VectorTileSource
+      url="pmtiles://data/municipalites.pmtiles"
+      id="municipalites"
+      promoteId="ref:COG"
+    >
       <JoinedData data={statisticsPerRegion} idCol="id_COMMUNE" sourceLayer="municipalites" />
       {#if showCom}
         <SymbolLayer
@@ -798,13 +861,13 @@
             'text-halo-blur': 0.5,
             'text-size': 400
           }}
-          sourceLayer={'municipalites'}
+          sourceLayer="municipalites"
         />
         <FillLayer
           paint={paintProperties}
           manageHoverState
           hoverCursor="pointer"
-          sourceLayer={'municipalites'}
+          sourceLayer="municipalites"
           }}
           on:click={handleLayerClick}
         ></FillLayer>
@@ -814,7 +877,7 @@
             'line-opacity': 1,
             'line-color': 'gray'
           }}
-          sourceLayer={'municipalites'}
+          sourceLayer="municipalites"
         />
       {/if}
     </VectorTileSource>

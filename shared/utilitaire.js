@@ -4,23 +4,39 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // utilitaires.js
 // @ts-ignore
-export function uniqueValues(tableau, attribut) {
-    // Utilisez filter pour éliminer les valeurs null
-    const filteredArray = tableau.filter(objet => objet[attribut] !== null);
+export function uniqueValues(tableau, attribut, option = false) {
+    const result = [];
+    const seenValues = {};
 
-    // Créez un Set avec les valeurs uniques
-    const valeursUniques = new Set(filteredArray.map(objet => objet[attribut]));
+    for (const objet of tableau) {
+        const valeur = objet[attribut];
+        const id_COMMUNE = objet['id_COMMUNE'];
 
-    // Créez un tableau de résultats avec la propriété "checked" initialisée à false pour chaque élément
-    const result = Array.from(valeursUniques).map(valeur => ({
-        'key': valeur,
-        checked: false
-    }));
+        if (valeur !== null && !seenValues[valeur]) {
+            const item = { 'key': valeur, checked: false };
+
+            if (option && id_COMMUNE) {
+                item['id_COMMUNE'] = id_COMMUNE;
+            }
+
+            result.push(item);
+            seenValues[valeur] = true;
+        }
+    }
 
     // Triez les clés par ordre ascendant
     result.sort((a, b) => a.key.localeCompare(b.key));
 
     return result;
+}
+
+export function removeDuplicatesByAttribute(array, attribute) {
+    return array.reduce((accumulator, current) => {
+        if (!accumulator.find(item => item[attribute] === current[attribute])) {
+            accumulator.push(current);
+        }
+        return accumulator;
+    }, []);
 }
 
 
@@ -243,15 +259,95 @@ export function transformDataForBarChart(data, region, startYear, endYear, id_le
     return chartData;
 }
 
+export function zoomToFeatureByValue(map, sourceName, columnName, selectedValue, zoomLevel) {
+    if (selectedValue.length == 1) {
+        // Recherchez l'entité correspondante dans la couche vectorielle en utilisant la valeur sélectionnée
+        const features = map.querySourceFeatures(sourceName, {
+            sourceLayer: sourceName, // Vous pouvez spécifier la sourceLayer si nécessaire
+            filter: ['==', columnName, selectedValue] // Remplacer ces valeurs par les vôtres
+        });
 
+        console.log(features)
+        if (features.length > 0) {
+            // Récupérer la géométrie (polygone) de l'entité
+            const geometry = features[0].geometry;
 
+            // Calculer le centre du polygone
+            const centroid = calculatePolygonCentroid(geometry.coordinates[0]);
 
+            // Utiliser le centre du polygone pour centrer la carte et ajuster le zoom
+            map.flyTo({
+                center: centroid,
+                zoom: zoomLevel || 12, // Niveau de zoom souhaité (12 par défaut)
+            });
+        }
+    }
 
+}
 
+// Fonction pour calculer le centre d'un polygone
+export function calculatePolygonCentroid(coordinates) {
+    let sumX = 0;
+    let sumY = 0;
+    const numPoints = coordinates.length;
 
+    coordinates.forEach(point => {
+        sumX += point[0];
+        sumY += point[1];
+    });
+
+    return [sumX / numPoints, sumY / numPoints];
+}
 
 export function findAllObjectsByAttribute(array, nom_attribut, id) {
     return array.filter(obj => obj[nom_attribut] === id);
+}
+
+export function fetchIdCommunesFromCommunesID(communesArray, correspondanceArray, attributASelectionner, attributPourJointure) {
+    const idCommunes = [];
+
+    for (const commune of communesArray) {
+        const correspondance = correspondanceArray.find(item => item[attributPourJointure] === commune);
+        if (correspondance) {
+            idCommunes.push(correspondance[attributASelectionner]);
+        }
+    }
+
+    return idCommunes;
+}
+
+export function parseBboxString(bboxString) {
+    const coordinates = bboxString.split(/\s+/).map(parseFloat);
+    const bbox = [];
+
+    while (coordinates.length >= 4) {
+        const minLng = coordinates.shift();
+        const minLat = coordinates.shift();
+        const maxLng = coordinates.shift();
+        const maxLat = coordinates.shift();
+
+        bbox.push([minLng, minLat]);
+        bbox.push([maxLng, maxLat]);
+    }
+
+    return bbox;
+}
+
+export function getOverallBbox(bboxes) {
+    let minLng = Infinity;
+    let minLat = Infinity;
+    let maxLng = -Infinity;
+    let maxLat = -Infinity;
+
+    for (const bboxString of bboxes) {
+        const [lng1, lat1, lng2, lat2] = bboxString.split(/\s+/).map(parseFloat);
+        minLng = Math.min(minLng, lng1, lng2);
+        minLat = Math.min(minLat, lat1, lat2);
+        maxLng = Math.max(maxLng, lng1, lng2);
+        maxLat = Math.max(maxLat, lat1, lat2);
+    }
+
+    return parseBboxString([minLng, minLat, maxLng, maxLat].join(" "));
 }
 
 export function sortByDescendingOrder(arr, property) {

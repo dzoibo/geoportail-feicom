@@ -13,7 +13,6 @@
     complete: function (results) {
       // Met à jour le magasin avec les données
       dataStore.set(results.data);
-      console.log(dataStore);
     },
   });
 
