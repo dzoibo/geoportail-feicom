@@ -59,7 +59,8 @@
     CalendarMonthOutline,
     UserAddOutline,
     UserOutline,
-    UsersOutline
+    UsersOutline,
+    OrdoredListOutline
   } from 'flowbite-svelte-icons';
   import { Cog } from 'svelte-heros-v2';
   import { sineIn } from 'svelte/easing';
@@ -97,11 +98,12 @@
   let valeursSourcefinancement: any[] = [];
   let valeursDepartement: any[] = [];
   let valeursRegion: any[] = [];
+  let valeursAvancement: any[] = [];
   let valeursPartenaires: any[] = [];
   let arrayAllIndicateurs = { accord: [], icsp: [] };
   let arrayAllIndicateursICSP: any[] = [];
   let loadingData = true;
-
+  let isItCoop = '';
   let activeUrl;
   let showFinancement = false;
   let showICSP = true;
@@ -137,6 +139,7 @@
 
   let checkedOptions: { [key: string]: boolean } = {};
   //Liste déroulante et search bar
+  //accord
   let inputValue = '';
   let indicateur5 = 'Source_financement';
   let indicateur1 = "Instance d'attribution";
@@ -146,12 +149,15 @@
   let indicateur8 = 'Département';
   let indicateur9 = 'Région';
   let indicateur6 = 'Partenaires';
+  let indicateur10 = 'Niveau d’avancement';
 
+  //ICSP
   let indicateur7 = 'COMMUNE';
   let filteredItems: any[] = [];
   //ICSP
   let dropdownSelectionIndicateur7 = { indicateur: '', data: [] };
   //Accord
+  let dropdownSelectionIndicateur10 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur9 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur8 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur6 = { indicateur: '', data: [] };
@@ -190,6 +196,7 @@
       valeursPartenaires = uniqueValues(dataArr, indicateur6);
       valeursDepartement = uniqueValues(dataArr, indicateur8);
       valeursRegion = uniqueValues(dataArr, indicateur9);
+      valeursAvancement = uniqueValues(dataArr, indicateur10);
 
       // Fusionnez les deux tableaux en un seul
       const mergedArray = [...valeursBeneficiaire, ...valeursBeneficiaire2];
@@ -204,6 +211,7 @@
       //ICSP
       dropdownSelectionIndicateur7.indicateur = indicateur7;
       // ACCORD
+      dropdownSelectionIndicateur9.indicateur = indicateur10;
       dropdownSelectionIndicateur9.indicateur = indicateur9;
       dropdownSelectionIndicateur8.indicateur = indicateur8;
       dropdownSelectionIndicateur6.indicateur = indicateur6;
@@ -215,6 +223,7 @@
 
       // Ajoutez les objets à l'array dropdownSelections
       dropdownSelectionsAll.push(
+        dropdownSelectionIndicateur10,
         dropdownSelectionIndicateur9,
         dropdownSelectionIndicateur8,
         dropdownSelectionIndicateur7,
@@ -435,7 +444,7 @@
   >
     <div class="h-full w-full bg-[#00862b14]">
       <Sidebar asideClass="w-54">
-        <SidebarWrapper divClass="overflow-y-auto">
+        <SidebarWrapper divClass="overflow-y-auto" style=" overflow-x: hidden">
           <Tabs style="full" class="space-x-0 w-full flex !flex-nowrap">
             <TabItem
               class="text-xs poppins-medium w-full  "
@@ -1022,31 +1031,94 @@
                   </SidebarDropdownWrapper>
                 </SidebarGroup>
 
-                <SidebarGroup class={cardForSideBar}>
-                  <SidebarDropdownWrapper label="Partenaires">
+                {#if dropdownSelectionIndicateur5.indicateur}
+                  {#each dropdownSelectionIndicateur5.data as word (word)}
+                    {#if word == 'Coopération'}
+                      <SidebarGroup class={cardForSideBar}>
+                        <SidebarDropdownWrapper label="Partenaires">
+                          <svelte:fragment slot="icon">
+                            <UserAddOutline
+                              class="w-auto text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                            />
+                          </svelte:fragment>
+
+                          <Button class="bg-[#234099] hover:bg-[#182D73]"
+                            >Sélection des partenaires<ChevronDownSolid
+                              class="w-3 h-3 ms-2 text-white dark:text-white"
+                            /></Button
+                          >
+                          <Dropdown class={dropdownStyle}>
+                            {#each valeursPartenaires as partenaires}
+                              <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                <Checkbox
+                                  checked={partenaires.checked}
+                                  on:change={() =>
+                                    toggleCheckbox(
+                                      partenaires,
+                                      dropdownSelectionIndicateur6,
+                                      valeursPartenaires,
+                                      'accord'
+                                    )}>{partenaires.key}</Checkbox
+                                >
+                              </li>
+                            {/each}
+                          </Dropdown>
+                          <div class="px-2 pt-1 pb-2">
+                            {#if arrayAllIndicateurs.accord}
+                              {#each arrayAllIndicateurs.accord as indicateur}
+                                {#if indicateur.indicateur === dropdownSelectionIndicateur6.indicateur}
+                                  {#each indicateur.data as word (word)}
+                                    <div
+                                      class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg"
+                                    >
+                                      {word}
+                                      <CloseButton
+                                        on:click={() =>
+                                          closeDiv(
+                                            word,
+                                            dropdownSelectionIndicateur6,
+                                            valeursPartenaires,
+                                            'accord'
+                                          )}
+                                        class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                                      />
+                                    </div>
+                                  {/each}
+                                {/if}
+                              {/each}
+                            {/if}
+                          </div>
+                        </SidebarDropdownWrapper>
+                      </SidebarGroup>
+                    {/if}
+                  {/each}
+                {/if}
+
+                <!-- Niveau avancement -->
+                <SidebarGroup class={cardForSideBar} style="margin-bottom:2em">
+                  <SidebarDropdownWrapper label="Niveau d'avancement">
                     <svelte:fragment slot="icon">
-                      <UserAddOutline
+                      <OrdoredListOutline
                         class="w-auto text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                       />
                     </svelte:fragment>
-
                     <Button class="bg-[#234099] hover:bg-[#182D73]"
-                      >Sélection des partenaires<ChevronDownSolid
+                      >Choix du niveau d'avancement<ChevronDownSolid
                         class="w-3 h-3 ms-2 text-white dark:text-white"
                       /></Button
                     >
                     <Dropdown class={dropdownStyle}>
-                      {#each valeursPartenaires as partenaires}
+                      {#each valeursAvancement as avancement}
                         <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                           <Checkbox
-                            checked={partenaires.checked}
+                            checked={avancement.checked}
                             on:change={() =>
                               toggleCheckbox(
-                                partenaires,
-                                dropdownSelectionIndicateur6,
-                                valeursPartenaires,
+                                avancement,
+                                dropdownSelectionIndicateur10,
+                                valeursAvancement,
                                 'accord'
-                              )}>{partenaires.key}</Checkbox
+                              )}>{avancement.key}</Checkbox
                           >
                         </li>
                       {/each}
@@ -1054,7 +1126,7 @@
                     <div class="px-2 pt-1 pb-2">
                       {#if arrayAllIndicateurs.accord}
                         {#each arrayAllIndicateurs.accord as indicateur}
-                          {#if indicateur.indicateur === dropdownSelectionIndicateur6.indicateur}
+                          {#if indicateur.indicateur === dropdownSelectionIndicateur10.indicateur}
                             {#each indicateur.data as word (word)}
                               <div
                                 class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg"
@@ -1064,8 +1136,8 @@
                                   on:click={() =>
                                     closeDiv(
                                       word,
-                                      dropdownSelectionIndicateur6,
-                                      valeursPartenaires,
+                                      dropdownSelectionIndicateur10,
+                                      valeursAvancement,
                                       'accord'
                                     )}
                                   class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"

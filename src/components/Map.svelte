@@ -118,6 +118,7 @@
   let optionsForChartLine = {};
   let allProject = [];
   let scale;
+  let getbbox = [];
   const zoomMaxRegion = 6;
   const zoomMaxDep = 6;
   const zoomMaxMun = 6;
@@ -239,6 +240,8 @@
 
   // Reactivité
   $: {
+    let indicateur;
+    let communesCommunes = [];
     if (showCom) {
       scale = 'id_COMMUNE';
     } else if (showReg) {
@@ -246,12 +249,82 @@
     } else {
       scale = 'id_DEPARTEMENT';
     }
+
     if (sidebarId) {
       heightSideBar = sidebarId.offsetHeight;
     }
 
     if (dataForMap.length > 0 && trigger == true) {
+      if (
+        (storeIndicateurForMap.accord.some((item) => item.indicateur === 'Bénéficiaire') &&
+          dataForMap.length > 0) ||
+        (storeIndicateurForMap.icsp.some((item) => item.indicateur === 'COMMUNE') &&
+          dataForMap.length > 0)
+      ) {
+        // Déclarez l'indicateur dans une variable
+        if (dataForMap.length > 0 && trigger == true) {
+          if (map && loaded) {
+            if (
+              storeIndicateurForMap.accord.some((item) => item.indicateur === 'Bénéficiaire') &&
+              !showICSP
+            ) {
+              indicateur = 'Bénéficiaire';
+              communesCommunes = storeIndicateurForMap.accord.find(
+                (item) => item.indicateur === indicateur
+              ).data;
+            } else if (
+              storeIndicateurForMap.icsp.some((item) => item.indicateur === 'COMMUNE') &&
+              showICSP
+            ) {
+              indicateur = 'COMMUNE';
+              communesCommunes = storeIndicateurForMap.icsp.find(
+                (item) => item.indicateur === indicateur
+              ).data;
+            }
+
+            let getID = fetchIdCommunesFromCommunesID(
+              communesCommunes,
+              keyCommuneID_Commune,
+              'id_COMMUNE',
+              'key'
+            );
+            getbbox = fetchIdCommunesFromCommunesID(getID, communeData, 'bbox', 'id_COMMUNE');
+            const overallBbox = getOverallBbox(getbbox);
+            console.log(getbbox.length);
+            if (getbbox.length > 0) {
+              console.log(overallBbox);
+
+              map.fitBounds(overallBbox, {
+                padding: 20, // Espace de marge autour de la BoundingBox
+                maxZoom: 15 // Niveau de zoom maximal
+              });
+            } else {
+              map.fitBounds(bbox, {
+                duration: 500,
+                center: center,
+                zoom: zoom // Niveau de zoom maximal
+              });
+            }
+          }
+        }
+      } else {
+        // Cas où aucune condition n'est satisfaite, donc CommunesCommunes est un tableau vide
+        communesCommunes = [];
+        map.fitBounds(bbox, {
+          duration: 500,
+          center: center,
+          zoom: zoom // Niveau de zoom maximal
+        });
+        // Continuez ici avec votre code
+      }
+
       if (showICSP) {
+        if (getbbox.length > 0) {
+          scale = 'id_COMMUNE';
+          toggleLayer('com');
+        }
+
+        console.log(scale);
         dataForMap = icspData;
         statisticsPerRegion = calculateTotalByRegion(
           dataForMap,
@@ -263,8 +336,11 @@
 
         MinMax = findMinMax(statisticsPerRegion, 'value');
       } else {
+        if (getbbox.length > 0) {
+          scale = 'id_COMMUNE';
+          toggleLayer('com');
+        }
         dataForMap = dataArr2;
-
         mapFilterIndicateur = rechercheMulticriteres(dataForMap, storeIndicateurForMap.accord);
         statisticsPerRegion = getSumPerYear(
           mapFilterIndicateur,
@@ -282,58 +358,6 @@
       }
 
       paintProperties = getUpdatedPaintProperties(MinMax);
-      let trigger = false;
-    }
-  }
-
-  $: {
-    // Déclarez l'indicateur dans une variable
-    let indicateur;
-    let communesCommunes = [];
-    let idCommunes = [];
-
-    if (dataForMap.length > 0 && trigger == true) {
-      if (map && loaded) {
-        if (showICSP) {
-          if (storeIndicateurForMap.icsp.length > 0) {
-            indicateur = 'COMMUNE';
-            communesCommunes = storeIndicateurForMap.icsp.find(
-              (item) => item.indicateur === indicateur
-            ).data;
-          }
-        } else {
-          if (storeIndicateurForMap.accord.length > 0) {
-            indicateur = 'Bénéficiaire';
-            communesCommunes = storeIndicateurForMap.accord.find(
-              (item) => item.indicateur === indicateur
-            ).data;
-          }
-        }
-
-        let getID = fetchIdCommunesFromCommunesID(
-          communesCommunes,
-          keyCommuneID_Commune,
-          'id_COMMUNE',
-          'key'
-        );
-
-        let getbbox = fetchIdCommunesFromCommunesID(getID, communeData, 'bbox', 'id_COMMUNE');
-
-        const overallBbox = getOverallBbox(getbbox);
-
-        if (getbbox.length > 0) {
-          console.log(overallBbox);
-          toggleLayer('com');
-          map.fitBounds(overallBbox, {
-            padding: 20, // Espace de marge autour de la BoundingBox
-            maxZoom: 15 // Niveau de zoom maximal
-          });
-        } else {
-          map.fitBounds(bbox, {
-            zoom: zoom // Niveau de zoom maximal
-          });
-        }
-      }
     }
   }
 
@@ -358,11 +382,13 @@
         valueSliderAccord[1],
         storeIndicateurForMap.accord
       );
+
       hiddenBackdropFalse = false;
     } else {
       // Set the variable with information about the clicked layer
       // Set hiddenBackdropFalse to false to show the Drawer
       // Exemple d'utilisation
+
       const region = e.detail.features[0].properties['ref:COG'];
       const label_reg = e.detail.features[0].properties.name;
 
@@ -371,9 +397,9 @@
         region,
         valueSliderICSP[0],
         valueSliderICSP[1],
-        'id_COMMUNE'
+        scale
       );
-      dataForLineChart.data = sumISPValues(dataForMap, region, 'id_COMMUNE');
+      dataForLineChart.data = sumISPValues(dataForMap, region, scale);
       dataForLineChart.geo = label_reg;
       dataForBarChart.year = valueSliderICSP[0] + ' / ' + valueSliderICSP[1];
       dataForBarChart.geo = label_reg;
@@ -385,12 +411,17 @@
       );
       hiddenBackdropFalse = false;
 
-      console.log(dataForBarChart);
-
       return dataForBarChart;
     }
 
     // Set hiddenBackdropFalse to false to show the Drawer
+  }
+
+  // Dans votre composant Svelte
+  function handleLayerClickIfNeeded(e) {
+    if (showCom) {
+      handleLayerClick(e);
+    }
   }
 
   function handleLayerClickOnRegion(e) {
@@ -478,6 +509,9 @@
     if (button) {
       button.classList.add('active');
     }
+    setTimeout(() => {
+      map.setZoom(map.getZoom() + 0.001);
+    }, 1500);
   }
 
   // On se désabonne pour éviter les fuites de data
@@ -531,7 +565,7 @@
                   {#if anneeFinMandat[0].SUPERFICIE}
                     <div class="flex flex-col items-center justify-center">
                       <dt class="mb-2 text-3xl font-extrabold">
-                        {formattedValue(anneeFinMandat[0].SUPERFICIE) || ''}}
+                        {formattedValue(anneeFinMandat[0].SUPERFICIE) || ''}
                       </dt>
                       <dd class="text-gray-500 dark:text-gray-400">km²</dd>
                     </div>
@@ -539,7 +573,7 @@
                   {#if anneeFinMandat[0].POPULATION}
                     <div class="flex flex-col items-center justify-center">
                       <dt class="mb-2 text-3xl font-extrabold">
-                        {formattedValue(anneeFinMandat[0].POPULATION) || ''}}
+                        {formattedValue(anneeFinMandat[0].POPULATION) || ''}
                       </dt>
                       <dd class="text-gray-500 dark:text-gray-400">habitants</dd>
                     </div>
@@ -603,20 +637,24 @@
               Nombre de projets : {allProject.length}</span
             >
           </h2>
-          <ul class="p-4 w-full justify-center">
-            <Table shadow hoverable={true} striped={true}>
+          <ul class="p-4 w-full justify-center overflow-x-auto">
+            <Table shadow hoverable={true} striped={true} class="min-w-full">
               <TableHead>
                 <TableHeadCell></TableHeadCell>
                 {#each Object.keys(allProject[0]) as key}
-                  <TableHeadCell>{key}</TableHeadCell>
+                  {#if ['Année financement', 'Montant du financement', 'Intitulé projet amélioré', 'Niveau d’avancement'].includes(key)}
+                    <TableHeadCell>{key}</TableHeadCell>
+                  {/if}
                 {/each}
               </TableHead>
-              <TableBody class="divide-y">
+              <TableBody class="divide-y whitespace-nowrap overflow-hidden overflow-ellipsis">
                 {#each allProject as project}
                   <TableBodyRow>
                     <TableBodyCell></TableBodyCell>
                     {#each Object.keys(project) as key}
-                      <TableBodyCell>{project[key]}</TableBodyCell>
+                      {#if ['Année financement', 'Montant du financement', 'Intitulé projet amélioré', 'Niveau d’avancement'].includes(key)}
+                        <TableBodyCell class="w-1/4">{project[key]}</TableBodyCell>
+                      {/if}
                     {/each}
                   </TableBodyRow>
                 {/each}
@@ -761,7 +799,15 @@
           manageHoverState
           hoverCursor="pointer"
           sourceLayer="regions"
-          on:click={handleLayerClickOnRegion}
+          on:click={handleLayerClick}
+        />
+        <LineLayer
+          paint={{
+            'line-opacity': 1,
+            'line-width': 1,
+            'line-color': 'black'
+          }}
+          sourceLayer="regions"
         />
 
         <JoinedData data={statisticsPerRegion} idCol="id_REGION" sourceLayer="regions" />
@@ -838,48 +884,60 @@
         </MarkerLayer>
       </GeoJSON>
     {/if}
+
     <VectorTileSource
       url="pmtiles://data/municipalites.pmtiles"
       id="municipalites"
       promoteId="ref:COG"
     >
       <JoinedData data={statisticsPerRegion} idCol="id_COMMUNE" sourceLayer="municipalites" />
-      {#if showCom}
-        <SymbolLayer
-          paint={{
-            'text-color': '#333',
-            'text-opacity': 1,
-            'text-halo-color': '#eee',
-            'text-halo-width': 0.5,
-            'text-halo-blur': 0.5
-          }}
-          layout={{
-            'text-allow-overlap': false,
-            'text-field': ['get', 'name'],
-            'text-halo-color': '#eee',
-            'text-halo-width': 0.5,
-            'text-halo-blur': 0.5,
-            'text-size': 400
-          }}
-          sourceLayer="municipalites"
-        />
-        <FillLayer
-          paint={paintProperties}
-          manageHoverState
-          hoverCursor="pointer"
-          sourceLayer="municipalites"
-          }}
-          on:click={handleLayerClick}
-        ></FillLayer>
 
-        <LineLayer
-          paint={{
-            'line-opacity': 1,
-            'line-color': 'gray'
-          }}
-          sourceLayer="municipalites"
-        />
-      {/if}
+      <SymbolLayer
+        paint={{
+          'text-color': '#333',
+          'text-opacity': 1,
+          'text-halo-color': '#eee',
+          'text-halo-width': 0.5,
+          'text-halo-blur': 0.5
+        }}
+        layout={{
+          'text-allow-overlap': false,
+          'text-field': ['get', 'name'],
+          'text-halo-color': '#eee',
+          'text-halo-width': 0.5,
+          'text-halo-blur': 0.5,
+          'text-size': 400
+        }}
+        sourceLayer="municipalites"
+      />
+      <FillLayer
+        paint={paintProperties}
+        manageHoverState
+        hoverCursor="pointer"
+        sourceLayer="municipalites"
+        on:click={handleLayerClickIfNeeded}
+      ></FillLayer>
+
+      <LineLayer
+        paint={{
+          'line-opacity': 0.7,
+
+          // Autres propriétés de style...
+          'line-width': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            8,
+            0.1, // Valeur de largeur de ligne lorsque le zoom est à 0
+            13,
+            1, // Valeur de largeur de ligne lorsque le zoom est à 10
+            20,
+            2 // Valeur de largeur de ligne lorsque le zoom est à 15
+          ],
+          'line-color': 'gray'
+        }}
+        sourceLayer="municipalites"
+      />
     </VectorTileSource>
 
     {#if showCom}
