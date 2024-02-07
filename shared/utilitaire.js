@@ -4,18 +4,19 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // utilitaires.js
 // @ts-ignore
-export function uniqueValues(tableau, attribut, option = false) {
+export function uniqueValues(tableau, attribut, option = false, id) {
     const result = [];
     const seenValues = {};
 
     for (const objet of tableau) {
         const valeur = objet[attribut];
+        const valeurID = objet[id];
         const id_COMMUNE = objet['id_COMMUNE'];
         const id_REGION = objet['id_REGION'];
         const id_DEPARTEMENT = objet['id_DEPARTEMENT'];
 
         if (valeur !== null && !seenValues[valeur]) {
-            const item = { 'key': valeur, checked: false };
+            const item = { 'key': valeur, checked: false, 'id': valeurID };
 
             if (option && id_COMMUNE) {
                 item['id_COMMUNE'] = id_COMMUNE;

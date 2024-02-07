@@ -228,11 +228,6 @@
     } else {
       dataForMap = dataArr2;
     }
-    if (currentZoom > zoomMaxDep) {
-      scale = 'id_DEPARTEMENT';
-    } else {
-      scale = 'id_REGION';
-    }
   });
 
   // Sélectionnez l'élément du drawer par son identifiant
@@ -244,12 +239,16 @@
     let communesCommunes = [];
     if (showCom) {
       scale = 'id_COMMUNE';
+      toggleLayer('com');
     } else if (showReg) {
       scale = 'id_REGION';
+      toggleLayer('reg');
     } else {
       scale = 'id_DEPARTEMENT';
+      toggleLayer('dep');
     }
 
+    console.log(showDep);
     if (sidebarId) {
       heightSideBar = sidebarId.offsetHeight;
     }
@@ -317,8 +316,6 @@
           scale = 'id_COMMUNE';
           toggleLayer('com');
         }
-
-        console.log(scale);
         dataForMap = icspData;
         statisticsPerRegion = calculateTotalByRegion(
           dataForMap,
@@ -782,12 +779,11 @@
       </ControlGroup>
     </Control>
 
-    <GeoJSON data="/data/countries.geojson">
-      <FillLayer paint={{ 'fill-color': 'black', 'fill-opacity': 0.6 }} />
-    </GeoJSON>
-
-    <VectorTileSource url="pmtiles://data/regions.pmtiles" id="regions" promoteId="ref:COG">
-      {#if showReg}
+    <!--   <GeoJSON data="/data/countries.geojson">
+      <FillLayer paint={{ 'fill-color': 'black', 'fill-opacity': 0. }} />
+    </GeoJSON> -->
+    {#if showReg}
+      <VectorTileSource url="pmtiles://data/regions.pmtiles" id="regions" promoteId="ref:COG">
         <FillLayer
           paint={paintProperties}
           manageHoverState
@@ -806,11 +802,9 @@
 
         <JoinedData data={statisticsPerRegion} idCol="id_REGION" sourceLayer="regions" />
         <!-- Contenu à afficher si showICSP est vrai -->
-      {/if}
-    </VectorTileSource>
+      </VectorTileSource>
 
-    <GeoJSON data={geojsonRegionCentroid}>
-      {#if showReg}
+      <GeoJSON data={geojsonRegionCentroid}>
         <JoinedData data={statisticsPerRegion} idCol="id_REGION" />
         <MarkerLayer let:feature>
           {#each statisticsPerRegion as { id_REGION, value }}
@@ -830,12 +824,12 @@
             {/if}
           {/each}
         </MarkerLayer>
-      {/if}
-    </GeoJSON>
+      </GeoJSON>
+    {/if}
+    {#if showDep}
+      <VectorTileSource url="pmtiles://data/departements.pmtiles" promoteId="ref:COG">
+        <JoinedData data={statisticsPerRegion} idCol="id_DEPARTEMENT" sourceLayer="departements" />
 
-    <VectorTileSource url="pmtiles://data/departements.pmtiles" promoteId="ref:COG">
-      <JoinedData data={statisticsPerRegion} idCol="id_DEPARTEMENT" sourceLayer="departements" />
-      {#if showDep}
         <FillLayer
           hoverCursor="pointer"
           paint={paintProperties}
@@ -851,9 +845,8 @@
           }}
           sourceLayer="departements"
         />
-      {/if}
-    </VectorTileSource>
-
+      </VectorTileSource>
+    {/if}
     {#if showDep}
       <GeoJSON data={geojsonDepartementCentroid} promoteId="ref:COG">
         <JoinedData data={statisticsPerRegion} idCol="id_DEPARTEMENT" />

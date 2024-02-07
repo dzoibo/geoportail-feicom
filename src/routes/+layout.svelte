@@ -190,12 +190,12 @@
       valeursAttribution = uniqueValues(dataArr, indicateur1);
       valeursSecteur = uniqueValues(dataArr, indicateur2);
       valeursDomaine = uniqueValues(dataArr, indicateur3);
-      valeursBeneficiaire = uniqueValues(dataArr, indicateur4, true);
-      valeursBeneficiaire2 = uniqueValues(icspData, indicateur7, true);
+      valeursBeneficiaire = uniqueValues(dataArr, indicateur4, true, 'id_COMMUNE');
+      valeursBeneficiaire2 = uniqueValues(icspData, indicateur7, true, 'id_COMMUNE');
       valeursSourcefinancement = uniqueValues(dataArr, indicateur5);
       valeursPartenaires = uniqueValues(dataArr, indicateur6);
-      valeursDepartement = uniqueValues(dataArr, indicateur8);
-      valeursRegion = uniqueValues(dataArr, indicateur9);
+      valeursDepartement = uniqueValues(dataArr, indicateur8, true, 'id_DEPARTEMENT');
+      valeursRegion = uniqueValues(dataArr, indicateur9, false, 'id_REGION');
       valeursAvancement = uniqueValues(dataArr, indicateur10);
 
       // Fusionnez les deux tableaux en un seul
@@ -207,8 +207,6 @@
         store.keyCommuneID_Commune = uniqueBeneficiaireForIDFetch;
         return store;
       });
-
-      console.log(valeursBeneficiaire2);
       //ICSP
       dropdownSelectionIndicateur7.indicateur = indicateur7;
       // ACCORD
@@ -345,6 +343,7 @@
   }
 
   $: {
+    console.log(arrayAllIndicateurs);
     if (minSliderValue <= maxSliderValue) {
       minSliderValue = minSliderValue;
     } else {
@@ -407,6 +406,24 @@
   function filterBeneficiaires(beneficiaires, filteredItems) {
     return filteredItems.length === 0 || filteredItems.includes(beneficiaires.key);
   }
+
+  // Fonction pour réinitialiser les filtres et vider les dropdowns
+  function resetFilters() {
+    // Réinitialiser les filtres
+    arrayAllIndicateurs = { accord: [], icsp: [] };
+    // Vider les dropdowns en réinitialisant les valeurs
+    // Vider les dropdowns en réinitialisant les valeurs
+    valeursAttribution.forEach((attribution) => (attribution.checked = false));
+    valeursSecteur.forEach((secteur) => (secteur.checked = false));
+    valeursDomaine.forEach((domaine) => (domaine.checked = false));
+    valeursBeneficiaire.forEach((beneficiaire) => (beneficiaire.checked = false));
+    valeursBeneficiaire2.forEach((beneficiaire) => (beneficiaire.checked = false));
+    valeursSourcefinancement.forEach((financement) => (financement.checked = false));
+    valeursPartenaires.forEach((partenaire) => (partenaire.checked = false));
+    valeursDepartement.forEach((departement) => (departement.checked = false));
+    valeursRegion.forEach((region) => (region.checked = false));
+    valeursAvancement.forEach((avancement) => (avancement.checked = false));
+  }
 </script>
 
 <svelte:window bind:innerWidth={width} bind:innerHeight={height} />
@@ -445,6 +462,8 @@
   >
     <div class="h-full w-full bg-[#00862b14]">
       <Sidebar asideClass="w-54">
+        <!-- Bouton Reset Filter -->
+
         <SidebarWrapper divClass="overflow-y-auto" style=" overflow-x: hidden">
           <Tabs style="full" class="space-x-0 w-full flex !flex-nowrap">
             <TabItem
@@ -706,7 +725,17 @@
                           )}
                         />
                       </div>
-                      {#each valeursDepartement as departement}
+                      {#each valeursDepartement.filter((departement) => {
+                        // Vérifie si toutes les valeurs de région ont checked à false
+                        const allUnchecked = valeursRegion.every((region) => !region.checked);
+                        // Si toutes les valeurs de région sont unchecked, inclure tous les bénéficiaires
+                        if (allUnchecked) {
+                          return true;
+                        } else {
+                          // Sinon, inclure les bénéficiaires dont la région correspond à une région sélectionnée
+                          return valeursRegion.find((region) => region.id === departement.id_REGION && region.checked);
+                        }
+                      }) as departement}
                         {#if filterBeneficiaires(departement, filteredItems)}
                           <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                             <Checkbox
@@ -771,7 +800,18 @@
                           )}
                         />
                       </div>
-                      {#each valeursBeneficiaire as beneficiaires}
+
+                      {#each valeursBeneficiaire.filter((beneficiaire) => {
+                        // Vérifie si toutes les valeurs de région ont checked à false
+                        const allUnchecked = valeursRegion.every((region) => !region.checked);
+                        // Si toutes les valeurs de région sont unchecked, inclure tous les bénéficiaires
+                        if (allUnchecked) {
+                          return true;
+                        } else {
+                          // Sinon, inclure les bénéficiaires dont la région correspond à une région sélectionnée
+                          return valeursRegion.find((region) => region.id === beneficiaire.id_REGION && region.checked);
+                        }
+                      }) as beneficiaires}
                         {#if filterBeneficiaires(beneficiaires, filteredItems)}
                           <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                             <Checkbox
@@ -1161,6 +1201,13 @@
             </TabItem>
           </Tabs>
         </SidebarWrapper>
+        <!-- Bouton Reset Filter -->
+        {#if arrayAllIndicateurs.accord.length > 0 || arrayAllIndicateurs.icsp.length > 0}
+          <button
+            class="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-800 m-4"
+            on:click={resetFilters}>Réinitialiser les filtres</button
+          >
+        {/if}
       </Sidebar>
     </div>
   </Drawer>
