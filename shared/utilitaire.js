@@ -11,12 +11,16 @@ export function uniqueValues(tableau, attribut, option = false) {
     for (const objet of tableau) {
         const valeur = objet[attribut];
         const id_COMMUNE = objet['id_COMMUNE'];
+        const id_REGION = objet['id_REGION'];
+        const id_DEPARTEMENT = objet['id_DEPARTEMENT'];
 
         if (valeur !== null && !seenValues[valeur]) {
             const item = { 'key': valeur, checked: false };
 
             if (option && id_COMMUNE) {
                 item['id_COMMUNE'] = id_COMMUNE;
+                item['id_REGION'] = id_REGION;
+                item['id_DEPARTEMENT'] = id_DEPARTEMENT;
             }
 
             result.push(item);

@@ -310,12 +310,6 @@
       } else {
         // Cas où aucune condition n'est satisfaite, donc CommunesCommunes est un tableau vide
         communesCommunes = [];
-        map.fitBounds(bbox, {
-          duration: 500,
-          center: center,
-          zoom: zoom // Niveau de zoom maximal
-        });
-        // Continuez ici avec votre code
       }
 
       if (showICSP) {

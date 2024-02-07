@@ -208,6 +208,7 @@
         return store;
       });
 
+      console.log(valeursBeneficiaire2);
       //ICSP
       dropdownSelectionIndicateur7.indicateur = indicateur7;
       // ACCORD
