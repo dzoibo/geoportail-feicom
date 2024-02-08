@@ -193,34 +193,34 @@
       keyCommuneID_Commune = store.keyCommuneID_Commune;
     });
 
-    // Abonnez-vous au store pour recevoir les mises à jour
+    // Récupération de la data provenant de layout.svete
     rangeValue.subscribe(($rangeValue) => {
       valueSliderICSP = $rangeValue;
     });
 
-    // Abonnez-vous au store pour recevoir les mises à jour
+    // Récupération de la data provenant de layout.svete
     storeIndicateur5.subscribe(($storeIndicateur5) => {
       storeIndicateur5ForMap = $storeIndicateur5;
     });
 
-    // Abonnez-vous au store pour recevoir les mises à jour
+    // Récupération de la data provenant de layout.svete
     storeIndicateur.subscribe(($storeIndicateur) => {
       storeIndicateurForMap = $storeIndicateur;
     });
 
-    // Abonnez-vous au store pour recevoir les mises à jour
+    // Récupération de la data provenant de layout.svete
     rangeValueAccord.subscribe(($rangeValueAccord) => {
       valueSliderAccord = $rangeValueAccord;
     });
 
-    // Abonnez-vous au store pour recevoir les mises à jour
+    // Récupération de la data provenant de layout.svete
     heightNavBar.subscribe(($heightNavBar) => {
       heightNavBarForSideBar = $heightNavBar;
     });
 
-    // Abonnez-vous au store pour recevoir les mises à jour
+    // Récupération de la data provenant de layout.svete
     buttonICSP.subscribe(($showICSP) => {
-      showICSP = $showICSP; // Mettez à jour la valeur locale avec la valeur du store
+      showICSP = $showICSP;
     });
 
     if (showICSP) {
@@ -511,7 +511,7 @@
 <Drawer
   placement="right"
   style="top:{heightNavBarForSideBar}px"
-  class="lg:w-1/3 md:w-1/3 sm:w-1/2 w-2/3 w-auto !p-0"
+  class="lg:w-1/2 md:w-1/3 sm:w-1/2 w-2/3 w-auto !p-0"
   transitionType="fly"
   backdrop={true}
   transitionParams={transitionParamsRight}
@@ -624,30 +624,30 @@
               Nombre de projets : {allProject.length}</span
             >
           </h2>
-          <ul class="p-4 w-full justify-center overflow-x-auto">
-            <Table shadow hoverable={true} striped={true} class="min-w-full">
+          <div class="p-4 w-full justify-center overflow-x-auto">
+            <Table shadow hoverable={true} striped={true} class=" table-fixed sm:table-auto">
               <TableHead>
-                <TableHeadCell></TableHeadCell>
                 {#each Object.keys(allProject[0]) as key}
                   {#if ['Année financement', 'Montant du financement', 'Intitulé projet amélioré', 'Niveau d’avancement'].includes(key)}
-                    <TableHeadCell>{key}</TableHeadCell>
+                    <TableHeadCell style=" white-space: unset !important">{key}</TableHeadCell>
                   {/if}
                 {/each}
               </TableHead>
-              <TableBody class="divide-y whitespace-nowrap overflow-hidden overflow-ellipsis">
+              <TableBody class="">
                 {#each allProject as project}
                   <TableBodyRow>
-                    <TableBodyCell></TableBodyCell>
                     {#each Object.keys(project) as key}
                       {#if ['Année financement', 'Montant du financement', 'Intitulé projet amélioré', 'Niveau d’avancement'].includes(key)}
-                        <TableBodyCell class="w-1/4">{project[key]}</TableBodyCell>
+                        <TableBodyCell style=" white-space: unset !important; sm:w-1/4"
+                          >{project[key]}</TableBodyCell
+                        >
                       {/if}
                     {/each}
                   </TableBodyRow>
                 {/each}
               </TableBody>
             </Table>
-          </ul>
+          </div>
         </TabItem>
       {:else}
         <TabItem open class="hover:text-blue-900">
