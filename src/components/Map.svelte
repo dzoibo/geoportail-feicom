@@ -248,7 +248,6 @@
       toggleLayer('dep');
     }
 
-    console.log(showDep);
     if (sidebarId) {
       heightSideBar = sidebarId.offsetHeight;
     }
@@ -289,10 +288,8 @@
             );
             getbbox = fetchIdCommunesFromCommunesID(getID, communeData, 'bbox', 'id_COMMUNE');
             const overallBbox = getOverallBbox(getbbox);
-            console.log(getbbox.length);
-            if (getbbox.length > 0) {
-              console.log(overallBbox);
 
+            if (getbbox.length > 0) {
               map.fitBounds(overallBbox, {
                 padding: 20, // Espace de marge autour de la BoundingBox
                 maxZoom: 15 // Niveau de zoom maximal
@@ -344,10 +341,9 @@
           MinMax = findMinMax(statisticsPerRegion, 'value');
         } else {
           // Gérer le cas où statisticsPerRegion est vide
-          MinMax = { min: 0, max: 0 }; // Vous pouvez attribuer des valeurs par défaut ou effectuer une autre action appropriée en cas d'erreur.
+          MinMax = { min: 0, max: 0 };
         }
       }
-
       paintProperties = getUpdatedPaintProperties(MinMax);
     }
   }
@@ -378,8 +374,6 @@
     } else {
       // Set the variable with information about the clicked layer
       // Set hiddenBackdropFalse to false to show the Drawer
-      // Exemple d'utilisation
-
       const region = e.detail.features[0].properties['ref:COG'];
       const label_reg = e.detail.features[0].properties.name;
 
@@ -419,7 +413,6 @@
     if (showICSP) {
       // Set the variable with information about the clicked layer
       // Set hiddenBackdropFalse to false to show the Drawer
-      // Exemple d'utilisation
       const region = e.detail.features?.[0]?.state.id_REGION;
       const label_reg = e.detail.features[0].properties.name;
 
@@ -488,7 +481,6 @@
     showReg = layer === 'reg' ? true : false;
     showDep = layer === 'dep' ? true : false;
     showCom = layer === 'com' ? true : false;
-
     // Supprimez la classe "active" de tous les boutons
     const buttons = document.querySelectorAll('.maplibregl-ctrl-icon');
     buttons.forEach((button) => {
@@ -500,9 +492,13 @@
     if (button) {
       button.classList.add('active');
     }
-    setTimeout(() => {
-      map.setZoom(map.getZoom() + 0.001);
-    }, 1500);
+
+    // Pour forcer l'actualisation des Labels REG et DEP
+    if (map) {
+      if (!getOverallBbox) {
+        map.setZoom(map.getZoom() + 0.0000001);
+      }
+    }
   }
 
   // On se désabonne pour éviter les fuites de data
@@ -774,7 +770,9 @@
     <Control position="top-left" class="flex flex-col gap-y-2">
       <ControlGroup>
         <ControlButton id="reg" on:click={() => toggleLayer('reg')}>REG</ControlButton>
-        <ControlButton id="dep" on:click={() => toggleLayer('dep')}>DEP</ControlButton>
+        {#if !showICSP}
+          <ControlButton id="dep" on:click={() => toggleLayer('dep')}>DEP</ControlButton>
+        {/if}
         <ControlButton id="com" on:click={() => toggleLayer('com')}>COM</ControlButton>
       </ControlGroup>
     </Control>
