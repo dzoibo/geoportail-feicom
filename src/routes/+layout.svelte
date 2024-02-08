@@ -1193,12 +1193,6 @@
                 </SidebarGroup>
               </SidebarGroup>
             </TabItem>
-            <TabItem disabled>
-              <div slot="title" class=" w-full items-center gap-1">
-                <DollarOutline size="sm" />
-                Dettes
-              </div>
-            </TabItem>
           </Tabs>
         </SidebarWrapper>
         <!-- Bouton Reset Filter -->
