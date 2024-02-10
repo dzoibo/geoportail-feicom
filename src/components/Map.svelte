@@ -102,7 +102,7 @@
   let clickedLayerInfo = null; // Variable to store information about the clicked layer
   let anneeDebutMandat = [];
   let anneeFinMandat = [];
-  let showICSP;
+  let theme // this variable will is replacing showICSP since we have now really 3 thematics;
   let currentZoom = 0;
   let showFinancement;
   let valueSliderICSP = 0; // Initialisez avec une valeur par défaut
@@ -221,14 +221,10 @@
     // Abonnez-vous au store pour recevoir les mises à jour
     buttonICSP.subscribe(($theme) => {
       // Mettez à jour la valeur locale avec la valeur du store
-      if($theme!=='projet'){
-        showICSP = true; 
-      }else{
-        showICSP = false; 
-      }
+        theme = $theme; 
     });
 
-    if (showICSP) {
+    if (theme==='icsp') {
       dataForMap = icspData;
     } else {
       dataForMap = dataArr2;
@@ -270,7 +266,7 @@
           if (map && loaded) {
             if (
               storeIndicateurForMap.accord.some((item) => item.indicateur === 'Bénéficiaire') &&
-              !showICSP
+              !(theme==='icsp')
             ) {
               indicateur = 'Bénéficiaire';
               communesCommunes = storeIndicateurForMap.accord.find(
@@ -278,7 +274,7 @@
               ).data;
             } else if (
               storeIndicateurForMap.icsp.some((item) => item.indicateur === 'COMMUNE') &&
-              showICSP
+              (theme==='icsp')
             ) {
               indicateur = 'COMMUNE';
               communesCommunes = storeIndicateurForMap.icsp.find(
@@ -316,7 +312,7 @@
         communesCommunes = [];
       }
 
-      if (showICSP) {
+      if (theme==='icsp') {
         if (getbbox.length > 0) {
           scale = 'id_COMMUNE';
           toggleLayer('com');
@@ -368,7 +364,7 @@
       anneeFinMandat = sortByDescendingOrder(detailsMandatCommune, 'FIN MANDAT');
       //console.log(anneeFinMandat);
     }
-    if (!showICSP) {
+    if (theme!=='icsp') {
       nom_commune = e.detail.features[0].properties['ref:COG'];
       allProject = rechercheMulticriteresPourFEICOM(
         dataForMap,
@@ -421,7 +417,7 @@
   }
 
   function handleLayerClickOnRegion(e) {
-    if (showICSP) {
+    if (theme==='icsp') {
       // Set the variable with information about the clicked layer
       // Set hiddenBackdropFalse to false to show the Drawer
       // Exemple d'utilisation
@@ -451,7 +447,7 @@
       hiddenBackdropFalse = false;
       return dataForBarChart;
     } else {
-      if (!showICSP && showReg) {
+      if (theme!=='icsp' && showReg) {
         clickedLayerInfo = e;
 
         nom_commune = e.detail.features[0].properties['ref:COG'];
@@ -539,26 +535,23 @@
 >
   <div class="bg-[#00862b14] div-wrapper" style="height:{heightSideBar}px !important">
     <Tabs style="full" class="space-x-0 w-full flex !flex-nowrap bg-white">
-      {#if showCom}
-        <Tooltip triggeredBy="#historique" type="auto"
-          >Informations générales sur la commune sélectionnée
-        </Tooltip>
-        <TabItem>
-          <div slot="title" class="flex items-center gap-1">
-            <LandmarkOutline size="sm" />
-            Informations générales des territoires
+      {#if (showCom && theme==='info')}
+        
+        <TabItem class="w-full" open>
+          <div slot="title" class="flex w-full  justify-center text-lg items-center">
+            <LandmarkOutline size="md" />
+            Informations générales sur le territoire selectionné
             <h5
               id="historique"
               class="inline-flex items-center mb-4 text-sm font-light text-gray-400 dark:text-gray-200"
             >
-              <InfoCircleSolid class="w-4 h-4 me-2.5" />
             </h5>
           </div>
 
           {#if anneeFinMandat}
             <div
               id="detailMandatForAMunicipality"
-              class="p-4 flex justify-center list-none flex justify-center h-full"
+              class="p-4 list-none flex justify-center h-full"
             >
               <Card padding="xl" class="mb-4 max-w-sm" size="md">
                 <h2 class="mb-6 text-center text-black !uppercase text-4xl poppins-medium">
@@ -621,8 +614,7 @@
             </div>
           {/if}
         </TabItem>
-      {/if}
-      {#if !showICSP}
+      {:else if (theme==='projet')}
         <Tooltip triggeredBy="#projets" type="auto">Liste de l'ensemble des projets filtrés</Tooltip
         >
         <TabItem open class="" id="projets">
@@ -816,7 +808,7 @@
         />
 
         <JoinedData data={statisticsPerRegion} idCol="id_REGION" sourceLayer="regions" />
-        <!-- Contenu à afficher si showICSP est vrai -->
+        <!-- Contenu à afficher si theme==='icsp'-->
       </VectorTileSource>
 
       <GeoJSON data={geojsonRegionCentroid}>
@@ -828,7 +820,7 @@
                 class="bg-gray-100 bg-opacity-50 bg-trans rounded-full p-2 shadow align flex flex-col items-center"
               >
                 <div class="text-sm poppins-medium">{feature.properties.name}</div>
-                {#if showICSP}
+                {#if (theme==='icsp')}
                   <!-- Afficher la valeur avec l'unité 'XAF' -->
                   <div class="text-sm poppins-light">{formattedValue(value)} XAF</div>
                 {:else}
@@ -872,7 +864,7 @@
                 class="bg-gray-100 bg-opacity-50 rounded-full p-2 shadow align flex flex-col items-center"
               >
                 <div class="text-sm poppins-medium">{feature.properties.name}</div>
-                {#if showICSP}
+                {#if (theme==='icsp')}
                   <!-- Afficher la valeur avec l'unité 'XAF' -->
                   <div class="text-sm poppins-light">{formattedValue(value)} XAF</div>
                 {:else}

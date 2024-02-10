@@ -272,7 +272,6 @@ export function zoomToFeatureByValue(map, sourceName, columnName, selectedValue,
             filter: ['==', columnName, selectedValue] // Remplacer ces valeurs par les vôtres
         });
 
-        console.log(features)
         if (features.length > 0) {
             // Récupérer la géométrie (polygone) de l'entité
             const geometry = features[0].geometry;
@@ -434,7 +433,6 @@ export function jsonToItem(data, title) {
 
 
 export function optionForBarChart(dataForBarChart, region) {
-    console.log(dataForBarChart);
     let optionsForChart = {
         colors: ['#1A56DB'],
         series: [{
