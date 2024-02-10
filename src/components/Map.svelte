@@ -248,7 +248,7 @@
       toggleLayer('dep');
     }
 
-    console.log(showDep);
+    //console.log(showDep);
     if (sidebarId) {
       heightSideBar = sidebarId.offsetHeight;
     }
@@ -289,9 +289,9 @@
             );
             getbbox = fetchIdCommunesFromCommunesID(getID, communeData, 'bbox', 'id_COMMUNE');
             const overallBbox = getOverallBbox(getbbox);
-            console.log(getbbox.length);
+            // console.log(getbbox.length);
             if (getbbox.length > 0) {
-              console.log(overallBbox);
+              //console.log(overallBbox);
 
               map.fitBounds(overallBbox, {
                 padding: 20, // Espace de marge autour de la BoundingBox
@@ -361,7 +361,7 @@
       detailsMandatCommune = findAllObjectsByAttribute(mandatData, 'id_COMMUNE', nom_commune);
       anneeDebutMandat = sortByDescendingOrder(detailsMandatCommune, 'DEBUT MANDAT');
       anneeFinMandat = sortByDescendingOrder(detailsMandatCommune, 'FIN MANDAT');
-      console.log(anneeFinMandat);
+      //console.log(anneeFinMandat);
     }
     if (!showICSP) {
       nom_commune = e.detail.features[0].properties['ref:COG'];
@@ -503,6 +503,16 @@
     setTimeout(() => {
       map.setZoom(map.getZoom() + 0.001);
     }, 1500);
+  }
+  
+  //changer l'affichage ISP par ICSP
+  function changeItemToDisplay(data){
+    let formalizedData=[];
+    for (let i=0;i<data.length; i++){
+      data[i].x='ICSP'+(1+i);
+      formalizedData.push(data[i]);
+    }
+    return formalizedData
   }
 
   // On se désabonne pour éviter les fuites de data
@@ -702,7 +712,7 @@
                     </div>
                   </div>
 
-                  {#await optionForBarChart(dataForBarChart.data) then options}
+                  {#await optionForBarChart(changeItemToDisplay(dataForBarChart.data)) then options}
                     <!-- Utilisation de h-auto pour que la hauteur s'adapte au contenu -->
                     <Chart {options} />
                   {/await}

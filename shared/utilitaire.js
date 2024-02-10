@@ -434,6 +434,7 @@ export function jsonToItem(data, title) {
 
 
 export function optionForBarChart(dataForBarChart, region) {
+    console.log(dataForBarChart);
     let optionsForChart = {
         colors: ['#1A56DB'],
         series: [{
