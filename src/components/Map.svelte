@@ -102,7 +102,7 @@
   let clickedLayerInfo = null; // Variable to store information about the clicked layer
   let anneeDebutMandat = [];
   let anneeFinMandat = [];
-  let theme // this variable will is replacing showICSP since we have now really 3 thematics;
+  let theme='info'; // this variable will is replacing showICSP since we have now really 3 thematics;
   let currentZoom = 0;
   let showFinancement;
   let valueSliderICSP = 0; // Initialisez avec une valeur par défaut
@@ -193,27 +193,27 @@
       keyCommuneID_Commune = store.keyCommuneID_Commune;
     });
 
-    // Abonnez-vous au store pour recevoir les mises à jour
+    // Récupération de la data provenant de layout.svete
     rangeValue.subscribe(($rangeValue) => {
       valueSliderICSP = $rangeValue;
     });
 
-    // Abonnez-vous au store pour recevoir les mises à jour
+    // Récupération de la data provenant de layout.svete
     storeIndicateur5.subscribe(($storeIndicateur5) => {
       storeIndicateur5ForMap = $storeIndicateur5;
     });
 
-    // Abonnez-vous au store pour recevoir les mises à jour
+    // Récupération de la data provenant de layout.svete
     storeIndicateur.subscribe(($storeIndicateur) => {
       storeIndicateurForMap = $storeIndicateur;
     });
 
-    // Abonnez-vous au store pour recevoir les mises à jour
+    // Récupération de la data provenant de layout.svete
     rangeValueAccord.subscribe(($rangeValueAccord) => {
       valueSliderAccord = $rangeValueAccord;
     });
 
-    // Abonnez-vous au store pour recevoir les mises à jour
+    // Récupération de la data provenant de layout.svete
     heightNavBar.subscribe(($heightNavBar) => {
       heightNavBarForSideBar = $heightNavBar;
     });
@@ -249,7 +249,6 @@
       toggleLayer('dep');
     }
 
-    //console.log(showDep);
     if (sidebarId) {
       heightSideBar = sidebarId.offsetHeight;
     }
@@ -290,10 +289,8 @@
             );
             getbbox = fetchIdCommunesFromCommunesID(getID, communeData, 'bbox', 'id_COMMUNE');
             const overallBbox = getOverallBbox(getbbox);
-            // console.log(getbbox.length);
-            if (getbbox.length > 0) {
-              //console.log(overallBbox);
 
+            if (getbbox.length > 0) {
               map.fitBounds(overallBbox, {
                 padding: 20, // Espace de marge autour de la BoundingBox
                 maxZoom: 15 // Niveau de zoom maximal
@@ -345,10 +342,9 @@
           MinMax = findMinMax(statisticsPerRegion, 'value');
         } else {
           // Gérer le cas où statisticsPerRegion est vide
-          MinMax = { min: 0, max: 0 }; // Vous pouvez attribuer des valeurs par défaut ou effectuer une autre action appropriée en cas d'erreur.
+          MinMax = { min: 0, max: 0 };
         }
       }
-
       paintProperties = getUpdatedPaintProperties(MinMax);
     }
   }
@@ -379,8 +375,6 @@
     } else {
       // Set the variable with information about the clicked layer
       // Set hiddenBackdropFalse to false to show the Drawer
-      // Exemple d'utilisation
-
       const region = e.detail.features[0].properties['ref:COG'];
       const label_reg = e.detail.features[0].properties.name;
 
@@ -420,7 +414,6 @@
     if (theme==='icsp') {
       // Set the variable with information about the clicked layer
       // Set hiddenBackdropFalse to false to show the Drawer
-      // Exemple d'utilisation
       const region = e.detail.features?.[0]?.state.id_REGION;
       const label_reg = e.detail.features[0].properties.name;
 
@@ -489,7 +482,6 @@
     showReg = layer === 'reg' ? true : false;
     showDep = layer === 'dep' ? true : false;
     showCom = layer === 'com' ? true : false;
-
     // Supprimez la classe "active" de tous les boutons
     const buttons = document.querySelectorAll('.maplibregl-ctrl-icon');
     buttons.forEach((button) => {
@@ -501,9 +493,13 @@
     if (button) {
       button.classList.add('active');
     }
-    setTimeout(() => {
-      map.setZoom(map.getZoom() + 0.001);
-    }, 1500);
+
+    // Pour forcer l'actualisation des Labels REG et DEP
+    if (map) {
+      if (!getOverallBbox) {
+        map.setZoom(map.getZoom() + 0.0000001);
+      }
+    }
   }
   
   //changer l'affichage ISP par ICSP
@@ -526,7 +522,7 @@
 <Drawer
   placement="right"
   style="top:{heightNavBarForSideBar}px"
-  class="lg:w-1/3 md:w-1/3 sm:w-1/2 w-2/3 w-auto !p-0"
+  class="lg:w-1/2 md:w-1/3 sm:w-1/2 w-auto !p-0"
   transitionType="fly"
   backdrop={true}
   transitionParams={transitionParamsRight}
@@ -615,17 +611,15 @@
           {/if}
         </TabItem>
       {:else if (theme==='projet')}
-        <Tooltip triggeredBy="#projets" type="auto">Liste de l'ensemble des projets filtrés</Tooltip
-        >
-        <TabItem open class="" id="projets">
-          <div slot="title" class="flex items-center gap-1">
+        <TabItem open class="w-full" id="projets">
+          
+          <div slot="title" class="flex w-full justify-center text-lg items-center gap-2">
             <GridSolid size="sm" />
-            Liste des projets
+            Liste de l'ensemble des appuis financiers
             <h5
               id="projets"
               class="inline-flex items-center mb-4 text-sm font-light text-gray-400 dark:text-gray-200"
             >
-              <InfoCircleSolid class="w-4 h-4 me-2.5" />
             </h5>
           </div>
 
@@ -635,44 +629,44 @@
               Nombre de projets : {allProject.length}</span
             >
           </h2>
-          <ul class="p-4 w-full justify-center overflow-x-auto">
-            <Table shadow hoverable={true} striped={true} class="min-w-full">
+          <div class="p-4 w-full justify-center overflow-x-auto">
+            <Table shadow hoverable={true} striped={true} class=" table-fixed sm:table-auto">
               <TableHead>
-                <TableHeadCell></TableHeadCell>
                 {#each Object.keys(allProject[0]) as key}
                   {#if ['Année financement', 'Montant du financement', 'Intitulé projet amélioré', 'Niveau d’avancement'].includes(key)}
-                    <TableHeadCell>{key}</TableHeadCell>
+                    <TableHeadCell style=" white-space: unset !important">{key}</TableHeadCell>
                   {/if}
                 {/each}
               </TableHead>
-              <TableBody class="divide-y whitespace-nowrap overflow-hidden overflow-ellipsis">
+              <TableBody class="">
                 {#each allProject as project}
                   <TableBodyRow>
-                    <TableBodyCell></TableBodyCell>
                     {#each Object.keys(project) as key}
                       {#if ['Année financement', 'Montant du financement', 'Intitulé projet amélioré', 'Niveau d’avancement'].includes(key)}
-                        <TableBodyCell class="w-1/4">{project[key]}</TableBodyCell>
+                        <TableBodyCell style=" white-space: unset !important; sm:w-1/4"
+                          >{project[key]}</TableBodyCell
+                        >
                       {/if}
                     {/each}
                   </TableBodyRow>
                 {/each}
               </TableBody>
             </Table>
-          </ul>
+          </div>
         </TabItem>
       {:else}
-        <TabItem open class="hover:text-blue-900">
+        <TabItem open class="w-full hover:text-blue-900">
           <Tooltip triggeredBy="#stat" type="auto">
             Statistique des ICSP dans le temps pour un territoire choisi
           </Tooltip>
-          <div slot="title" class="flex items-center gap-1">
+          <div slot="title" class="flex w-full justify-center text-lg items-center gap-2">
             <GridSolid size="sm" />
-            Stats ICSP
+            Stats des ICSP
             <h5
               id="stat"
               class="inline-flex items-center mb-4 text-sm font-light text-gray-400 dark:text-gray-200"
             >
-              <InfoCircleSolid class="w-4 h-4 me-2.5" />
+              <InfoCircleSolid class="w-4 h-4 mt-4 me-2.5" />
             </h5>
           </div>
 
@@ -780,8 +774,12 @@
 
     <Control position="top-left" class="flex flex-col gap-y-2">
       <ControlGroup>
-        <ControlButton id="reg" on:click={() => toggleLayer('reg')}>REG</ControlButton>
-        <ControlButton id="dep" on:click={() => toggleLayer('dep')}>DEP</ControlButton>
+        {#if theme!=='info'}
+          <ControlButton id="reg" on:click={() => toggleLayer('reg')}>REG</ControlButton>
+        {/if}
+        {#if theme==='projet'}
+          <ControlButton id="dep" on:click={() => toggleLayer('dep')}>DEP</ControlButton>
+        {/if}
         <ControlButton id="com" on:click={() => toggleLayer('com')}>COM</ControlButton>
       </ControlGroup>
     </Control>

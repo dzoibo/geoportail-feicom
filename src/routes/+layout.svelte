@@ -131,8 +131,8 @@
   let valueSliderAccord2 = 0;
   let update = true;
 
-  let showProgressBar = true; // Définissez la variable pour afficher la barre de progression
-  let progressValue = 0; // Initialisez la valeur de la progression
+  let showProgressBar = true; // Définiir la variable pour afficher la barre de progression
+  let progressValue = 0; // Initialiser la valeur de la progression
   let minSliderValue = minMaxYearAccord.min;
   let maxSliderValue = minMaxYearAccord.max;
   let minSliderICSP = minMaxYearICSP.min;
@@ -177,7 +177,7 @@
     try {
       const { mandatData, dataArr, icspData, communeData } = await fetchData();
 
-      // Mettez à jour les propriétés individuelles du store
+      // Mettre à jour les propriétés individuelles du store
       dataStore.update((store) => {
         loadingData = false;
         store.icspData = icspData;
@@ -199,11 +199,11 @@
       valeursRegion = uniqueValues(dataArr, indicateur9, false, 'id_REGION');
       valeursAvancement = uniqueValues(dataArr, indicateur10);
 
-      // Fusionnez les deux tableaux en un seul
+      // Fusionner les deux tableaux en un seul
       const mergedArray = [...valeursBeneficiaire, ...valeursBeneficiaire2];
 
       let uniqueBeneficiaireForIDFetch = removeDuplicatesByAttribute(mergedArray, 'id_COMMUNE');
-      // Mettez à jour les propriétés individuelles du store
+      // Mettre à jour les propriétés individuelles du store
       dataStore.update((store) => {
         store.keyCommuneID_Commune = uniqueBeneficiaireForIDFetch;
         return store;
@@ -221,7 +221,7 @@
       dropdownSelectionIndicateur2.indicateur = indicateur2;
       dropdownSelectionIndicateur1.indicateur = indicateur1;
 
-      // Ajoutez les objets à l'array dropdownSelections
+      // Ajouter les objets à l'array dropdownSelections
       dropdownSelectionsAll.push(
         dropdownSelectionIndicateur10,
         dropdownSelectionIndicateur9,
@@ -244,9 +244,9 @@
       rangeValue.set(valueSlideICSP);
       rangeValueAccord.set(valueSliderAccord);
 
-      // Sélectionnez l'élément du drawer par son identifiant
+      // Sélectionner l'élément du drawer par son identifiant
       const drawer = document.getElementById('sidebar');
-      const navbar = document.getElementById('myNavbar'); // Remplacez 'navbar' par l'ID réel de votre navbar
+      const navbar = document.getElementById('myNavbar'); // Remplacer 'navbar' par l'ID réel de votre navbar
 
       if (navbar) {
         navbarHeight = navbar.clientHeight;
@@ -332,11 +332,10 @@
     unique,
     section
   ) {
-    // Trouvez l'objet correspondant dans valeursSourcefinancement
+    // Trouver l'objet correspondant dans valeursSourcefinancement
     const word = unique.find((value) => value.key === wordToRemove);
 
     if (word) {
-      // Mettez à jour la propriété checked de l'objet à false
       word.checked = false;
     }
 
@@ -344,7 +343,6 @@
   }
 
   $: {
-   // console.log(arrayAllIndicateurs);
     if (minSliderValue <= maxSliderValue) {
       minSliderValue = minSliderValue;
     } else {
@@ -412,7 +410,6 @@
   function resetFilters() {
     // Réinitialiser les filtres
     arrayAllIndicateurs = { accord: [], icsp: [] };
-    // Vider les dropdowns en réinitialisant les valeurs
     // Vider les dropdowns en réinitialisant les valeurs
     valeursAttribution.forEach((attribution) => (attribution.checked = false));
     valeursSecteur.forEach((secteur) => (secteur.checked = false));
