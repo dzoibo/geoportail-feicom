@@ -219,8 +219,13 @@
     });
 
     // Abonnez-vous au store pour recevoir les mises à jour
-    buttonICSP.subscribe(($showICSP) => {
-      showICSP = $showICSP; // Mettez à jour la valeur locale avec la valeur du store
+    buttonICSP.subscribe(($theme) => {
+      // Mettez à jour la valeur locale avec la valeur du store
+      if($theme!=='projet'){
+        showICSP = true; 
+      }else{
+        showICSP = false; 
+      }
     });
 
     if (showICSP) {
