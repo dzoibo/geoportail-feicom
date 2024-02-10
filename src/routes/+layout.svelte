@@ -344,7 +344,7 @@
   }
 
   $: {
-    console.log(arrayAllIndicateurs);
+   // console.log(arrayAllIndicateurs);
     if (minSliderValue <= maxSliderValue) {
       minSliderValue = minSliderValue;
     } else {

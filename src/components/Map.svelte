@@ -538,7 +538,7 @@
       {#if (showCom && theme==='info')}
         
         <TabItem class="w-full" open>
-          <div slot="title" class="flex w-full  justify-center text-lg items-center">
+          <div slot="title" class="flex w-full justify-center text-lg items-center gap-2">
             <LandmarkOutline size="md" />
             Informations générales sur le territoire selectionné
             <h5
@@ -551,19 +551,19 @@
           {#if anneeFinMandat}
             <div
               id="detailMandatForAMunicipality"
-              class="p-4 list-none flex justify-center h-full"
+              class="p-3 list-none flex justify-center h-full"
             >
-              <Card padding="xl" class="mb-4 max-w-sm" size="md">
-                <h2 class="mb-6 text-center text-black !uppercase text-4xl poppins-medium">
+              <Card padding="xl" class="mb-3 max-w-sm" size="md">
+                <h2 class="mb-4 text-center text-black !uppercase text-4xl poppins-medium">
                   {clickedLayerInfo.detail.features[0].properties.name}
                 </h2>
 
                 <dl
-                  class="grid max-w-screen-xl grid-cols-2 gap-8 p-4 mx-auto text-gray-900 sm:grid-cols-2 xl:grid-cols-2 dark:text-white sm:p-8"
+                  class="max-w-screen-xl gap-8 p-4 mx-auto text-gray-900  dark:text-white sm:p-8"
                 >
                   {#if anneeFinMandat[0].SUPERFICIE}
                     <div class="flex flex-col items-center justify-center">
-                      <dt class="mb-2 text-3xl font-extrabold">
+                      <dt class="mb-2 text-3xl font-extrabold w-full text-center">
                         {formattedValue(anneeFinMandat[0].SUPERFICIE) || ''}
                       </dt>
                       <dd class="text-gray-500 dark:text-gray-400">km²</dd>
