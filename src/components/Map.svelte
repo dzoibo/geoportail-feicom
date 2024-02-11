@@ -222,6 +222,11 @@
     buttonICSP.subscribe(($theme) => {
       // Mettez à jour la valeur locale avec la valeur du store
         theme = $theme; 
+        if($theme==='info'){
+          toggleLayer('com');
+        }else{
+          toggleLayer('reg');
+        }
     });
 
     if (theme==='icsp') {
@@ -775,12 +780,12 @@
     <Control position="top-left" class="flex flex-col gap-y-2">
       <ControlGroup>
         {#if theme!=='info'}
-          <ControlButton id="reg" on:click={() => toggleLayer('reg')}>REG</ControlButton>
+          <ControlButton id="reg" class={showReg ? 'bg-gray-200' : ''} on:click={() => toggleLayer('reg')}>REG</ControlButton>
         {/if}
         {#if theme==='projet'}
-          <ControlButton id="dep" on:click={() => toggleLayer('dep')}>DEP</ControlButton>
+          <ControlButton id="dep" class={showDep ? 'bg-gray-200' : ''} on:click={() => toggleLayer('dep')}>DEP</ControlButton>
         {/if}
-        <ControlButton id="com" on:click={() => toggleLayer('com')}>COM</ControlButton>
+        <ControlButton id="com" class={showCom ? 'bg-gray-200' : ''} on:click={() => toggleLayer('com')}>COM</ControlButton>
       </ControlGroup>
     </Control>
 
