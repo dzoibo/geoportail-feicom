@@ -615,7 +615,7 @@
             </div>
           {/if}
         </TabItem>
-      {:else if (theme==='projet')}
+      {:else if (theme==='accord')}
         <TabItem open class="w-full" id="projets">
           
           <div slot="title" class="flex w-full justify-center text-lg items-center gap-2">
@@ -782,7 +782,7 @@
         {#if theme!=='info'}
           <ControlButton id="reg" class={showReg ? 'bg-gray-200' : ''} on:click={() => toggleLayer('reg')}>REG</ControlButton>
         {/if}
-        {#if theme==='projet'}
+        {#if theme==='accord'}
           <ControlButton id="dep" class={showDep ? 'bg-gray-200' : ''} on:click={() => toggleLayer('dep')}>DEP</ControlButton>
         {/if}
         <ControlButton id="com" class={showCom ? 'bg-gray-200' : ''} on:click={() => toggleLayer('com')}>COM</ControlButton>

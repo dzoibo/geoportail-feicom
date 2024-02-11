@@ -77,7 +77,6 @@
   let component;
   let props;
   let backdrop: boolean = false;
-
   let drawerHidden = true;
   let activateClickOutside = true;
 
@@ -170,9 +169,29 @@
   let dropdownSelectionsAll: any[] = [];
 
   let cardForSideBar =
-    'bg-white dark:bg-#23409A-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 divide-gray-200 dark:divide-gray-700 shadow-md p-2 mb-2';
-
+    'relative bg-white dark:bg-#23409A-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 divide-gray-200 dark:divide-gray-700 shadow-md p-2 mb-2';
+  let filterIndicatorStyle='w-2.5 h-2.5 mb-2 rounded-[50%] bg-[#234099]'
   let dropdownStyle = 'w-48 overflow-y-auto py-1 h-48';
+
+  let theme='info';
+  //variables to handle the filter indicator for each filter
+  let accordFilterIndicators={
+    region:false,
+    secteur:false,
+    domaine:false,
+    sourceF:false,
+    instance:false,
+    partenaire:false,
+    departement:false,
+    beneficiaire:false,
+    niveauAvancement:false
+  }
+
+  let icspFilterIndicator={
+    beneficiaire:false,
+  }  
+  
+
   onMount(async function () {
     try {
       const { mandatData, dataArr, icspData, communeData } = await fetchData();
@@ -293,10 +312,51 @@
     section: string
   ) {
     checkedOptions.checked = !checkedOptions.checked;
-
     updateSelectedWords(array, unique, section); // Mettre à jour les mots sélectionnés
+    setTimeout(() => {
+      updateFilterIndicator(array.indicateur,section)
+    }, 20);
   }
-
+ 
+  /**   
+   * function to update the filter indicator
+  */
+  function updateFilterIndicator(indicateur: string,section: string){
+    if(section==='icsp'){
+        icspFilterIndicator.beneficiaire=arrayAllIndicateurs.icsp[0].data.length>0 // we use only the fisrt item in the array because tyhe icsp section has only one filter actually
+    }else{
+      const indicateurIndex = arrayAllIndicateurs.accord.findIndex((item:any)=>item.indicateur===indicateur)
+      const displayIndicator=arrayAllIndicateurs.accord[indicateurIndex].data.length>0
+      switch(indicateur) {
+        case 'Région':
+        accordFilterIndicators.region=displayIndicator;
+          break;
+        case 'Département':
+          accordFilterIndicators.departement=displayIndicator;
+          break;
+        case 'Bénéficiaire':
+          accordFilterIndicators.beneficiaire=displayIndicator;
+          break;
+        case "Instance d'attribution":
+          accordFilterIndicators.instance=displayIndicator;
+          break;
+        case 'Secteurs':
+          accordFilterIndicators.secteur=displayIndicator;
+          break;
+        case 'Domaines':
+          accordFilterIndicators.domaine=displayIndicator;
+          break;
+        case 'Source_financement':
+          accordFilterIndicators.sourceF=displayIndicator;
+          break;
+        case 'Partenaires':
+          accordFilterIndicators.partenaire=displayIndicator;
+          break;
+        default:
+          accordFilterIndicators.niveauAvancement=displayIndicator;
+      }
+    }
+  }
   function updateSelectedWords(
     array: { indicateur: string; data: never[] } | undefined,
     unique: any[],
@@ -340,6 +400,12 @@
     }
 
     updateSelectedWords(array, unique, section); // Mettre à jour les mots sélectionnés
+    
+    if(array!==undefined){
+      setTimeout(() => {
+        updateFilterIndicator(array.indicateur,section)
+      }, 20);
+    }
   }
 
   $: {
@@ -421,6 +487,23 @@
     valeursDepartement.forEach((departement) => (departement.checked = false));
     valeursRegion.forEach((region) => (region.checked = false));
     valeursAvancement.forEach((avancement) => (avancement.checked = false));
+    clearIndicator();
+  }
+
+  function clearIndicator(){
+    if(theme==='icsp'){
+      icspFilterIndicator.beneficiaire=false;
+    }else{
+      accordFilterIndicators.region=false,
+      accordFilterIndicators.secteur=false,
+      accordFilterIndicators.domaine=false,
+      accordFilterIndicators.sourceF=false,
+      accordFilterIndicators.instance=false,
+      accordFilterIndicators.partenaire=false,
+      accordFilterIndicators.departement=false,
+      accordFilterIndicators.beneficiaire=false,
+      accordFilterIndicators.niveauAvancement=false
+    }
   }
 </script>
 
@@ -470,6 +553,7 @@
               on:click={()=>{
                 showICSP=true;
                 showFinancement= false;
+                theme='info';
                 buttonICSP.set('info');
               }}
             >
@@ -484,6 +568,7 @@
                 on:click={() => {
                   showICSP = true;
                   showFinancement = false;
+                  theme='icsp';
                   buttonICSP.set('icsp');
                 }}
               >
@@ -530,13 +615,15 @@
                     </div>
                   </SidebarDropdownWrapper>
                 </SidebarGroup>
-
-                <SidebarGroup class={cardForSideBar}>
+                <SidebarGroup class={cardForSideBar} >
                   <SidebarDropdownWrapper label="Bénéficiaire">
                     <svelte:fragment slot="icon">
                       <UsersGroupOutline
                         class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                      />
+                      /> 
+                      {#if icspFilterIndicator.beneficiaire}
+                        <div class={filterIndicatorStyle} ></div>
+                      {/if}
                     </svelte:fragment>
                     <Button class="bg-[#234099] hover:bg-[#182D73]"
                       >Sélection des bénéficiaires<ChevronDownSolid
@@ -575,7 +662,7 @@
                         {#each arrayAllIndicateurs.icsp as indicateur}
                           {#if indicateur.indicateur === dropdownSelectionIndicateur7.indicateur}
                             {#each indicateur.data as word (word)}
-                              <div
+                              <div 
                                 class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg"
                               >
                                 {word}
@@ -605,7 +692,8 @@
                 on:click={() => {
                   showICSP = false;
                   showFinancement = true;
-                  buttonICSP.set('projet');
+                  theme='accord';
+                  buttonICSP.set('accord');
                 }}
               >
                 <div slot="title" class="flex items-center gap-1">
@@ -658,6 +746,9 @@
                         <UserOutline
                           class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                         />
+                        {#if accordFilterIndicators.region}
+                          <div class={filterIndicatorStyle} ></div>
+                        {/if}
                       </svelte:fragment>
                       <Button class="bg-[#234099] hover:bg-[#182D73]"
                         >Sélection des Régions<ChevronDownSolid
@@ -722,6 +813,9 @@
                         <UsersOutline
                           class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                         />
+                        {#if accordFilterIndicators.departement}
+                          <div class={filterIndicatorStyle} ></div>
+                        {/if}
                       </svelte:fragment>
                       <Button class="bg-[#234099] hover:bg-[#182D73]"
                         >Sélection des Département<ChevronDownSolid
@@ -769,9 +863,7 @@
                           {#each arrayAllIndicateurs.accord as indicateur}
                             {#if indicateur.indicateur === dropdownSelectionIndicateur8.indicateur}
                               {#each indicateur.data as word (word)}
-                                <div
-                                  class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg"
-                                >
+                                <div class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg" >
                                   {word}
                                   <CloseButton
                                     on:click={() =>
@@ -797,6 +889,9 @@
                         <UsersGroupOutline
                           class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                         />
+                        {#if accordFilterIndicators.beneficiaire}
+                          <div class={filterIndicatorStyle} ></div>
+                        {/if}
                       </svelte:fragment>
                       <Button class="bg-[#234099] hover:bg-[#182D73]"
                         >Sélection des bénéficiaires<ChevronDownSolid
@@ -875,6 +970,9 @@
                         <LandmarkOutline
                           class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                         />
+                        {#if accordFilterIndicators.instance}
+                          <div class={filterIndicatorStyle} ></div>
+                        {/if}
                       </svelte:fragment>
                       <Button class="bg-[#234099] hover:bg-[#182D73]"
                         >Sélection des instances<ChevronDownSolid
@@ -930,6 +1028,9 @@
                         <SwatchbookOutline
                           class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                         />
+                        {#if accordFilterIndicators.secteur}
+                          <div class={filterIndicatorStyle} ></div>
+                        {/if}
                       </svelte:fragment>
                       <Button class="bg-[#234099] hover:bg-[#182D73]"
                         >Sélection des secteurs<ChevronDownSolid
@@ -981,6 +1082,9 @@
                         <FolderOutline
                           class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                         />
+                        {#if accordFilterIndicators.domaine}
+                          <div class={filterIndicatorStyle} ></div>
+                        {/if}
                       </svelte:fragment>
                       <Button class="bg-[#234099] hover:bg-[#182D73]"
                         >Sélection des projets<ChevronDownSolid
@@ -1033,6 +1137,9 @@
                         <DollarOutline
                           class="w-auto text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                         />
+                        {#if accordFilterIndicators.sourceF}
+                          <div class={filterIndicatorStyle} ></div>
+                        {/if}
                       </svelte:fragment>
 
                       <Button class="bg-[#234099] hover:bg-[#182D73]"
@@ -1093,6 +1200,9 @@
                               <UserAddOutline
                                 class="w-auto text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                               />
+                              {#if accordFilterIndicators.partenaire}
+                                <div class={filterIndicatorStyle} ></div>
+                              {/if}
                             </svelte:fragment>
 
                             <Button class="bg-[#234099] hover:bg-[#182D73]"
@@ -1154,6 +1264,9 @@
                         <OrdoredListOutline
                           class="w-auto text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                         />
+                        {#if accordFilterIndicators.niveauAvancement}
+                          <div class={filterIndicatorStyle} ></div>
+                        {/if}
                       </svelte:fragment>
                       <Button class="bg-[#234099] hover:bg-[#182D73]"
                         >Choix du niveau d'avancement<ChevronDownSolid
@@ -1212,7 +1325,7 @@
           </Tabs>
         </SidebarWrapper>
         <!-- Bouton Reset Filter -->
-        {#if arrayAllIndicateurs.accord.length > 0 || arrayAllIndicateurs.icsp.length > 0}
+        {#if (theme==='accord' && arrayAllIndicateurs.accord.length > 0 )|| (theme==='icsp' && icspFilterIndicator.beneficiaire > 0)}
           <button
             class="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-800 m-4"
             on:click={resetFilters}>Réinitialiser les filtres</button
