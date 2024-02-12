@@ -937,7 +937,7 @@
       />
     </VectorTileSource>
 
-    {#if showCom}
+    {#if showCom && theme !==info }
       <GeoJSON data={geojsonMunicipaliteCentroid} promoteId="ref:COG">
         <JoinedData data={statisticsPerRegion} idCol="id_COMMUNE" />
         <SymbolLayer
