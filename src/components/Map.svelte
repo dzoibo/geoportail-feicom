@@ -342,13 +342,13 @@
           valueSliderAccord[1],
           scale
         );
-
         if (statisticsPerRegion.length > 0) {
           MinMax = findMinMax(statisticsPerRegion, 'value');
         } else {
           // Gérer le cas où statisticsPerRegion est vide
           MinMax = { min: 0, max: 0 };
         }
+
       }
       paintProperties = getUpdatedPaintProperties(MinMax);
     }
@@ -950,7 +950,6 @@
           }}
           layout={{
             'text-allow-overlap': false,
-            'text-field': ['get', 'name'],
             'text-size': {
               stops: [
                 [3, 3], // À un niveau de zoom de 3, la taille du texte est de 16
@@ -959,6 +958,25 @@
             }
           }}
         ></SymbolLayer>
+        <MarkerLayer let:feature>
+          {#each statisticsPerRegion as { id_COMMUNE, value }}
+            {#if feature.properties['ref:COG'] === id_COMMUNE}
+              <div
+                class="bg-gray-100 bg-opacity-50 rounded-full p-2 shadow align flex flex-col items-center"
+              >
+                <div class="text-sm poppins-medium">{feature.properties.name}</div>
+                {#if (theme==='icsp')}
+                  <!-- Afficher la valeur avec l'unité 'XAF' -->
+                  <div class="text-sm poppins-light">{formattedValue(value)} XAF</div>
+                {:else}
+                  <!-- Afficher la valeur avec l'unité 'projet' -->
+                  <div class="text-sm poppins-light">{formattedValue(value)} projets</div>
+                {/if}
+                <div class="text-sm font-italic"></div>
+              </div>
+            {/if}
+          {/each}
+        </MarkerLayer>
       </GeoJSON>
     {/if}
   </MapLibre>

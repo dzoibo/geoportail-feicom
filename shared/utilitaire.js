@@ -101,6 +101,8 @@ export function getSumPerYear(data, startYear, endYear, scale) {
         [scale]: region,
         'value': count
     }));
+    console.log('voici les resultats',result);
+    console.log('voici les statistiques',statistics);
 
     return result;
 }
