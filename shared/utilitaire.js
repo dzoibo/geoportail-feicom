@@ -101,8 +101,32 @@ export function getSumPerYear(data, startYear, endYear, scale) {
         [scale]: region,
         'value': count
     }));
+    console.log('voici les data',data);
+    if(scale==='id_REGION'){
+       return getAmountPerYear(data,result,scale);
+    }else{
+     return result;   
+    }
+    
+}
+export function getAmountPerYear(data,sumPerYear,scale){
+    let sumPerYearWithAmount=[];
+    sumPerYear.forEach(result=>{
+        let amount= 0;
 
-    return result;
+        data.forEach(item => {
+            if(item[scale]===result[scale] && item['Montant du financement']!==null){
+                let str =  item['Montant du financement'];
+                amount = amount+ parseInt(str.replace(/\s/g, ''), 10);  
+            }
+        });
+        const resultWithAmount={
+            ...result,
+            dataAmount: amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+        }
+        sumPerYearWithAmount.push(resultWithAmount);    
+    })
+    return sumPerYearWithAmount;
 }
 
 export function calculateTotalByRegion(data, startYear, endYear, scale, filters) {

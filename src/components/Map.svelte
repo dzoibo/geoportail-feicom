@@ -817,7 +817,7 @@
       <GeoJSON data={geojsonRegionCentroid}>
         <JoinedData data={statisticsPerRegion} idCol="id_REGION" />
         <MarkerLayer let:feature>
-          {#each statisticsPerRegion as { id_REGION, value }}
+          {#each statisticsPerRegion as { id_REGION, value , dataAmount}}
             {#if feature.properties['ref:COG'] === id_REGION}
               <div
                 class="bg-gray-100 bg-opacity-50 bg-trans rounded-full p-2 shadow align flex flex-col items-center"
@@ -828,7 +828,10 @@
                   <div class="text-sm poppins-light">{formattedValue(value)} XAF</div>
                 {:else}
                   <!-- Afficher la valeur avec l'unité 'projet' -->
-                  <div class="text-sm poppins-light">{formattedValue(value)} projets</div>
+                  <div class="text-sm poppins-light text-center">
+                    {formattedValue(value)}<br> 
+                    <!-- {formattedValue(dataAmount)} --> 
+                  </div>
                 {/if}
               </div>
             {/if}
