@@ -377,11 +377,16 @@
               AllRegioncheckBox.checked = valeursRegion.length===displayIndicator;
             }
             accordFilterCheckedAll.region=valeursRegion.length===displayIndicator;
-
             accordFilterIndicators.region=displayIndicator>0;
           break;
+
         case 'Département':
           accordFilterIndicators.departement=displayIndicator>0;
+          var AllDepartementcheckBox:any = document.querySelector(".departement-all-checkbox");
+          if (AllDepartementcheckBox) {
+            AllDepartementcheckBox.checked = valeursDepartement.length===displayIndicator;
+          }
+          accordFilterCheckedAll.departement=valeursDepartement.length===displayIndicator
           break;
         case 'Bénéficiaire':
           accordFilterIndicators.beneficiaire=displayIndicator>0;
@@ -872,7 +877,7 @@
                         <UsersOutline
                           class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                         />
-                        {#if accordFilterIndicators.departement}
+                        {#if accordFilterIndicators.departement && (accordFilterCheckedAll.departement)}
                           <div class={filterIndicatorStyle} ></div>
                         {/if}
                       </svelte:fragment>
@@ -890,6 +895,16 @@
                             )}
                           />
                         </div>
+                        <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                          <Checkbox
+                            class="departement-all-checkbox"
+                            checked={accordFilterCheckedAll.departement}
+                            on:change={() =>
+                              toggleAllCheckbox(
+                                "departement", "accord"
+                              )}>Tout sélectionner</Checkbox
+                          >
+                        </li>
                         {#each valeursDepartement.filter((departement) => {
                           // Vérifie si toutes les valeurs de région ont checked à false
                           const allUnchecked = valeursRegion.every((region) => !region.checked);
@@ -903,7 +918,7 @@
                         }) as departement}
                           {#if filterBeneficiaires(departement, filteredItems)}
                             <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                              <Checkbox
+                              <Checkbox class="departement-checkbox" 
                                 checked={departement.checked}
                                 on:change={() =>
                                   toggleCheckbox(
