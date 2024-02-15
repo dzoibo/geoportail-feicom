@@ -534,7 +534,7 @@
   bind:hidden={hiddenBackdropFalse}
   id="sidebar6"
 >
-  <div class="bg-[#00862b14] div-wrapper" style="height:{heightSideBar}px !important">
+  <div class="bg-[#00862b14] div-wrapper min-h-full">
     <Tabs style="full" class="space-x-0 w-full flex !flex-nowrap bg-white">
       {#if (showCom && theme==='info')}
         
@@ -563,8 +563,8 @@
                   class="max-w-screen-xl gap-8 p-4 mx-auto text-gray-900  dark:text-white sm:p-8"
                 >
                   {#if anneeFinMandat[0].SUPERFICIE}
-                    <div class="flex flex-col items-center justify-center">
-                      <dt class="mb-2 text-3xl font-extrabold w-full text-center">
+                    <div class="flex items-center justify-center">
+                      <dt class="ml-1 text-3xl font-extrabold w-full text-center">
                         {formattedValue(anneeFinMandat[0].SUPERFICIE) || ''}
                       </dt>
                       <dd class="text-gray-500 dark:text-gray-400">km²</dd>
@@ -675,6 +675,43 @@
             </h5>
           </div>
 
+          <div class="p-4 lg:w-full sm:w-full flex justify-center mb-4">
+            <!-- Contenu de la deuxième div -->
+            {#await dataForLineChart then}
+              {#if dataForLineChart.data.data}
+                <!-- Utilisation de h-full pour occuper 100% de la hauteur -->
+                <Card class="!max-w-lg w-full">
+                  <div
+                    class="w-full flex justify-center items-center pb-4 mb-4 border-b border-gray-200 dark:border-gray-700"
+                  >
+                    <div class="flex items-center">
+                      <div
+                        class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center me-3"
+                      >
+                        <ChartOutline class="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                      </div>
+                      <div>
+                        <h5
+                          class="leading-none text-2xl font-bold text-gray-900 dark:text-white pb-1 poppins-medium"
+                        >
+                          Evolution de l'ICSP <br />
+                          <p class="text-sm font-normal text-gray-500 dark:text-gray-400">
+                            <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">
+                              Territoire : {dataForBarChart.geo}
+                            </dt>
+                          </p>
+                        </h5>
+                      </div>
+                    </div>
+                  </div>
+                  {#await optionForLineChart(dataForLineChart.data.label, dataForLineChart.data.data) then options}
+                    <!-- Utilisation de h-auto pour que la hauteur s'adapte au contenu -->
+                    <Chart {options} />
+                  {/await}
+                </Card>
+              {/if}
+            {/await}
+          </div>
           <div class="p-4 lg:w-full sm:w-full flex justify-center">
             <!-- Contenu de la première div -->
             {#await dataForBarChart then}
@@ -716,43 +753,7 @@
               {/if}
             {/await}
           </div>
-          <div class="p-4 lg:w-full sm:w-full flex justify-center mb-4">
-            <!-- Contenu de la deuxième div -->
-            {#await dataForLineChart then}
-              {#if dataForLineChart.data.data}
-                <!-- Utilisation de h-full pour occuper 100% de la hauteur -->
-                <Card class="!max-w-lg w-full">
-                  <div
-                    class="w-full flex justify-center items-center pb-4 mb-4 border-b border-gray-200 dark:border-gray-700"
-                  >
-                    <div class="flex items-center">
-                      <div
-                        class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center me-3"
-                      >
-                        <ChartOutline class="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                      </div>
-                      <div>
-                        <h5
-                          class="leading-none text-2xl font-bold text-gray-900 dark:text-white pb-1 poppins-medium"
-                        >
-                          Evolution de l'ICSP <br />
-                          <p class="text-sm font-normal text-gray-500 dark:text-gray-400">
-                            <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">
-                              Territoire : {dataForBarChart.geo}
-                            </dt>
-                          </p>
-                        </h5>
-                      </div>
-                    </div>
-                  </div>
-                  {#await optionForLineChart(dataForLineChart.data.label, dataForLineChart.data.data) then options}
-                    <!-- Utilisation de h-auto pour que la hauteur s'adapte au contenu -->
-                    <Chart {options} />
-                  {/await}
-                </Card>
-              {/if}
-            {/await}
-          </div></TabItem
+        </TabItem
         >
       {/if}
     </Tabs>
@@ -875,7 +876,7 @@
                   <div class="text-sm poppins-light">{formattedValue(value)} XAF</div>
                 {:else}
                   <!-- Afficher la valeur avec l'unité 'projet' -->
-                  <div class="text-sm poppins-light">{formattedValue(value)} projets</div>
+                  <div class="text-sm poppins-light">{formattedValue(value)} </div>
                 {/if}
                 <div class="text-sm font-italic"></div>
               </div>

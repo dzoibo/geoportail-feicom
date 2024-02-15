@@ -190,6 +190,18 @@
   let icspFilterIndicator={
     beneficiaire:false,
   }  
+
+  let accordFilterCheckedAll={
+    region:false,
+    secteur:false,
+    domaine:false,
+    sourceF:false,
+    instance:false,
+    partenaire:false,
+    departement:false,
+    beneficiaire:false,
+    niveauAvancement:false
+  }
   
 
   onMount(async function () {
@@ -309,13 +321,44 @@
     checkedOptions: { checked: boolean },
     array: { indicateur: string; data: never[] },
     unique: any[],
-    section: string
+    section: string,
   ) {
     checkedOptions.checked = !checkedOptions.checked;
     updateSelectedWords(array, unique, section); // Mettre à jour les mots sélectionnés
     setTimeout(() => {
       updateFilterIndicator(array.indicateur,section)
-    }, 20);
+    }, 12);
+    
+  }
+
+  function toggleAllCheckbox(
+   filter: string,
+   section: string
+  ){
+    let checkedAllfilter=false;
+    if(section==='accord'){
+      accordFilterCheckedAll[filter] = !accordFilterCheckedAll[filter];
+      checkedAllfilter=accordFilterCheckedAll[filter] ;
+    }
+     /**
+      * since the flow-bite checkbox component is wrapping the checkbox itself inside a label,
+      * we have to target the input inside the checkbox before checking it and dispach the event
+     */
+     let checkboxes= document.querySelectorAll("."+filter+"-checkbox input");
+
+     checkboxes.forEach(function(checkbox: any) {
+      // this condition is to make sure that we check and trigger the event only if the item is not yet checked or we are unchecking
+      if(checkbox.checked!== true || !checkedAllfilter){
+        checkbox.checked = checkedAllfilter;
+        checkbox.dispatchEvent(new Event('change'));
+      }
+        
+    });
+      
+    setTimeout(() => {// this is to restore the value changed in the function updateFilterIndicator()
+      accordFilterCheckedAll[filter] =checkedAllfilter;
+    }, 12);
+    
   }
  
   /**   
@@ -326,34 +369,40 @@
         icspFilterIndicator.beneficiaire=arrayAllIndicateurs.icsp[0].data.length>0 // we use only the fisrt item in the array because tyhe icsp section has only one filter actually
     }else{
       const indicateurIndex = arrayAllIndicateurs.accord.findIndex((item:any)=>item.indicateur===indicateur)
-      const displayIndicator=arrayAllIndicateurs.accord[indicateurIndex].data.length>0
+      const displayIndicator=arrayAllIndicateurs.accord[indicateurIndex].data.length
       switch(indicateur) {
         case 'Région':
-        accordFilterIndicators.region=displayIndicator;
+            var AllRegioncheckBox:any = document.querySelector(".region-all-checkbox");
+            if (AllRegioncheckBox) {
+              AllRegioncheckBox.checked = valeursRegion.length===displayIndicator;
+            }
+            accordFilterCheckedAll.region=valeursRegion.length===displayIndicator;
+
+            accordFilterIndicators.region=displayIndicator>0;
           break;
         case 'Département':
-          accordFilterIndicators.departement=displayIndicator;
+          accordFilterIndicators.departement=displayIndicator>0;
           break;
         case 'Bénéficiaire':
-          accordFilterIndicators.beneficiaire=displayIndicator;
+          accordFilterIndicators.beneficiaire=displayIndicator>0;
           break;
         case "Instance d'attribution":
-          accordFilterIndicators.instance=displayIndicator;
+          accordFilterIndicators.instance=displayIndicator>0;
           break;
         case 'Secteurs':
-          accordFilterIndicators.secteur=displayIndicator;
+          accordFilterIndicators.secteur=displayIndicator>0;
           break;
         case 'Domaines':
-          accordFilterIndicators.domaine=displayIndicator;
+          accordFilterIndicators.domaine=displayIndicator>0;
           break;
         case 'Source_financement':
-          accordFilterIndicators.sourceF=displayIndicator;
+          accordFilterIndicators.sourceF=displayIndicator>0;
           break;
         case 'Partenaires':
-          accordFilterIndicators.partenaire=displayIndicator;
+          accordFilterIndicators.partenaire=displayIndicator>0;
           break;
         default:
-          accordFilterIndicators.niveauAvancement=displayIndicator;
+          accordFilterIndicators.niveauAvancement=displayIndicator>0;
       }
     }
   }
@@ -404,7 +453,7 @@
     if(array!==undefined){
       setTimeout(() => {
         updateFilterIndicator(array.indicateur,section)
-      }, 20);
+      }, 12);
     }
   }
 
@@ -746,7 +795,7 @@
                         <UserOutline
                           class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                         />
-                        {#if accordFilterIndicators.region}
+                        {#if accordFilterIndicators.region && !accordFilterCheckedAll.region}
                           <div class={filterIndicatorStyle} ></div>
                         {/if}
                       </svelte:fragment>
@@ -762,10 +811,20 @@
                             on:input={handleInput(jsonToItem({ valeursRegion }, 'valeursRegion'))}
                           />
                         </div>
+                        <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                          <Checkbox
+                            class="region-all-checkbox"
+                            checked={accordFilterCheckedAll.region}
+                            on:change={() =>
+                              toggleAllCheckbox(
+                                "region", "accord"
+                              )}>Tout sélectionner</Checkbox
+                          >
+                        </li>
                         {#each valeursRegion as region}
                           {#if filterBeneficiaires(region, filteredItems)}
                             <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                              <Checkbox
+                              <Checkbox class="region-checkbox"
                                 checked={region.checked}
                                 on:change={() =>
                                   toggleCheckbox(

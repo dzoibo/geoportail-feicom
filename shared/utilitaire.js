@@ -101,7 +101,6 @@ export function getSumPerYear(data, startYear, endYear, scale) {
         [scale]: region,
         'value': count
     }));
-    console.log('voici les data',data);
     if(scale==='id_REGION'){
        return getAmountPerYear(data,result,scale);
     }else{
@@ -113,7 +112,6 @@ export function getAmountPerYear(data,sumPerYear,scale){
     let sumPerYearWithAmount=[];
     sumPerYear.forEach(result=>{
         let amount= 0;
-
         data.forEach(item => {
             if(item[scale]===result[scale] && item['Montant du financement']!==null){
                 let str =  item['Montant du financement'];
