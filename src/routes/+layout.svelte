@@ -153,8 +153,13 @@
 
   //ICSP
   let indicateur7 = 'COMMUNE';
-  let filteredItems: any[] = [];
-  //ICSP
+
+  //searchResult
+  let regionSearchResult:any[]=[];
+  let departementSearchResult:any[]=[];
+  let beneficiaireAccordSearchResult: any[]=[];
+  let beneficiaireIcspSearchResult:any[]=[];
+
   let dropdownSelectionIndicateur7 = { indicateur: '', data: [] };
   //Accord
   let dropdownSelectionIndicateur10 = { indicateur: '', data: [] };
@@ -516,10 +521,24 @@
     showProgressBar = false;
   }
 
-  const handleInput = (data) => {
-    return (filteredItems = data.filter((item) =>
-      item.toLowerCase().match(inputValue.toLowerCase())
-    ));
+  const handleInput = (event,data,filter) => {
+    const value = event.target.value;
+    const filteredData= data.filter((item) =>
+      item.toLowerCase().match(value.toLowerCase())
+    );
+    switch(filter) {
+      case 'region':
+        regionSearchResult=filteredData
+        break;
+      case 'departement':
+        departementSearchResult=filteredData
+        break;
+      case 'beneficiaireAccord':
+      beneficiaireAccordSearchResult=filteredData
+        break;
+      default:
+      beneficiaireIcspSearchResult=filteredData
+    }
   };
 
   function filterBeneficiaires(beneficiaires, filteredItems) {
@@ -687,14 +706,11 @@
                     <Dropdown class={dropdownStyle}>
                       <div slot="header" class="p-3">
                         <SearchBar
-                          bind:inputValue
-                          on:input={handleInput(
-                            jsonToItem({ valeursBeneficiaire2 }, 'valeursBeneficiaire2')
-                          )}
+                            on:input={(event) => handleInput(event,jsonToItem({ valeursBeneficiaire2 }, 'valeursBeneficiaire2'),"beneficiaireIcsp")}
                         />
                       </div>
                       {#each valeursBeneficiaire2 as beneficiaires}
-                        {#if filterBeneficiaires(beneficiaires, filteredItems)}
+                        {#if filterBeneficiaires(beneficiaires, beneficiaireIcspSearchResult)}
                           <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                             <Checkbox
                               id={beneficiaires.id_COMMUNE}
@@ -812,8 +828,7 @@
                       <Dropdown class={dropdownStyle}>
                         <div slot="header" class="p-3">
                           <SearchBar
-                            bind:inputValue
-                            on:input={handleInput(jsonToItem({ valeursRegion }, 'valeursRegion'))}
+                            on:input={(event) => handleInput(event,jsonToItem({ valeursRegion }, 'valeursRegion'),"region")}
                           />
                         </div>
                         <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
@@ -827,7 +842,7 @@
                           >
                         </li>
                         {#each valeursRegion as region}
-                          {#if filterBeneficiaires(region, filteredItems)}
+                          {#if filterBeneficiaires(region, regionSearchResult)}
                             <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                               <Checkbox class="region-checkbox"
                                 checked={region.checked}
@@ -889,10 +904,7 @@
                       <Dropdown class={dropdownStyle}>
                         <div slot="header" class="p-3">
                           <SearchBar
-                            bind:inputValue
-                            on:input={handleInput(
-                              jsonToItem({ valeursDepartement }, 'valeursDepartement')
-                            )}
+                            on:input={(event) => handleInput(event,jsonToItem({ valeursDepartement }, 'valeursDepartement',"departement"))}
                           />
                         </div>
                         <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
@@ -916,7 +928,7 @@
                             return valeursRegion.find((region) => region.id === departement.id_REGION && region.checked);
                           }
                         }) as departement}
-                          {#if filterBeneficiaires(departement, filteredItems)}
+                          {#if filterBeneficiaires(departement, departementSearchResult)}
                             <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                               <Checkbox class="departement-checkbox" 
                                 checked={departement.checked}
@@ -975,10 +987,7 @@
                       <Dropdown class={dropdownStyle}>
                         <div slot="header" class="p-3">
                           <SearchBar
-                            bind:inputValue
-                            on:input={handleInput(
-                              jsonToItem({ valeursBeneficiaire }, 'valeursBeneficiaire')
-                            )}
+                            on:input={(event) => handleInput(event,jsonToItem({ valeursBeneficiaire }, 'valeursBeneficiaire'),"beneficiaireAccord")}
                           />
                         </div>
 
@@ -993,7 +1002,7 @@
                             return valeursRegion.find((region) => region.id === beneficiaire.id_REGION && region.checked);
                           }
                         }) as beneficiaires}
-                          {#if filterBeneficiaires(beneficiaires, filteredItems)}
+                          {#if filterBeneficiaires(beneficiaires, beneficiaireIcspSearchResult)}
                             <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                               <Checkbox
                                 id={beneficiaires.id_COMMUNE}

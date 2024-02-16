@@ -9,6 +9,7 @@
   placeholder="Rechercher..."
   id="searchInput"
   bind:value={inputValue}
+  on:blur
   on:input
 />
 
