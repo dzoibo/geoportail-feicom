@@ -32,7 +32,6 @@ export function uniqueValues(tableau, attribut, option = false, id) {
 
     // Triez les clés par ordre ascendant
     result.sort((a, b) => a.key.localeCompare(b.key));
-    console.log(result);
     return result;
 }
 

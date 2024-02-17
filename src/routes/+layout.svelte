@@ -165,6 +165,10 @@
   let departementInputValue='';
   let beneficiaireAccordInputValue='';
   let beneficiareIcspInputValue='';
+  let instanceInputValue='';
+  let secteurInputValue='';
+  let domaineInputValue='';
+  let sourceFInputValue='';
 
   //Accord
   let dropdownSelectionIndicateur10 = { indicateur: '', data: [] };
@@ -199,10 +203,12 @@
   }
 
   let icspFilterIndicator={
-    beneficiaire:false,
-  }  
+    beneficiaire: false
+   }
 
-  let accordFilterCheckedAll={
+  
+
+  let filterCheckedAll={
     region:false,
     secteur:false,
     domaine:false,
@@ -210,8 +216,8 @@
     instance:false,
     partenaire:false,
     departement:false,
-    beneficiaire:false,
-    niveauAvancement:false
+    beneficiaireIcsp:false,
+    beneficiaireAccord: false,
   }
   
 
@@ -342,14 +348,11 @@
   }
 
   function toggleAllCheckbox(
-   filter: string,
-   section: string
+   filter: string
   ){
     let checkedAllfilter=false;
-    if(section==='accord'){
-      accordFilterCheckedAll[filter] = !accordFilterCheckedAll[filter];
-      checkedAllfilter=accordFilterCheckedAll[filter] ;
-    }
+    filterCheckedAll[filter] = !filterCheckedAll[filter];
+    checkedAllfilter=filterCheckedAll[filter] ;
      /**
       * since the flow-bite checkbox component is wrapping the checkbox itself inside a label,
       * we have to target the input inside the checkbox before checking it and dispach the event
@@ -366,7 +369,7 @@
     });
       
     setTimeout(() => {// this is to restore the value changed in the function updateFilterIndicator()
-      accordFilterCheckedAll[filter] =checkedAllfilter;
+        filterCheckedAll[filter] =checkedAllfilter;
     }, 12);
     
   }
@@ -376,48 +379,85 @@
   */
   function updateFilterIndicator(indicateur: string,section: string){
     if(section==='icsp'){
-        icspFilterIndicator.beneficiaire=arrayAllIndicateurs.icsp[0].data.length>0 // we use only the fisrt item in the array because tyhe icsp section has only one filter actually
+      const arrayIcspLength=arrayAllIndicateurs.icsp[0].data.length;
+
+      icspFilterIndicator.beneficiaire=arrayIcspLength>0 // we use only the fisrt item in the array because tyhe icsp section has only one filter actually
+      var AllBeneficiaireIcspCheckBox:any = document.querySelector(".beneficiaireIcsp-all-checkbox");
+      if (AllBeneficiaireIcspCheckBox){
+        AllBeneficiaireIcspCheckBox.checked = valeursBeneficiaire2.length===arrayIcspLength;
+      }
+      filterCheckedAll.beneficiaireIcsp=valeursBeneficiaire2.length===arrayIcspLength;
     }else{
       const indicateurIndex = arrayAllIndicateurs.accord.findIndex((item:any)=>item.indicateur===indicateur)
-      const displayIndicator=arrayAllIndicateurs.accord[indicateurIndex].data.length
+      const arrayAccordLength=arrayAllIndicateurs.accord[indicateurIndex].data.length;
       switch(indicateur) {
         case 'Région':
-            var AllRegioncheckBox:any = document.querySelector(".region-all-checkbox");
+            let AllRegioncheckBox:any = document.querySelector(".region-all-checkbox");
             if (AllRegioncheckBox) {
-              AllRegioncheckBox.checked = valeursRegion.length===displayIndicator;
+              AllRegioncheckBox.checked = valeursRegion.length===arrayAccordLength;
             }
-            accordFilterCheckedAll.region=valeursRegion.length===displayIndicator;
-            accordFilterIndicators.region=displayIndicator>0;
+            filterCheckedAll.region=valeursRegion.length===arrayAccordLength;
+            accordFilterIndicators.region=arrayAccordLength>0;
           break;
 
         case 'Département':
-          accordFilterIndicators.departement=displayIndicator>0;
-          var AllDepartementcheckBox:any = document.querySelector(".departement-all-checkbox");
+          accordFilterIndicators.departement=arrayAccordLength>0;
+          let AllDepartementcheckBox:any = document.querySelector(".departement-all-checkbox");
           if (AllDepartementcheckBox) {
-            AllDepartementcheckBox.checked = valeursDepartement.length===displayIndicator;
+            AllDepartementcheckBox.checked = valeursDepartement.length===arrayAccordLength;
           }
-          accordFilterCheckedAll.departement=valeursDepartement.length===displayIndicator
+          filterCheckedAll.departement=valeursDepartement.length===arrayAccordLength;
           break;
         case 'Bénéficiaire':
-          accordFilterIndicators.beneficiaire=displayIndicator>0;
+          accordFilterIndicators.beneficiaire=arrayAccordLength>0;
+          let AllBeneficiciareCheckBox:any = document.querySelector(".beneficiaireAccord-all-checkbox");
+          if (AllBeneficiciareCheckBox) {
+            AllBeneficiciareCheckBox.checked = valeursBeneficiaire.length===arrayAccordLength;
+          }
+          filterCheckedAll.beneficiaireAccord=valeursBeneficiaire.length===arrayAccordLength
           break;
         case "Instance d'attribution":
-          accordFilterIndicators.instance=displayIndicator>0;
+          accordFilterIndicators.instance=arrayAccordLength>0;
+          let AllInstanceCheckBox:any = document.querySelector(".instance-all-checkbox");
+          if (AllInstanceCheckBox) {
+            AllInstanceCheckBox.checked = valeursAttribution.length===arrayAccordLength;
+          }
+          filterCheckedAll.instance=valeursAttribution.length===arrayAccordLength
           break;
         case 'Secteurs':
-          accordFilterIndicators.secteur=displayIndicator>0;
+          accordFilterIndicators.secteur =arrayAccordLength>0;
+          let AllSecteurCheckBox:any = document.querySelector(".secteur-all-checkbox");
+          if(AllSecteurCheckBox) {
+            AllSecteurCheckBox.checked = valeursSecteur.length===arrayAccordLength;
+          }
+          filterCheckedAll.secteur=valeursSecteur.length===arrayAccordLength;
           break;
         case 'Domaines':
-          accordFilterIndicators.domaine=displayIndicator>0;
+          accordFilterIndicators.domaine=arrayAccordLength>0;
+          let AllDomaineCheckBox:any = document.querySelector(".domaine-all-checkbox");
+          if(AllDomaineCheckBox){
+            AllDomaineCheckBox.checked = valeursDomaine.length===arrayAccordLength;
+          }
+          filterCheckedAll.domaine=valeursDomaine.length===arrayAccordLength;
           break;
         case 'Source_financement':
-          accordFilterIndicators.sourceF=displayIndicator>0;
+          accordFilterIndicators.sourceF=arrayAccordLength>0;
+          let AllSourceFCheckBox:any = document.querySelector(".sourceF-all-checkbox");
+          if(AllSourceFCheckBox){
+            AllSourceFCheckBox.checked = valeursSourcefinancement.length===arrayAccordLength;
+          }
+          filterCheckedAll.sourceF=valeursDomaine.length===arrayAccordLength;
           break;
         case 'Partenaires':
-          accordFilterIndicators.partenaire=displayIndicator>0;
+          accordFilterIndicators.partenaire=arrayAccordLength>0;
+          let AllPartenaireCheckBox:any = document.querySelector(".partenaire-all-checkbox");
+          if(AllPartenaireCheckBox){
+            AllPartenaireCheckBox.checked = valeursPartenaires.length===arrayAccordLength;
+          }
+          filterCheckedAll.partenaire=valeursDomaine.length===arrayAccordLength;
           break;
-        default:
-          accordFilterIndicators.niveauAvancement=displayIndicator>0;
+        default:// this is the filter niveau d'avancement , we don't need a searchBar here
+          accordFilterIndicators.niveauAvancement=arrayAccordLength>0;
       }
     }
   }
@@ -699,7 +739,7 @@
                       <UsersGroupOutline
                         class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                       /> 
-                      {#if icspFilterIndicator.beneficiaire}
+                      {#if icspFilterIndicator.beneficiaire && !filterCheckedAll.beneficiaireIcsp}
                         <div class={filterIndicatorStyle} ></div>
                       {/if}
                     </svelte:fragment>
@@ -715,10 +755,22 @@
                             on:input={(event) => handleInput(event,jsonToItem({ valeursBeneficiaire2 }, 'valeursBeneficiaire2'),'beneficiaireIcsp')}
                         />
                       </div>
+                      {#if beneficiareIcspInputValue.length===0}
+                        <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                          <Checkbox
+                            class="beneficiaireIcsp-all-checkbox"
+                            checked={filterCheckedAll.beneficiaireIcsp}
+                            on:change={() =>
+                              toggleAllCheckbox("beneficiaireIcsp")
+                            }>Tout sélectionner</Checkbox
+                          >
+                        </li>
+                      {/if}
+                      
                       {#each valeursBeneficiaire2 as beneficiaires}
                         {#if filterBeneficiaires(beneficiaires, beneficiaireIcspSearchResult)}
                           <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                            <Checkbox
+                            <Checkbox class="beneficiaireIcsp-checkbox"
                               id={beneficiaires.id_COMMUNE}
                               checked={beneficiaires.checked}
                               on:change={() =>
@@ -822,7 +874,7 @@
                         <UserOutline
                           class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                         />
-                        {#if accordFilterIndicators.region && !accordFilterCheckedAll.region}
+                        {#if accordFilterIndicators.region && !filterCheckedAll.region}
                           <div class={filterIndicatorStyle} ></div>
                         {/if}
                       </svelte:fragment>
@@ -842,10 +894,10 @@
                           <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                             <Checkbox
                               class="region-all-checkbox"
-                              checked={accordFilterCheckedAll.region}
+                              checked={filterCheckedAll.region}
                               on:change={() =>
                                 toggleAllCheckbox(
-                                  "region", "accord"
+                                  "region"
                                 )}>Tout sélectionner</Checkbox
                             >
                           </li>
@@ -902,7 +954,7 @@
                         <UsersOutline
                           class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                         />
-                        {#if accordFilterIndicators.departement && (accordFilterCheckedAll.departement)}
+                        {#if accordFilterIndicators.departement }
                           <div class={filterIndicatorStyle} ></div>
                         {/if}
                       </svelte:fragment>
@@ -923,10 +975,10 @@
                           <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                             <Checkbox
                               class="departement-all-checkbox"
-                              checked={accordFilterCheckedAll.departement}
+                              checked={filterCheckedAll.departement}
                               on:change={() =>
                                 toggleAllCheckbox(
-                                  "departement", "accord"
+                                  "departement"
                                 )}>Tout sélectionner</Checkbox
                             >
                           </li>
@@ -1002,11 +1054,23 @@
                       <Dropdown class={dropdownStyle}>
                         <div slot="header" class="p-3">
                           <SearchBar
-                            bind:inputValue={departementInputValue}
+                            bind:inputValue={beneficiaireAccordInputValue}
                             on:input={(event) => handleInput(event,jsonToItem({ valeursBeneficiaire }, 'valeursBeneficiaire'),'beneficiaireAccord')}
                           />
                         </div>
-
+                        {#if beneficiaireAccordInputValue.length===0}
+                          <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <Checkbox
+                              class="beneficiaireAccord-all-checkbox"
+                              checked={filterCheckedAll.beneficiaireAccord}
+                              on:change={() =>
+                                toggleAllCheckbox(
+                                  "beneficiaireAccord"
+                                )}>Tout sélectionner</Checkbox
+                            >
+                          </li>  
+                        {/if}
+                        
                         {#each valeursBeneficiaire.filter((beneficiaire) => {
                           // Vérifie si toutes les valeurs de région ont checked à false
                           const allUnchecked = valeursDepartement.every((departement) => !departement.checked);
@@ -1020,7 +1084,7 @@
                         }) as beneficiaires}
                           {#if filterBeneficiaires(beneficiaires, beneficiaireAccordSearchResult)}
                             <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                              <Checkbox
+                              <Checkbox class="beneficiaireAccord-checkbox"
                                 id={beneficiaires.id_COMMUNE}
                                 checked={beneficiaires.checked}
                                 on:change={() =>
@@ -1069,7 +1133,7 @@
                         <LandmarkOutline
                           class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                         />
-                        {#if accordFilterIndicators.instance}
+                        {#if accordFilterIndicators.instance && !filterCheckedAll.instance}
                           <div class={filterIndicatorStyle} ></div>
                         {/if}
                       </svelte:fragment>
@@ -1079,9 +1143,21 @@
                         /></Button
                       >
                       <Dropdown class={dropdownStyle}>
-                        {#each valeursAttribution as instances}
+                        {#if instanceInputValue.length===0}
                           <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                             <Checkbox
+                              class="instance-all-checkbox"
+                              checked={filterCheckedAll.instance}
+                              on:change={() =>
+                                toggleAllCheckbox(
+                                  "instance"
+                                )}>Tout sélectionner</Checkbox
+                            >
+                          </li>  
+                        {/if}
+                        {#each valeursAttribution as instances}
+                          <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <Checkbox class="instance-checkbox"
                               checked={instances.checked}
                               on:change={() =>
                                 toggleCheckbox(
@@ -1127,7 +1203,7 @@
                         <SwatchbookOutline
                           class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                         />
-                        {#if accordFilterIndicators.secteur}
+                        {#if accordFilterIndicators.secteur && !filterCheckedAll.secteur}
                           <div class={filterIndicatorStyle} ></div>
                         {/if}
                       </svelte:fragment>
@@ -1137,9 +1213,21 @@
                         /></Button
                       >
                       <Dropdown class={dropdownStyle}>
-                        {#each valeursSecteur as secteurs}
+                        {#if secteurInputValue.length===0}
                           <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                             <Checkbox
+                              class="secteur-all-checkbox"
+                              checked={filterCheckedAll.secteur}
+                              on:change={() =>
+                                toggleAllCheckbox(
+                                  "secteur"
+                                )}>Tout sélectionner</Checkbox
+                            >
+                          </li>  
+                        {/if}
+                        {#each valeursSecteur as secteurs}
+                          <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <Checkbox class="secteur-checkbox"
                               checked={secteurs.checked}
                               on:change={() =>
                                 toggleCheckbox(
@@ -1185,7 +1273,7 @@
                         <FolderOutline
                           class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                         />
-                        {#if accordFilterIndicators.domaine}
+                        {#if accordFilterIndicators.domaine && !filterCheckedAll.domaine}
                           <div class={filterIndicatorStyle} ></div>
                         {/if}
                       </svelte:fragment>
@@ -1195,6 +1283,19 @@
                         /></Button
                       >
                       <Dropdown class={dropdownStyle}>
+                        {#if domaineInputValue.length===0 && !accordFilterIndicators.secteur}
+                          <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <Checkbox
+                              class="domaine-all-checkbox"
+                              checked={filterCheckedAll.domaine}
+                              on:change={() =>
+                                toggleAllCheckbox(
+                                  "domaine"
+                                )}>Tout sélectionner</Checkbox
+                            >
+                          </li>
+                        {/if}
+                         
                         {#each valeursDomaine.filter((domaine)=>{
                           const allUnchecked = valeursSecteur.every((secteur) => !secteur.checked);
                           if(allUnchecked){
@@ -1205,6 +1306,7 @@
                         }) as domaines}
                           <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                             <Checkbox
+                              class= "domaine-checkbox"
                               checked={domaines.checked}
                               on:change={() =>
                                 toggleCheckbox(
@@ -1251,7 +1353,7 @@
                         <DollarOutline
                           class="w-auto text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                         />
-                        {#if accordFilterIndicators.sourceF}
+                        {#if accordFilterIndicators.sourceF && !filterCheckedAll.sourceF}
                           <div class={filterIndicatorStyle} ></div>
                         {/if}
                       </svelte:fragment>
@@ -1262,9 +1364,22 @@
                         /></Button
                       >
                       <Dropdown class={dropdownStyle}>
+                        {#if sourceFInputValue.length===0}
+                          <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <Checkbox
+                              class="sourceF-all-checkbox"
+                              checked={filterCheckedAll.sourceF}
+                              on:change={() =>
+                                toggleAllCheckbox(
+                                  "sourceF"
+                                )}>Tout sélectionner</Checkbox
+                            >
+                          </li>
+                        {/if}
                         {#each valeursSourcefinancement as financement}
                           <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                             <Checkbox
+                              class="sourceF-checkbox"
                               checked={financement.checked}
                               on:change={() =>
                                 toggleCheckbox(
@@ -1325,9 +1440,22 @@
                               /></Button
                             >
                             <Dropdown class={dropdownStyle}>
+                              {#if sourceFInputValue.length===0}
+                                <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                  <Checkbox
+                                    class="partenaire-all-checkbox"
+                                    checked={filterCheckedAll.partenaire}
+                                    on:change={() =>
+                                      toggleAllCheckbox(
+                                        "partenaire"
+                                      )}>Tout sélectionner</Checkbox
+                                  >
+                                </li>
+                              {/if}
                               {#each valeursPartenaires as partenaires}
                                 <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                                   <Checkbox
+                                    class="partenaire-checkbox"
                                     checked={partenaires.checked}
                                     on:change={() =>
                                       toggleCheckbox(
