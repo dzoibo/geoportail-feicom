@@ -160,11 +160,17 @@
   let beneficiaireAccordSearchResult: any[]=[];
   let beneficiaireIcspSearchResult:any[]=[];
 
-  let dropdownSelectionIndicateur7 = { indicateur: '', data: [] };
+  //filter indicator¸
+  let regionInputValue='';
+  let departementInputValue='';
+  let beneficiaireAccordInputValue='';
+  let beneficiareIcspInputValue='';
+
   //Accord
   let dropdownSelectionIndicateur10 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur9 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur8 = { indicateur: '', data: [] };
+  let dropdownSelectionIndicateur7 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur6 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur5 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur4 = { indicateur: '', data: [] };
@@ -225,8 +231,8 @@
       });
 
       valeursAttribution = uniqueValues(dataArr, indicateur1);
-      valeursSecteur = uniqueValues(dataArr, indicateur2);
-      valeursDomaine = uniqueValues(dataArr, indicateur3);
+      valeursSecteur = uniqueValues(dataArr, indicateur2,true,'id_SECTEUR');
+      valeursDomaine = uniqueValues(dataArr, indicateur3,true);
       valeursBeneficiaire = uniqueValues(dataArr, indicateur4, true, 'id_COMMUNE');
       valeursBeneficiaire2 = uniqueValues(icspData, indicateur7, true, 'id_COMMUNE');
       valeursSourcefinancement = uniqueValues(dataArr, indicateur5);
@@ -234,7 +240,6 @@
       valeursDepartement = uniqueValues(dataArr, indicateur8, true, 'id_DEPARTEMENT');
       valeursRegion = uniqueValues(dataArr, indicateur9, false, 'id_REGION');
       valeursAvancement = uniqueValues(dataArr, indicateur10);
-
       // Fusionner les deux tableaux en un seul
       const mergedArray = [...valeursBeneficiaire, ...valeursBeneficiaire2];
 
@@ -538,7 +543,7 @@
         break;
       default:
       beneficiaireIcspSearchResult=filteredData
-    }
+    } 
   };
 
   function filterBeneficiaires(beneficiaires, filteredItems) {
@@ -706,7 +711,8 @@
                     <Dropdown class={dropdownStyle}>
                       <div slot="header" class="p-3">
                         <SearchBar
-                            on:input={(event) => handleInput(event,jsonToItem({ valeursBeneficiaire2 }, 'valeursBeneficiaire2'),"beneficiaireIcsp")}
+                            bind:inputValue={beneficiareIcspInputValue}
+                            on:input={(event) => handleInput(event,jsonToItem({ valeursBeneficiaire2 }, 'valeursBeneficiaire2'),'beneficiaireIcsp')}
                         />
                       </div>
                       {#each valeursBeneficiaire2 as beneficiaires}
@@ -828,19 +834,23 @@
                       <Dropdown class={dropdownStyle}>
                         <div slot="header" class="p-3">
                           <SearchBar
-                            on:input={(event) => handleInput(event,jsonToItem({ valeursRegion }, 'valeursRegion'),"region")}
+                            bind:inputValue={regionInputValue}
+                            on:input={(event) => handleInput(event,jsonToItem({ valeursRegion }, 'valeursRegion'),'region')}
                           />
                         </div>
-                        <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                          <Checkbox
-                            class="region-all-checkbox"
-                            checked={accordFilterCheckedAll.region}
-                            on:change={() =>
-                              toggleAllCheckbox(
-                                "region", "accord"
-                              )}>Tout sélectionner</Checkbox
-                          >
-                        </li>
+                        {#if regionInputValue.length===0}
+                          <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <Checkbox
+                              class="region-all-checkbox"
+                              checked={accordFilterCheckedAll.region}
+                              on:change={() =>
+                                toggleAllCheckbox(
+                                  "region", "accord"
+                                )}>Tout sélectionner</Checkbox
+                            >
+                          </li>
+                        {/if}
+                        
                         {#each valeursRegion as region}
                           {#if filterBeneficiaires(region, regionSearchResult)}
                             <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
@@ -904,19 +914,24 @@
                       <Dropdown class={dropdownStyle}>
                         <div slot="header" class="p-3">
                           <SearchBar
-                            on:input={(event) => handleInput(event,jsonToItem({ valeursDepartement }, 'valeursDepartement',"departement"))}
+                            bind:inputValue={departementInputValue}
+                            on:input={(event) => handleInput(event,jsonToItem({ valeursDepartement }, 'valeursDepartement'),'departement')}
                           />
                         </div>
-                        <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                          <Checkbox
-                            class="departement-all-checkbox"
-                            checked={accordFilterCheckedAll.departement}
-                            on:change={() =>
-                              toggleAllCheckbox(
-                                "departement", "accord"
-                              )}>Tout sélectionner</Checkbox
-                          >
-                        </li>
+
+                        {#if departementInputValue.length===0}
+                          <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <Checkbox
+                              class="departement-all-checkbox"
+                              checked={accordFilterCheckedAll.departement}
+                              on:change={() =>
+                                toggleAllCheckbox(
+                                  "departement", "accord"
+                                )}>Tout sélectionner</Checkbox
+                            >
+                          </li>
+                        {/if}
+                        
                         {#each valeursDepartement.filter((departement) => {
                           // Vérifie si toutes les valeurs de région ont checked à false
                           const allUnchecked = valeursRegion.every((region) => !region.checked);
@@ -987,22 +1002,23 @@
                       <Dropdown class={dropdownStyle}>
                         <div slot="header" class="p-3">
                           <SearchBar
-                            on:input={(event) => handleInput(event,jsonToItem({ valeursBeneficiaire }, 'valeursBeneficiaire'),"beneficiaireAccord")}
+                            bind:inputValue={departementInputValue}
+                            on:input={(event) => handleInput(event,jsonToItem({ valeursBeneficiaire }, 'valeursBeneficiaire'),'beneficiaireAccord')}
                           />
                         </div>
 
                         {#each valeursBeneficiaire.filter((beneficiaire) => {
                           // Vérifie si toutes les valeurs de région ont checked à false
-                          const allUnchecked = valeursRegion.every((region) => !region.checked);
+                          const allUnchecked = valeursDepartement.every((departement) => !departement.checked);
                           // Si toutes les valeurs de région sont unchecked, inclure tous les bénéficiaires
                           if (allUnchecked) {
                             return true;
                           } else {
                             // Sinon, inclure les bénéficiaires dont la région correspond à une région sélectionnée
-                            return valeursRegion.find((region) => region.id === beneficiaire.id_REGION && region.checked);
+                            return valeursDepartement.find((departement) => departement.id === beneficiaire.id_DEPARTEMENT && departement.checked);
                           }
                         }) as beneficiaires}
-                          {#if filterBeneficiaires(beneficiaires, beneficiaireIcspSearchResult)}
+                          {#if filterBeneficiaires(beneficiaires, beneficiaireAccordSearchResult)}
                             <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                               <Checkbox
                                 id={beneficiaires.id_COMMUNE}
@@ -1147,11 +1163,15 @@
                                   {word}
                                   <CloseButton
                                     on:click={() =>
-                                      closeDiv(word, dropdownSelectionIndicateur2, valeursSecteur)}
+                                      closeDiv(
+                                        word,
+                                        dropdownSelectionIndicateur2,
+                                        valeursSecteur,
+                                        'accord'
+                                      )}
                                     class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
                                   />
                                 </div>
-                                ,'accord'
                               {/each}
                             {/if}
                           {/each}
@@ -1170,12 +1190,19 @@
                         {/if}
                       </svelte:fragment>
                       <Button class="bg-[#234099] hover:bg-[#182D73]"
-                        >Sélection des projets<ChevronDownSolid
+                        >Sélection des domaines<ChevronDownSolid
                           class="w-3 h-3 ms-2 text-white dark:text-white"
                         /></Button
                       >
                       <Dropdown class={dropdownStyle}>
-                        {#each valeursDomaine as domaines}
+                        {#each valeursDomaine.filter((domaine)=>{
+                          const allUnchecked = valeursSecteur.every((secteur) => !secteur.checked);
+                          if(allUnchecked){
+                            return true;
+                          }else{
+                            return valeursSecteur.find((secteur) => secteur.id === domaine.id_SECTEUR && secteur.checked);
+                          }
+                        }) as domaines}
                           <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                             <Checkbox
                               checked={domaines.checked}
@@ -1201,11 +1228,15 @@
                                   {word}
                                   <CloseButton
                                     on:click={() =>
-                                      closeDiv(word, dropdownSelectionIndicateur3, valeursDomaine)}
+                                      closeDiv(
+                                        word,
+                                        dropdownSelectionIndicateur3,
+                                        valeursDomaine,
+                                        'accord'
+                                      )}
                                     class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
                                   />
                                 </div>
-                                ,'accord'
                               {/each}
                             {/if}
                           {/each}

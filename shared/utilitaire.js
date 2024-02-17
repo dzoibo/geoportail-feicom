@@ -14,24 +14,25 @@ export function uniqueValues(tableau, attribut, option = false, id) {
         const id_COMMUNE = objet['id_COMMUNE'];
         const id_REGION = objet['id_REGION'];
         const id_DEPARTEMENT = objet['id_DEPARTEMENT'];
+        const id_SECTEUR = objet['id_SECTEUR'];
 
-        if (valeur !== null && !seenValues[valeur]) {
+        if (valeur !== null && !seenValues[valeur.toLowerCase()]) {
             const item = { 'key': valeur, checked: false, 'id': valeurID };
 
             if (option && id_COMMUNE) {
                 item['id_COMMUNE'] = id_COMMUNE;
                 item['id_REGION'] = id_REGION;
                 item['id_DEPARTEMENT'] = id_DEPARTEMENT;
+                item['id_SECTEUR']=id_SECTEUR;
             }
-
             result.push(item);
-            seenValues[valeur] = true;
+            seenValues[valeur.toLowerCase()] = true;
         }
     }
 
     // Triez les clés par ordre ascendant
     result.sort((a, b) => a.key.localeCompare(b.key));
-
+    console.log(result);
     return result;
 }
 
