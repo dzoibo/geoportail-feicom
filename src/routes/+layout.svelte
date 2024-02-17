@@ -159,6 +159,10 @@
   let departementSearchResult:any[]=[];
   let beneficiaireAccordSearchResult: any[]=[];
   let beneficiaireIcspSearchResult:any[]=[];
+  let instanceSearchResult: any[]=[];
+  let secteurSearchResult: any[]=[];
+  let domaineSearchResult: any[]=[];
+  let partenaireSearchResult: any[]=[];
 
   //filter indicator¸
   let regionInputValue='';
@@ -169,6 +173,7 @@
   let secteurInputValue='';
   let domaineInputValue='';
   let sourceFInputValue='';
+  let partenaireInputValue='';
 
   //Accord
   let dropdownSelectionIndicateur10 = { indicateur: '', data: [] };
@@ -568,26 +573,39 @@
 
   const handleInput = (event,data,filter) => {
     const value = event.target.value;
-    const filteredData= data.filter((item) =>
+    const searchResult= data.filter((item) =>
       item.toLowerCase().match(value.toLowerCase())
     );
     switch(filter) {
       case 'region':
-        regionSearchResult=filteredData
+        regionSearchResult=searchResult
         break;
       case 'departement':
-        departementSearchResult=filteredData
+        departementSearchResult=searchResult
         break;
       case 'beneficiaireAccord':
-      beneficiaireAccordSearchResult=filteredData
+        beneficiaireAccordSearchResult=searchResult
+        break;
+      case 'instance':
+        instanceSearchResult=searchResult;
+        break;
+      case 'secteur':
+        secteurSearchResult=searchResult;
+        break;
+      case 'domaine':
+        domaineSearchResult=searchResult;
+        break;
+      case 'partenaire':
+        partenaireSearchResult=searchResult;
         break;
       default:
-      beneficiaireIcspSearchResult=filteredData
+      beneficiaireIcspSearchResult=searchResult
     } 
   };
 
-  function filterBeneficiaires(beneficiaires, filteredItems) {
-    return filteredItems.length === 0 || filteredItems.includes(beneficiaires.key);
+  // filter the list and display only the element found during the search 
+  function filterList(listItem, searchResult) {
+    return searchResult.length === 0 || searchResult.includes(listItem.key);
   }
 
   // Fonction pour réinitialiser les filtres et vider les dropdowns
@@ -768,7 +786,7 @@
                       {/if}
                       
                       {#each valeursBeneficiaire2 as beneficiaires}
-                        {#if filterBeneficiaires(beneficiaires, beneficiaireIcspSearchResult)}
+                        {#if filterList(beneficiaires, beneficiaireIcspSearchResult)}
                           <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                             <Checkbox class="beneficiaireIcsp-checkbox"
                               id={beneficiaires.id_COMMUNE}
@@ -904,7 +922,7 @@
                         {/if}
                         
                         {#each valeursRegion as region}
-                          {#if filterBeneficiaires(region, regionSearchResult)}
+                          {#if filterList(region, regionSearchResult)}
                             <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                               <Checkbox class="region-checkbox"
                                 checked={region.checked}
@@ -995,7 +1013,7 @@
                             return valeursRegion.find((region) => region.id === departement.id_REGION && region.checked);
                           }
                         }) as departement}
-                          {#if filterBeneficiaires(departement, departementSearchResult)}
+                          {#if filterList(departement, departementSearchResult)}
                             <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                               <Checkbox class="departement-checkbox" 
                                 checked={departement.checked}
@@ -1082,7 +1100,7 @@
                             return valeursDepartement.find((departement) => departement.id === beneficiaire.id_DEPARTEMENT && departement.checked);
                           }
                         }) as beneficiaires}
-                          {#if filterBeneficiaires(beneficiaires, beneficiaireAccordSearchResult)}
+                          {#if filterList(beneficiaires, beneficiaireAccordSearchResult)}
                             <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                               <Checkbox class="beneficiaireAccord-checkbox"
                                 id={beneficiaires.id_COMMUNE}
@@ -1143,6 +1161,12 @@
                         /></Button
                       >
                       <Dropdown class={dropdownStyle}>
+                        <div slot="header" class="p-3">
+                          <SearchBar
+                            bind:inputValue={instanceInputValue}
+                            on:input={(event) => handleInput(event,jsonToItem({ valeursAttribution }, 'valeursAttribution'),'instance')}
+                          />
+                        </div>
                         {#if instanceInputValue.length===0}
                           <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                             <Checkbox
@@ -1156,18 +1180,20 @@
                           </li>  
                         {/if}
                         {#each valeursAttribution as instances}
-                          <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                            <Checkbox class="instance-checkbox"
-                              checked={instances.checked}
-                              on:change={() =>
-                                toggleCheckbox(
-                                  instances,
-                                  dropdownSelectionIndicateur1,
-                                  valeursAttribution,
-                                  'accord'
-                                )}>{instances.key}</Checkbox
-                            >
-                          </li>
+                          {#if filterList(instances, instanceSearchResult)}
+                            <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                              <Checkbox class="instance-checkbox"
+                                checked={instances.checked}
+                                on:change={() =>
+                                  toggleCheckbox(
+                                    instances,
+                                    dropdownSelectionIndicateur1,
+                                    valeursAttribution,
+                                    'accord'
+                                  )}>{instances.key}</Checkbox
+                              >
+                            </li>
+                          {/if}
                         {/each}
                       </Dropdown>
                       <div class="px-2 pt-1 pb-2">
@@ -1197,6 +1223,7 @@
                       </div>
                     </SidebarDropdownWrapper>
                   </SidebarGroup>
+
                   <SidebarGroup class={cardForSideBar}>
                     <SidebarDropdownWrapper label="Secteur">
                       <svelte:fragment slot="icon">
@@ -1213,6 +1240,12 @@
                         /></Button
                       >
                       <Dropdown class={dropdownStyle}>
+                        <div slot="header" class="p-3">
+                          <SearchBar
+                            bind:inputValue={secteurInputValue}
+                            on:input={(event) => handleInput(event,jsonToItem({ valeursSecteur }, 'valeursSecteur'),'secteur')}
+                          />
+                        </div>
                         {#if secteurInputValue.length===0}
                           <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                             <Checkbox
@@ -1226,18 +1259,20 @@
                           </li>  
                         {/if}
                         {#each valeursSecteur as secteurs}
-                          <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                            <Checkbox class="secteur-checkbox"
-                              checked={secteurs.checked}
-                              on:change={() =>
-                                toggleCheckbox(
-                                  secteurs,
-                                  dropdownSelectionIndicateur2,
-                                  valeursSecteur,
-                                  'accord'
-                                )}>{secteurs.key}</Checkbox
-                            >
-                          </li>
+                          {#if filterList(secteurs, secteurSearchResult)}
+                            <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                              <Checkbox class="secteur-checkbox"
+                                checked={secteurs.checked}
+                                on:change={() =>
+                                  toggleCheckbox(
+                                    secteurs,
+                                    dropdownSelectionIndicateur2,
+                                    valeursSecteur,
+                                    'accord'
+                                  )}>{secteurs.key}</Checkbox
+                              >
+                            </li>
+                          {/if}
                         {/each}
                       </Dropdown>
                       <div class="px-2 pt-1 pb-2">
@@ -1283,6 +1318,12 @@
                         /></Button
                       >
                       <Dropdown class={dropdownStyle}>
+                        <div slot="header" class="p-3">
+                          <SearchBar
+                            bind:inputValue={domaineInputValue}
+                            on:input={(event) => handleInput(event,jsonToItem({ valeursDomaine }, 'valeursDomaine'),'domaine')}
+                          />
+                        </div>
                         {#if domaineInputValue.length===0 && !accordFilterIndicators.secteur}
                           <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                             <Checkbox
@@ -1304,19 +1345,21 @@
                             return valeursSecteur.find((secteur) => secteur.id === domaine.id_SECTEUR && secteur.checked);
                           }
                         }) as domaines}
-                          <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                            <Checkbox
-                              class= "domaine-checkbox"
-                              checked={domaines.checked}
-                              on:change={() =>
-                                toggleCheckbox(
-                                  domaines,
-                                  dropdownSelectionIndicateur3,
-                                  valeursDomaine,
-                                  'accord'
-                                )}>{domaines.key}</Checkbox
-                            >
-                          </li>
+                          {#if filterList(domaines, domaineSearchResult)}
+                            <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                              <Checkbox
+                                class= "domaine-checkbox"
+                                checked={domaines.checked}
+                                on:change={() =>
+                                  toggleCheckbox(
+                                    domaines,
+                                    dropdownSelectionIndicateur3,
+                                    valeursDomaine,
+                                    'accord'
+                                  )}>{domaines.key}</Checkbox
+                              >
+                            </li>
+                          {/if}
                         {/each}
                       </Dropdown>
                       <div class="px-2 pt-1 pb-2">
@@ -1440,7 +1483,13 @@
                               /></Button
                             >
                             <Dropdown class={dropdownStyle}>
-                              {#if sourceFInputValue.length===0}
+                              <div slot="header" class="p-3">
+                                <SearchBar
+                                  bind:inputValue={partenaireInputValue}
+                                  on:input={(event) => handleInput(event,jsonToItem({ valeursPartenaires }, 'valeursPartenaires'),'partenaire')}
+                                />
+                              </div>
+                              {#if partenaireInputValue.length===0}
                                 <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                                   <Checkbox
                                     class="partenaire-all-checkbox"
@@ -1453,19 +1502,21 @@
                                 </li>
                               {/if}
                               {#each valeursPartenaires as partenaires}
-                                <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                                  <Checkbox
-                                    class="partenaire-checkbox"
-                                    checked={partenaires.checked}
-                                    on:change={() =>
-                                      toggleCheckbox(
-                                        partenaires,
-                                        dropdownSelectionIndicateur6,
-                                        valeursPartenaires,
-                                        'accord'
-                                      )}>{partenaires.key}</Checkbox
-                                  >
-                                </li>
+                                {#if filterList(partenaires, partenaireSearchResult)}
+                                  <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                    <Checkbox
+                                      class="partenaire-checkbox"
+                                      checked={partenaires.checked}
+                                      on:change={() =>
+                                        toggleCheckbox(
+                                          partenaires,
+                                          dropdownSelectionIndicateur6,
+                                          valeursPartenaires,
+                                          'accord'
+                                        )}>{partenaires.key}</Checkbox
+                                    >
+                                  </li>
+                                {/if}
                               {/each}
                             </Dropdown>
                             <div class="px-2 pt-1 pb-2">
