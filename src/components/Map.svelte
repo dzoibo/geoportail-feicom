@@ -127,6 +127,7 @@
   let showDep = false;
   let showCom = false;
   let showReg = true;
+  let toolTipStyle="bg-white text-black font-normal z-10";
   let currentGeo = 'reg';
   let resultat;
   let heightSideBar;
@@ -777,16 +778,30 @@
     <GeolocateControl position="top-right" fitBoundsOptions={{ maxZoom: 25 }} />
     <FullscreenControl position="top-right" />
     <ScaleControl />
-
+    <Tooltip triggeredBy="#reg-tooltip" class={toolTipStyle} placement ='right' >
+      Échelle régional
+    </Tooltip>
+    <Tooltip triggeredBy="#dep-tooltip" class={toolTipStyle} placement ='right' >
+      Échelle départemental
+    </Tooltip>
+    <Tooltip triggeredBy="#com-tooltip" class={toolTipStyle} placement ='right' >
+      Échelle communal
+    </Tooltip>
     <Control position="top-left" class="flex flex-col gap-y-2">
-      <ControlGroup>
+      <ControlGroup >
         {#if theme!=='info'}
-          <ControlButton id="reg" class={showReg ? 'bg-gray-200' : ''} on:click={() => toggleLayer('reg')}>REG</ControlButton>
+          <div id="reg-tooltip">
+            <ControlButton id="reg" class={showReg ? 'bg-gray-200' : ''} on:click={() => toggleLayer('reg')}>REG</ControlButton>
+          </div>
         {/if}
         {#if theme==='accord'}
-          <ControlButton id="dep" class={showDep ? 'bg-gray-200' : ''} on:click={() => toggleLayer('dep')}>DEP</ControlButton>
+          <div id="dep-tooltip">
+            <ControlButton id="dep" class={showDep ? 'bg-gray-200' : ''} on:click={() => toggleLayer('dep')}>DEP</ControlButton>
+          </div>
         {/if}
-        <ControlButton id="com" class={showCom ? 'bg-gray-200' : ''} on:click={() => toggleLayer('com')}>COM</ControlButton>
+          <div id="com-tooltip">
+            <ControlButton id="com" class={showCom ? 'bg-gray-200' : ''} on:click={() => toggleLayer('com')}>COM</ControlButton>
+          </div>
       </ControlGroup>
     </Control>
 

@@ -465,6 +465,7 @@
           accordFilterIndicators.niveauAvancement=arrayAccordLength>0;
       }
     }
+
   }
   function updateSelectedWords(
     array: { indicateur: string; data: never[] } | undefined,
@@ -1618,7 +1619,10 @@
           </Tabs>
         </SidebarWrapper>
         <!-- Bouton Reset Filter -->
-        {#if (theme==='accord' && arrayAllIndicateurs.accord.length > 0 )|| (theme==='icsp' && icspFilterIndicator.beneficiaire > 0)}
+        {#if 
+          (theme==='accord' && Object.values(accordFilterIndicators).some(value => value === true) )|| 
+          (theme==='icsp' && icspFilterIndicator.beneficiaire=== true)
+        }
           <button
             class="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-800 m-4"
             on:click={resetFilters}>Réinitialiser les filtres</button
