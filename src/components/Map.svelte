@@ -22,6 +22,7 @@
     optionForBarChart,
     optionForLineChart,
     getSumPerYear,
+    getSumSuperficy,
     uniqueValuesInArrayOfObject,
     rechercheMulticriteres,
     rechercheMulticriteresPourFEICOM,
@@ -223,16 +224,15 @@
     buttonICSP.subscribe(($theme) => {
       // Mettez à jour la valeur locale avec la valeur du store
         theme = $theme; 
-        if($theme==='info'){
-          toggleLayer('com');
-        }else{
+        if(showDep){// thius means that we we in the theme "appuis financier " cause it's the only theme to have the scale dep. so when we switch to another theme we have to go back to the scale region 
           toggleLayer('reg');
         }
     });
-
     if (theme==='icsp') {
       dataForMap = icspData;
-    } else {
+    } else if(theme==='info') {
+      dataForMap = communeData;
+    }else{
       dataForMap = dataArr2;
     }
   });
@@ -244,7 +244,7 @@
   $: {
     let indicateur;
     let communesCommunes = [];
-    if (showCom) {
+    if (showCom ) {
       scale = 'id_COMMUNE';
       toggleLayer('com');
     } else if (showReg) {
@@ -258,7 +258,6 @@
     if (sidebarId) {
       heightSideBar = sidebarId.offsetHeight;
     }
-
     if (dataForMap.length > 0 && trigger == true) {
       if (
         (storeIndicateurForMap.accord.some((item) => item.indicateur === 'Bénéficiaire') &&
@@ -266,6 +265,7 @@
         (storeIndicateurForMap.icsp.some((item) => item.indicateur === 'COMMUNE') &&
           dataForMap.length > 0)
       ) {
+
         // Déclarez l'indicateur dans une variable
         if (dataForMap.length > 0 && trigger == true) {
           if (map && loaded) {
@@ -314,7 +314,6 @@
         // Cas où aucune condition n'est satisfaite, donc CommunesCommunes est un tableau vide
         communesCommunes = [];
       }
-
       if (theme==='icsp') {
         if (getbbox.length > 0) {
           scale = 'id_COMMUNE';
@@ -329,8 +328,9 @@
           storeIndicateurForMap.icsp
         );
 
+
         MinMax = findMinMax(statisticsPerRegion, 'value');
-      } else {
+      } else if(theme==='accord'){
         if (getbbox.length > 0) {
           scale = 'id_COMMUNE';
           toggleLayer('com');
@@ -350,7 +350,24 @@
           // Gérer le cas où statisticsPerRegion est vide
           MinMax = { min: 0, max: 0 };
         }
+      }else{
+        if (getbbox.length > 0) {
+          scale = 'id_COMMUNE';
+          toggleLayer('com');
+        }
+        dataForMap=communeData;
+        statisticsPerRegion = getSumSuperficy(
+          dataForMap,
+          scale
+        );
+        if (statisticsPerRegion.length > 0) {
+          MinMax = findMinMax(statisticsPerRegion, 'value');
+        } else {
+          // Gérer le cas où statisticsPerRegion est vide
+          MinMax = { min: 0, max: 0 };
+        }
       }
+
       paintProperties = getUpdatedPaintProperties(MinMax);
     }
   }
@@ -364,7 +381,11 @@
       detailsMandatCommune = findAllObjectsByAttribute(mandatData, 'id_COMMUNE', nom_commune);
       anneeDebutMandat = sortByDescendingOrder(detailsMandatCommune, 'DEBUT MANDAT');
       anneeFinMandat = sortByDescendingOrder(detailsMandatCommune, 'FIN MANDAT');
-      //console.log(anneeFinMandat);
+     
+      console.log('details mandat',detailsMandatCommune);
+      console.log('année debut',anneeDebutMandat);
+      console.log(' fin',anneeFinMandat);
+
     }
     if (theme!=='icsp') {
       nom_commune = e.detail.features[0].properties['ref:COG'];
@@ -778,30 +799,34 @@
     <GeolocateControl position="top-right" fitBoundsOptions={{ maxZoom: 25 }} />
     <FullscreenControl position="top-right" />
     <ScaleControl />
-    <Tooltip triggeredBy="#reg-tooltip" class={toolTipStyle} placement ='right' >
-      Échelle régional
-    </Tooltip>
-    <Tooltip triggeredBy="#dep-tooltip" class={toolTipStyle} placement ='right' >
-      Échelle départemental
-    </Tooltip>
-    <Tooltip triggeredBy="#com-tooltip" class={toolTipStyle} placement ='right' >
-      Échelle communal
-    </Tooltip>
+    
+    
+    
     <Control position="top-left" class="flex flex-col gap-y-2">
       <ControlGroup >
-        {#if theme!=='info'}
-          <div id="reg-tooltip">
-            <ControlButton id="reg" class={showReg ? 'bg-gray-200' : ''} on:click={() => toggleLayer('reg')}>REG</ControlButton>
-          </div>
-        {/if}
+
+        <Tooltip triggeredBy="#reg-tooltip" class={toolTipStyle} placement ='right' >
+          Échelle régional
+        </Tooltip>
+        <div id="reg-tooltip">
+          <ControlButton id="reg" class={showReg ? 'bg-gray-200' : ''} on:click={() => toggleLayer('reg')}>REG</ControlButton>
+        </div>
+
         {#if theme==='accord'}
+          <Tooltip triggeredBy="#dep-tooltip" class={toolTipStyle} placement ='right' >
+            Échelle départemental
+          </Tooltip>
           <div id="dep-tooltip">
             <ControlButton id="dep" class={showDep ? 'bg-gray-200' : ''} on:click={() => toggleLayer('dep')}>DEP</ControlButton>
           </div>
         {/if}
-          <div id="com-tooltip">
-            <ControlButton id="com" class={showCom ? 'bg-gray-200' : ''} on:click={() => toggleLayer('com')}>COM</ControlButton>
-          </div>
+
+        <Tooltip triggeredBy="#com-tooltip" class={toolTipStyle} placement ='right' >
+          Échelle communal
+        </Tooltip>
+        <div id="com-tooltip">
+          <ControlButton id="com" class={showCom ? 'bg-gray-200' : ''} on:click={() => toggleLayer('com')}>COM</ControlButton>
+        </div>
       </ControlGroup>
     </Control>
 
@@ -842,11 +867,15 @@
                 {#if (theme==='icsp')}
                   <!-- Afficher la valeur avec l'unité 'XAF' -->
                   <div class="text-sm poppins-light">{formattedValue(value)} XAF</div>
-                {:else}
-                  <!-- Afficher la valeur avec l'unité 'projet' -->
+                {:else if (theme==='info')}
+                  <!-- Afficher la valeur avec l'unité 'Km2' -->
                   <div class="text-sm poppins-light text-center">
+                    {formattedValue(value)} km² 
+                  </div>
+                {:else }
+                  <div class="text-sm poppins-light text-center">
+                    <!-- afficher le nombre de concours financiers ou le montant total de ces concours financers --> 
                     {formattedValue(value)}<br> 
-                    <!-- {formattedValue(dataAmount)} --> 
                   </div>
                 {/if}
               </div>

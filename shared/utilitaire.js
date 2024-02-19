@@ -79,6 +79,34 @@ export function getSumOf(data, key) {
     return result;
 }
 
+export function getSumSuperficy(data,scale){ // for now "Information generale" doesn't care about filter and date so we don't need to handle it here
+    if (!data || data.length === 0) {
+        return []; 
+    }
+
+    const superficyByRegion={};
+    for(const entry of data){
+        const region =entry[scale];
+        const superficy=typeof entry.SUPERFICIE==='number'? entry.SUPERFICIE : 0;
+
+        if(!superficyByRegion[region]) {
+            superficyByRegion[region] = superficy;
+        }else{
+            superficyByRegion[region] += superficy;
+        }
+    }
+
+    
+
+    const result = Object.entries(superficyByRegion).map(([key, value]) => ({
+        [scale]: key,
+        'value': value
+    }));
+
+    return result;
+
+}
+
 export function getSumPerYear(data, startYear, endYear, scale) {
     const statistics = {};
 
