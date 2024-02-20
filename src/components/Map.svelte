@@ -28,6 +28,7 @@
     rechercheMulticriteres,
     rechercheMulticriteresPourFEICOM,
     sortByDescendingOrder,
+    sortByAscendingOrder,
     zoomToFeatureByValue,
     fetchIdCommunesFromCommunesID,
     getOverallBbox
@@ -662,18 +663,38 @@
             <Table shadow hoverable={true} striped={true} class=" table-fixed sm:table-auto">
               <TableHead>
                 {#each Object.keys(allProject[0]) as key}
-                  {#if ['Année financement', 'Montant du financement', 'Intitulé projet amélioré', 'Niveau d’avancement'].includes(key)}
+                  {#if [
+                    "Date d'octroi financement",
+                    "Bénéficiaire",
+                    "Intitulé projet amélioré",
+                    "Instance d'attribution",
+                    "Montant du financement",
+                    "Niveau d’avancement"
+                    ].includes(key)}
                     <TableHeadCell style=" white-space: unset !important">{key}</TableHeadCell>
                   {/if}
                 {/each}
               </TableHead>
               <TableBody class="">
-                {#each allProject as project}
+                {#each sortByAscendingOrder(allProject,'Année financement') as project}
                   <TableBodyRow>
                     {#each Object.keys(project) as key}
-                      {#if ['Année financement', 'Montant du financement', 'Intitulé projet amélioré', 'Niveau d’avancement'].includes(key)}
+                      {#if [
+                        "Date d'octroi financement",
+                        "Bénéficiaire",
+                        "Intitulé projet amélioré",
+                        "Instance d'attribution",
+                        "Montant du financement",
+                        "Niveau d’avancement"
+                        ].includes(key)}
                         <TableBodyCell style=" white-space: unset !important; sm:w-1/4"
-                          >{project[key]}</TableBodyCell
+                          >
+                            {#if project[key] !== null }
+                              {project[key]} 
+                            {:else}
+                              <span class="italic">Non disponible</span>
+                            {/if}
+                          </TableBodyCell
                         >
                       {/if}
                     {/each}

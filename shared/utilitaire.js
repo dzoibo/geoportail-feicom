@@ -394,6 +394,9 @@ export function sortByDescendingOrder(arr, property) {
     return arr.sort((a, b) => b[property] - a[property]);
 }
 
+export function sortByAscendingOrder(arr, property) {
+    return arr.sort((a, b) => a[property] - b[property]);
+}
 
 export function formattedValue(value) {
     return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
