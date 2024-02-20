@@ -17,6 +17,7 @@
     rangeValue,
     buttonICSP,
     rangeValueAccord,
+    accordMode,
     storeIndicateur5,
     storeIndicateur,
     heightNavBar,
@@ -39,6 +40,7 @@
     SidebarDropdownWrapper,
     Button,
     Dropdown,
+    Select,
     Checkbox,
     ButtonGroup,
     Range,
@@ -57,6 +59,7 @@
     ChevronDownSolid,
     CheckPlusCircleOutline,
     CalendarMonthOutline,
+    DatabaseOutline,
     UserAddOutline,
     UserOutline,
     UsersOutline,
@@ -225,6 +228,12 @@
     beneficiaireAccord: false,
   }
   
+  let accordDisplaySelectedMode='projet';
+
+  let accordDisplayModes = [
+    { value: 'projet', name: 'Afficher par nombre de projet' },
+    { value: 'amount', name: 'Afficher par montant' },
+  ];
 
   onMount(async function () {
     try {
@@ -519,6 +528,7 @@
   }
 
   $: {
+    accordMode.set(accordDisplaySelectedMode);
     if (minSliderValue <= maxSliderValue) {
       minSliderValue = minSliderValue;
     } else {
@@ -642,6 +652,8 @@
       accordFilterIndicators.niveauAvancement=false
     }
   }
+
+ 
 </script>
 
 <svelte:window bind:innerWidth={width} bind:innerHeight={height} />
@@ -848,6 +860,20 @@
                   Appuis financiers
                 </div>
                 <SidebarGroup id="finance">
+                  <SidebarGroup class={cardForSideBar}>
+                    <SidebarDropdownWrapper label="Choix d'affichage">
+                      <svelte:fragment slot="icon">
+                        <DatabaseOutline
+                          class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                        />
+                      </svelte:fragment>
+                      <Label class="mx-1 text-sm text-gray-500 ">
+                        <span>Sélectionner le mode d'affichage des données</span>
+                        
+                        <Select placeholder="" class="text-gray-500  mode-select mt-2" items={accordDisplayModes} bind:value={accordDisplaySelectedMode} />
+                      </Label>
+                    </SidebarDropdownWrapper>
+                  </SidebarGroup>
                   <SidebarGroup class={cardForSideBar}>
                     <SidebarDropdownWrapper label="Années">
                       <svelte:fragment slot="icon">

@@ -7,7 +7,8 @@
     rangeValueAccord,
     storeIndicateur5,
     storeIndicateur,
-    heightNavBar
+    heightNavBar,
+    accordMode
   } from '../../shared/store';
   import Pagination from '../components/Pagination.svelte';
   import {
@@ -108,6 +109,7 @@
   let showFinancement;
   let valueSliderICSP = 0; // Initialisez avec une valeur par défaut
   let valueSliderAccord = []; // Initialisez avec une valeur par défaut
+  let valeurAccordMode ='' ; // determine if data in the card of "appuis financiers " should be base number of projects or amount of projects 
   let storeIndicateur5ForMap = {};
   let storeIndicateurForMap = {};
   let mapFilterIndicateur5 = {};
@@ -200,6 +202,10 @@
       valueSliderICSP = $rangeValue;
     });
 
+    accordMode.subscribe(($accodMode)=>{
+      valeurAccordMode = $accodMode;
+    })
+    
     // Récupération de la data provenant de layout.svete
     storeIndicateur5.subscribe(($storeIndicateur5) => {
       storeIndicateur5ForMap = $storeIndicateur5;
@@ -341,6 +347,7 @@
           mapFilterIndicateur,
           valueSliderAccord[0],
           valueSliderAccord[1],
+          valeurAccordMode,
           scale
         );
 
@@ -381,11 +388,6 @@
       detailsMandatCommune = findAllObjectsByAttribute(mandatData, 'id_COMMUNE', nom_commune);
       anneeDebutMandat = sortByDescendingOrder(detailsMandatCommune, 'DEBUT MANDAT');
       anneeFinMandat = sortByDescendingOrder(detailsMandatCommune, 'FIN MANDAT');
-     
-      console.log('details mandat',detailsMandatCommune);
-      console.log('année debut',anneeDebutMandat);
-      console.log(' fin',anneeFinMandat);
-
     }
     if (theme!=='icsp') {
       nom_commune = e.detail.features[0].properties['ref:COG'];
@@ -875,7 +877,11 @@
                 {:else }
                   <div class="text-sm poppins-light text-center">
                     <!-- afficher le nombre de concours financiers ou le montant total de ces concours financers --> 
-                    {formattedValue(value)}<br> 
+                    {#if (valeurAccordMode==='projet')}
+                      <div class="text-sm poppins-light">{formattedValue(value)} <i>Financement(s)</i> </div>
+                    {:else}
+                      <div class="text-sm poppins-light">{formattedValue(value)} XAF</div>
+                    {/if}
                   </div>
                 {/if}
               </div>
@@ -920,7 +926,11 @@
                   <div class="text-sm poppins-light">{formattedValue(value)} XAF</div>
                 {:else}
                   <!-- Afficher la valeur avec l'unité 'projet' -->
-                  <div class="text-sm poppins-light">{formattedValue(value)} </div>
+                  {#if (valeurAccordMode==='projet')}
+                    <div class="text-sm poppins-light">{formattedValue(value)} <i>Financement(s)</i> </div>
+                  {:else}
+                    <div class="text-sm poppins-light">{formattedValue(value)} XAF</div>
+                  {/if}
                 {/if}
                 <div class="text-sm font-italic"></div>
               </div>

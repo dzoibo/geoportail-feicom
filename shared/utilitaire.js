@@ -87,8 +87,7 @@ export function getSumSuperficy(data,scale){ // for now "Information generale" d
     const superficyByRegion={};
     for(const entry of data){
         const region =entry[scale];
-        const superficy=typeof entry.SUPERFICIE==='number'? entry.SUPERFICIE : 0;
-
+        const superficy=typeof entry.SUPERFICIE==='number'? entry.SUPERFICIE : parseInt(entry.SUPERFICIE.replace(/\s/g, ''));
         if(!superficyByRegion[region]) {
             superficyByRegion[region] = superficy;
         }else{
@@ -107,53 +106,40 @@ export function getSumSuperficy(data,scale){ // for now "Information generale" d
 
 }
 
-export function getSumPerYear(data, startYear, endYear, scale) {
+export function getSumPerYear(data, startYear, endYear,valeurAccordMode, scale) {
     const statistics = {};
-
     data.forEach(item => {
         const region = item[scale];
         const itemYear = parseInt(item['Année financement']);
 
         // Vérifier si l'année se trouve dans la plage spécifiée
         if (!isNaN(itemYear) && itemYear >= startYear && itemYear <= endYear) {
-            if (statistics[region]) {
-                statistics[region]++;
-            } else {
-                statistics[region] = 1;
+            if(valeurAccordMode==='amount'){
+                let str = item['Montant du financement']!==null?item['Montant du financement']:"0";
+                let amount= parseInt(str.replace(/\s/g, ''), 10);  
+                if (statistics[region]) {
+                    statistics[region]=statistics[region]+amount;
+                } else {
+                    statistics[region] = amount;
+                }   
+            }else{
+                if (statistics[region]) {
+                    statistics[region]++;
+                } else {
+                    statistics[region] = 1;
+                }
             }
         }
     });
-
     // Convertir l'objet de statistiques en un tableau d'objets avec la structure spécifiée
     const result = Object.entries(statistics).map(([region, count]) => ({
         [scale]: region,
         'value': count
     }));
-    if(scale==='id_REGION'){
-       return getAmountPerYear(data,result,scale);
-    }else{
-     return result;   
-    }
-    
+    return result;   
 }
-export function getAmountPerYear(data,sumPerYear,scale){
-    let sumPerYearWithAmount=[];
-    sumPerYear.forEach(result=>{
-        let amount= 0;
-        data.forEach(item => {
-            if(item[scale]===result[scale] && item['Montant du financement']!==null){
-                let str =  item['Montant du financement'];
-                amount = amount+ parseInt(str.replace(/\s/g, ''), 10);  
-            }
-        });
-        const resultWithAmount={
-            ...result,
-            dataAmount: amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
-        }
-        sumPerYearWithAmount.push(resultWithAmount);    
-    })
-    return sumPerYearWithAmount;
-}
+
+
 
 export function calculateTotalByRegion(data, startYear, endYear, scale, filters) {
     if (!data || data.length === 0) {

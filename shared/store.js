@@ -5,6 +5,7 @@ import { writable } from 'svelte/store';
 export const dataStore = writable({ dataArr: [], mandatData: [], icspData: [], communeData: [], keyCommuneID_Commune: [] });
 export const rangeValue = writable([]);
 export const rangeValueAccord = writable([]);
+export const accordMode = writable('');
 export const buttonICSP = writable('info');// ce store prendra maintenant pour valeur 'info', 'icsp' ou 'accord' pour gerer les trois thematiques directement dans la page principale...
 export const storeIndicateur5 = writable([])
 export const storeIndicateur4 = writable([])
