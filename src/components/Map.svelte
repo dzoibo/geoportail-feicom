@@ -552,7 +552,7 @@
 <Drawer
   placement="right"
   style="top:{heightNavBarForSideBar}px"
-  class="lg:w-1/2 md:w-1/3 sm:w-1/2 w-auto !p-0"
+  class="lg:w-2/5 md:w-1/3 sm:w-1/2 w-auto !p-0"
   transitionType="fly"
   backdrop={true}
   transitionParams={transitionParamsRight}
@@ -641,8 +641,8 @@
           {/if}
         </TabItem>
       {:else if (theme==='accord')}
+        
         <TabItem open class="w-full" id="projets">
-          
           <div slot="title" class="flex w-full justify-center text-lg items-center gap-2">
             <GridSolid size="sm" />
             Liste de l'ensemble des appuis financiers
@@ -659,26 +659,13 @@
               Nombre de projets : {allProject.length}</span
             >
           </h2>
-          <div class="p-4 w-full justify-center overflow-x-auto">
-            <Table shadow hoverable={true} striped={true} class=" table-fixed sm:table-auto">
-              <TableHead>
-                {#each Object.keys(allProject[0]) as key}
-                  {#if [
-                    "Date d'octroi financement",
-                    "Bénéficiaire",
-                    "Intitulé projet amélioré",
-                    "Instance d'attribution",
-                    "Montant du financement",
-                    "Niveau d’avancement"
-                    ].includes(key)}
-                    <TableHeadCell style=" white-space: unset !important">{key}</TableHeadCell>
-                  {/if}
-                {/each}
-              </TableHead>
-              <TableBody class="">
-                {#each sortByAscendingOrder(allProject,'Année financement') as project}
-                  <TableBodyRow>
-                    {#each Object.keys(project) as key}
+          <ul class=" px-8 w-full flex flex-col items-center">
+            {#each sortByAscendingOrder(allProject,'Année financement')  as resultat}
+              <Card padding="lg" size="md" class="leading-[24px] mb-6">
+                <Listgroup class="border-0 dark:!bg-transparent ">
+                  <div class="flex items-center space-x-2 rtl:space-x-reverse">
+                    <div class="flex-1 min-w-0">
+                      {#each Object.keys(resultat) as key}
                       {#if [
                         "Date d'octroi financement",
                         "Bénéficiaire",
@@ -687,22 +674,27 @@
                         "Montant du financement",
                         "Niveau d’avancement"
                         ].includes(key)}
-                        <TableBodyCell style=" white-space: unset !important; sm:w-1/4"
-                          >
-                            {#if project[key] !== null }
-                              {project[key]} 
-                            {:else}
-                              <span class="italic">Non disponible</span>
-                            {/if}
-                          </TableBodyCell
-                        >
-                      {/if}
-                    {/each}
-                  </TableBodyRow>
-                {/each}
-              </TableBody>
-            </Table>
-          </div>
+                          <div >
+                            <span class="text-base font-medium text-gray-900 dark:text-white">
+                              {key} :
+                            </span>
+                            <span class="text-[15px] font-medium">
+                              {#if resultat[key] !== null }
+                                {resultat[key]}
+                                {#if key==="Montant du financement"}XAF{/if}
+                              {:else}
+                                <span class="italic">Non disponible</span>
+                              {/if}
+                            </span>
+                          </div>
+                        {/if}
+                      {/each}
+                    </div>
+                  </div></Listgroup
+                >
+              </Card>
+            {/each}
+          </ul>
         </TabItem>
       {:else}
         <TabItem open class="w-full hover:text-blue-900">
