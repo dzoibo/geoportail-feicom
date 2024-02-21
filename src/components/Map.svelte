@@ -107,6 +107,7 @@
   let anneeFinMandat = [];
   let theme='info'; // this variable will is replacing showICSP since we have now really 3 thematics;
   let currentZoom = 0;
+  let previousZoom=0;
   let showFinancement;
   let valueSliderICSP = 0; // Initialisez avec une valeur par défaut
   let valueSliderAccord = []; // Initialisez avec une valeur par défaut
@@ -532,6 +533,24 @@
     }
   }
   
+  //automalticaly change the scale
+  function toggleLayerOnZoom(){
+    if(currentZoom>previousZoom){
+      if(currentZoom>5.1 && showReg && theme==='accord'){
+        toggleLayer('dep')
+      }else if(currentZoom>=5.75 && !showCom){
+        toggleLayer('com')
+      }
+    }else{
+      if(currentZoom<5.1 && !showReg){
+        toggleLayer('reg')
+      }else if(currentZoom<=5.75 && showCom && theme==='accord'){
+        toggleLayer('dep')
+      }
+    }
+    previousZoom=currentZoom;
+  }
+
   //changer l'affichage ISP par ICSP
   function changeItemToDisplay(data){
     let formalizedData=[];
@@ -808,6 +827,7 @@
     on:zoomend={({ detail: { map } }) => (currentZoom = map.getZoom())}
     bind:map
     bind:loaded
+    on:zoom={()=>toggleLayerOnZoom()}
     class="w-screen"
   >
     <NavigationControl position="top-right" />
