@@ -92,6 +92,7 @@
   let dataArr: any[] = [];
   let mandatData: any[] = [];
   let communeData: any[] = [];
+  let regionData : any[]=[] ;
   let uniqueBeneficiaireForIDFetch: any[] = [];
   let icspData: any[] = [];
   let valeursAttribution: any[] = [];
@@ -249,7 +250,7 @@
 
   onMount(async function () {
     try {
-      const { mandatData, dataArr, icspData, communeData } = await fetchData();
+      const { mandatData, dataArr, icspData, communeData,regionData } = await fetchData();
 
       // Mettre à jour les propriétés individuelles du store
       dataStore.update((store) => {
@@ -258,7 +259,7 @@
         store.dataArr = dataArr;
         store.mandatData = mandatData;
         store.communeData = communeData;
-
+        store.regionData = regionData;
         return store;
       });
 

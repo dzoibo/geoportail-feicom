@@ -100,6 +100,7 @@
   let mandatData = [];
   let icspData = [];
   let communeData = [];
+  let regionData =[];
   let keyCommuneID_Commune = [];
   let statisticsPerRegion = [];
   let MinMax = {};
@@ -205,6 +206,7 @@
       mandatData = store.mandatData;
       icspData = store.icspData;
       communeData = store.communeData;
+      regionData = store.regionData;
       keyCommuneID_Commune = store.keyCommuneID_Commune;
     });
 
@@ -393,7 +395,6 @@
   function handleLayerClick(e) {
     // Set the variable with information about the clicked layer
     clickedLayerInfo = e;
-
     if (showCom) {
       nom_commune = e.detail.features[0].properties['ref:COG'];
       detailsMandatCommune = findAllObjectsByAttribute(mandatData, 'id_COMMUNE', nom_commune);
@@ -402,7 +403,19 @@
       const indexCommune = communeData.findIndex((commune)=>commune.id_COMMUNE === e.detail.features[0].properties['ref:COG']) 
       currentGeneralInfo=communeData[indexCommune];
     }
-    if (theme!=='icsp') {
+    if(theme === 'info' && showReg){
+      const indexRegion = regionData.findIndex((region)=>region.id_REGION === e.detail.features[0].properties['ref:COG']) ;
+      currentGeneralInfo=regionData[indexRegion];
+      const indexSuperficy = statisticsPerRegion.findIndex((region)=>region.id_REGION === e.detail.features[0].properties['ref:COG']);
+      currentGeneralInfo=
+      {
+        ...currentGeneralInfo,
+        superficy: statisticsPerRegion[indexSuperficy].value
+      }
+      console.log('this is the current ',currentGeneralInfo)
+      hiddenBackdropFalse=false;
+      
+    }else if (theme!=='icsp') {
       nom_commune = e.detail.features[0].properties['ref:COG'];
       allProject = rechercheMulticriteresPourFEICOM(
         dataForMap,
@@ -591,7 +604,7 @@
 >
   <div class="bg-[#00862b14] div-wrapper min-h-full">
     <Tabs style="full" class="space-x-0 w-full flex !flex-nowrap bg-white">
-      {#if (showCom && theme==='info')}
+      {#if (theme==='info')}
         
         <TabItem class="w-full" open>
           <div slot="title" class="flex w-full justify-center text-lg items-center gap-2">
@@ -604,16 +617,13 @@
             </h5>
           </div>
 
-          {#if anneeFinMandat}
-            <div
-              id="detailMandatForAMunicipality"
-              class="p-3 list-none flex justify-center h-full"
-            >
-              <Card padding="md" class="leading-[24px] mb-4 mt-2 !max-w-md w-full">
-                <h2 class="mb-2 text-center text-black !uppercase text-4xl poppins-medium">
-                  {clickedLayerInfo.detail.features[0].properties.name}
-                </h2>
-
+          
+          <div id="detailMandatForAMunicipality" class="p-3 list-none flex justify-center h-full" >
+            <Card padding="md" class="leading-[24px] mb-4 mt-2 !max-w-md w-full">
+              <h2 class="mb-2 text-center text-black !uppercase text-4xl poppins-medium">
+                {clickedLayerInfo.detail.features[0].properties.name}
+              </h2>
+              {#if showCom && anneeFinMandat}
                 <dl
                   class="max-w-screen-xl gap-8 p-2 mx-auto text-gray-900  dark:text-white sm:p-8"
                 >
@@ -699,11 +709,53 @@
                     {/each}
                   </ul>
                 </Card> 
-                
-              </Card>
-            </div>
-          {/if}
+              {:else if (showReg)}
+              <dl
+              class="max-w-screen-xl gap-8 p-2 mx-auto text-gray-900  dark:text-white sm:p-8"
+                  >
+                <div class="flex items-center justify-center">
+                  <dt class="ml-1 text-3xl font-extrabold w-full text-center">
+                    {currentGeneralInfo.superficy}
+                  </dt>
+                  <dd class="text-gray-500 ml-1 dark:text-gray-400">km²</dd>
+                </div>
+              </dl>
+              <Card class="mb-2 !px-1 !max-w-xl  w-full">
+                <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
+                  <li class=" py-1 sm:py-2">
+                    <div class="flex items-start">
+                      <div class="leading-3 flex-1 min-w-0 ms-4 mr-4">
+                        <p class={generalInfoItemStyle} >
+                          <UserOutline class="text-gray-700" size="sm" />
+                          President conseil: 
+                          <span class={generalInfoValueStyle} >{currentGeneralInfo["nom_president"]}</span>
+                        </p>
+                        <p class={generalInfoItemStyle}>  
+                          <UsersOutline class="text-gray-700" size="sm" />
+                          1er Vice President: 
+                          <span class={generalInfoValueStyle} >
+                            {currentGeneralInfo["nom_vice_president1"]} 
+                          </span>
+                        </p>
+                        <p class={generalInfoItemStyle}>  
+                          <UsersOutline class="text-gray-700" size="sm" />
+                          2eme Vice President: 
+                          <span class={generalInfoValueStyle} >
+                            {currentGeneralInfo["nom_vice_president2"]} 
+                          </span>
+                        </p>
+
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </Card> 
+              {/if}
+            </Card>
+          </div>
+          
         </TabItem>
+      
       {:else if (theme==='accord')}
         
         <TabItem open class="w-full" id="projets">
