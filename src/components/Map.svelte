@@ -860,14 +860,14 @@
           Échelle communal
         </Tooltip>
         <div id="com-tooltip">
-          <ControlButton id="com" class={showCom ? 'bg-gray-200' : ''} on:click={() => toggleLayer('com')}>COM</ControlButton>
+          <ControlButton id="com" class={showCom ? 'bg-gray-200 rounded-bl rounded-br' : ''} on:click={() => toggleLayer('com')}>COM</ControlButton>
         </div>
       </ControlGroup>
     </Control>
 
-    <!--   <GeoJSON data="/data/countries.geojson">
-      <FillLayer paint={{ 'fill-color': 'black', 'fill-opacity': 0. }} />
-    </GeoJSON> -->
+    <GeoJSON data="/data/mask.geojson">
+      <FillLayer paint={{ 'fill-color': 'black', 'fill-opacity': 0.6 }} />
+    </GeoJSON> 
     {#if showReg}
       <VectorTileSource url="pmtiles://data/regions.pmtiles" id="regions" promoteId="ref:COG">
         <FillLayer
