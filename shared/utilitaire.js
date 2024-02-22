@@ -15,6 +15,7 @@ export function uniqueValues(tableau, attribut, option = false, id) {
         const id_REGION = objet['id_REGION'];
         const id_DEPARTEMENT = objet['id_DEPARTEMENT'];
         const id_SECTEUR = objet['id_SECTEUR'];
+        const id_CONSEIL_REGIONAL = objet['id_CONSEIL_REGIONAL'];
 
         if (valeur !== null && !seenValues[valeur.toLowerCase()]) {
             const item = { 'key': valeur, checked: false, 'id': valeurID };
@@ -24,6 +25,7 @@ export function uniqueValues(tableau, attribut, option = false, id) {
                 item['id_REGION'] = id_REGION;
                 item['id_DEPARTEMENT'] = id_DEPARTEMENT;
                 item['id_SECTEUR']=id_SECTEUR;
+                item['id_CONSEIL_REGIONAL']=id_CONSEIL_REGIONAL;
             }
             result.push(item);
             seenValues[valeur.toLowerCase()] = true;
@@ -403,7 +405,7 @@ export function formattedValue(value) {
 }
 
 export function rechercheMulticriteres(dataForMap, critères) {
-    if (critères.length === 0) {
+    if ( critères.length === 0) {
         // Si le tableau de critères est vide, retournez simplement l'array original
         return dataForMap;
     }

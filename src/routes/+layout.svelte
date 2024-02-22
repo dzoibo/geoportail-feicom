@@ -60,6 +60,7 @@
     CheckPlusCircleOutline,
     CalendarMonthOutline,
     DatabaseOutline,
+    UserSettingsOutline,
     UserAddOutline,
     UserOutline,
     UsersOutline,
@@ -98,6 +99,7 @@
   let valeursSecteur: any[] = [];
   let valeursBeneficiaire: any[] = [];
   let valeursBeneficiaire2: any[] = [];
+  let valeursConseilsRegionaux: any[] = [];
   let valeursSourcefinancement: any[] = [];
   let valeursDepartement: any[] = [];
   let valeursRegion: any[] = [];
@@ -153,6 +155,7 @@
   let indicateur9 = 'Région';
   let indicateur6 = 'Partenaires';
   let indicateur10 = 'Niveau d’avancement';
+  let indicateur11='id_CONSEIL_REGIONAL';
 
   //ICSP
   let indicateur7 = 'COMMUNE';
@@ -179,7 +182,8 @@
   let partenaireInputValue='';
 
   //Accord
-  let dropdownSelectionIndicateur10 = { indicateur: '', data: [] };
+  let dropdownSelectionIndicateur11= { indicateur: '', data: [] };
+  let dropdownSelectionIndicateur10= { indicateur: '', data: [] };
   let dropdownSelectionIndicateur9 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur8 = { indicateur: '', data: [] };
   let dropdownSelectionIndicateur7 = { indicateur: '', data: [] };
@@ -207,7 +211,8 @@
     partenaire:false,
     departement:false,
     beneficiaire:false,
-    niveauAvancement:false
+    niveauAvancement:false,
+    conseilR:false
   }
 
   let icspFilterIndicator={
@@ -226,14 +231,21 @@
     departement:false,
     beneficiaireIcsp:false,
     beneficiaireAccord: false,
+    conseilR:false
   }
   
   let accordDisplaySelectedMode='projet';
+  let typeBeneficiaireSelected='commune'
 
   let accordDisplayModes = [
     { value: 'projet', name: 'Afficher par nombre de projet' },
     { value: 'amount', name: 'Afficher par montant' },
   ];
+
+  let typeBeneficiaire=[
+    {value: 'commune', name:'Communes et C. urbaines '},
+    {value: 'conseil-regional',name: 'Conseils régionaux' }
+  ]
 
   onMount(async function () {
     try {
@@ -255,6 +267,7 @@
       valeursDomaine = uniqueValues(dataArr, indicateur3,true);
       valeursBeneficiaire = uniqueValues(dataArr, indicateur4, true, 'id_COMMUNE');
       valeursBeneficiaire2 = uniqueValues(icspData, indicateur7, true, 'id_COMMUNE');
+      valeursConseilsRegionaux = uniqueValues(dataArr, indicateur11, true, 'id_CONSEIL_REGIONAL');
       valeursSourcefinancement = uniqueValues(dataArr, indicateur5);
       valeursPartenaires = uniqueValues(dataArr, indicateur6);
       valeursDepartement = uniqueValues(dataArr, indicateur8, true, 'id_DEPARTEMENT');
@@ -272,6 +285,7 @@
       //ICSP
       dropdownSelectionIndicateur7.indicateur = indicateur7;
       // ACCORD
+      dropdownSelectionIndicateur11.indicateur = indicateur11;
       dropdownSelectionIndicateur9.indicateur = indicateur10;
       dropdownSelectionIndicateur9.indicateur = indicateur9;
       dropdownSelectionIndicateur8.indicateur = indicateur8;
@@ -285,6 +299,7 @@
       // Ajouter les objets à l'array dropdownSelections
       dropdownSelectionsAll.push(
         dropdownSelectionIndicateur10,
+        dropdownSelectionIndicateur11,
         dropdownSelectionIndicateur9,
         dropdownSelectionIndicateur8,
         dropdownSelectionIndicateur7,
@@ -387,6 +402,20 @@
     }, 12);
     
   }
+
+  //this object is just to map the display of regional concil get in the database
+  let conseilRegionalMapper={
+    AD: "Région de L'Adamaoua",
+    CE:"Région du Centre",
+    SW:"Région du Sud-Ouest",
+    SU:"Région du Sud",
+    NW:"Région du Nord-Ouest",
+    ES:"Région de l'Est",
+    OU:"Région de l'Ouest",
+    NO:"Région du Nord-Ouest",
+    LT:"Région du Littoral",
+    EN:"Région de l'Extreme nord"
+  }
  
   /**   
    * function to update the filter indicator
@@ -446,6 +475,14 @@
           }
           filterCheckedAll.secteur=valeursSecteur.length===arrayAccordLength;
           break;
+        case 'id_CONSEIL_REGIONAL':
+          accordFilterIndicators.conseilR =arrayAccordLength>0;
+            let AllConseilRegional:any = document.querySelector(".conseilR-all-checkbox");
+            if(AllConseilRegional) {
+              AllConseilRegional.checked = valeursConseilsRegionaux.length===arrayAccordLength;
+            }
+            filterCheckedAll.conseilR=valeursConseilsRegionaux.length===arrayAccordLength;
+          break;
         case 'Domaines':
           accordFilterIndicators.domaine=arrayAccordLength>0;
           let AllDomaineCheckBox:any = document.querySelector(".domaine-all-checkbox");
@@ -498,13 +535,51 @@
         // Ajoutez un nouvel objet à arrayAllIndicateurs
         arrayAllIndicateurs[section].push(array);
       }
-
+      
       update = false;
     }, 10);
 
     return array;
   }
 
+  function setTypeBeneficiaire(){
+    valeursBeneficiaire.forEach((beneficiaire) => (beneficiaire.checked = false));
+    valeursDepartement.forEach((departement) => (departement.checked = false));
+    valeursRegion.forEach((region) => (region.checked = false));
+    valeursConseilsRegionaux.forEach((region) => (region.checked = false));
+    accordFilterIndicators.region=false;
+    accordFilterIndicators.departement=false;
+    accordFilterIndicators.beneficiaire=false;
+    accordFilterIndicators.conseilR=false;
+    if(typeBeneficiaireSelected!=='commune'){
+      for (const conseilR of valeursConseilsRegionaux){
+        toggleCheckbox(
+          conseilR,
+          dropdownSelectionIndicateur11,
+          valeursConseilsRegionaux,
+          'accord'
+        )
+        const index=arrayAllIndicateurs.accord.findIndex((item) => item.indicateur === indicateur4);
+        const index2=arrayAllIndicateurs.accord.findIndex((item) => item.indicateur === indicateur8);
+        const index3=arrayAllIndicateurs.accord.findIndex((item) => item.indicateur === indicateur9);
+
+        if(index>=0){
+          arrayAllIndicateurs.accord[index].data=[];
+        }
+        if(index2>=0){
+          arrayAllIndicateurs.accord[index2].data=[];
+        }
+        if(index3>=0){
+          arrayAllIndicateurs.accord[index2].data=[];
+        }  
+      }
+    }else{
+      const index=arrayAllIndicateurs.accord.findIndex((item) => item.indicateur === indicateur11);
+      if(index>=0){
+        arrayAllIndicateurs.accord[index].data=[];
+      }
+    }
+  }
   function closeDiv(
     wordToRemove: any,
     array: { indicateur: string; data: never[] } | undefined,
@@ -623,12 +698,14 @@
   function resetFilters() {
     // Réinitialiser les filtres
     arrayAllIndicateurs = { accord: [], icsp: [] };
+    typeBeneficiaireSelected="commune"; 
     // Vider les dropdowns en réinitialisant les valeurs
     valeursAttribution.forEach((attribution) => (attribution.checked = false));
     valeursSecteur.forEach((secteur) => (secteur.checked = false));
     valeursDomaine.forEach((domaine) => (domaine.checked = false));
     valeursBeneficiaire.forEach((beneficiaire) => (beneficiaire.checked = false));
     valeursBeneficiaire2.forEach((beneficiaire) => (beneficiaire.checked = false));
+    valeursConseilsRegionaux.forEach((beneficiaire) => (beneficiaire.checked = false));
     valeursSourcefinancement.forEach((financement) => (financement.checked = false));
     valeursPartenaires.forEach((partenaire) => (partenaire.checked = false));
     valeursDepartement.forEach((departement) => (departement.checked = false));
@@ -874,6 +951,23 @@
                       </Label>
                     </SidebarDropdownWrapper>
                   </SidebarGroup>
+
+                  <SidebarGroup class={cardForSideBar}>
+                    <SidebarDropdownWrapper label="Choix type béfénéficiaires">
+                      <svelte:fragment slot="icon">
+                        <UserSettingsOutline
+                          class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                        />
+                      </svelte:fragment>
+                      <Label class="mx-1 text-sm text-gray-500 ">
+                        <span>Sélectionner le type de bénéficiaires</span>
+                        <Select 
+                        on:change={()=>setTypeBeneficiaire()}
+                        placeholder="" class="text-gray-500  mode-select mt-2" items={typeBeneficiaire} bind:value={typeBeneficiaireSelected} />
+                      </Label>
+                    </SidebarDropdownWrapper>
+                  </SidebarGroup>
+
                   <SidebarGroup class={cardForSideBar}>
                     <SidebarDropdownWrapper label="Années">
                       <svelte:fragment slot="icon">
@@ -913,265 +1007,336 @@
                       </div>
                     </SidebarDropdownWrapper>
                   </SidebarGroup>
-                  <SidebarGroup class={cardForSideBar}>
-                    <SidebarDropdownWrapper label="Région">
-                      <svelte:fragment slot="icon">
-                        <UserOutline
-                          class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                        />
-                        {#if accordFilterIndicators.region && !filterCheckedAll.region}
-                          <div class={filterIndicatorStyle} ></div>
-                        {/if}
-                      </svelte:fragment>
-                      <Button class="bg-[#234099] hover:bg-[#182D73]"
-                        >Sélection des Régions<ChevronDownSolid
-                          class="w-3 h-3 ms-2 text-white dark:text-white"
-                        /></Button
-                      >
-                      <Dropdown class={dropdownStyle}>
-                        <div slot="header" class="p-3">
-                          <SearchBar
-                            bind:inputValue={regionInputValue}
-                            on:input={(event) => handleInput(event,jsonToItem({ valeursRegion }, 'valeursRegion'),'region')}
+                  {#if (typeBeneficiaireSelected==='commune')}
+                    <SidebarGroup class={cardForSideBar}>
+                      <SidebarDropdownWrapper label="Région">
+                        <svelte:fragment slot="icon">
+                          <UserOutline
+                            class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                           />
+                          {#if accordFilterIndicators.region && !filterCheckedAll.region}
+                            <div class={filterIndicatorStyle} ></div>
+                          {/if}
+                        </svelte:fragment>
+                        <Button class="bg-[#234099] hover:bg-[#182D73]"
+                          >Sélection des Régions<ChevronDownSolid
+                            class="w-3 h-3 ms-2 text-white dark:text-white"
+                          /></Button
+                        >
+                        <Dropdown class={dropdownStyle}>
+                          <div slot="header" class="p-3">
+                            <SearchBar
+                              bind:inputValue={regionInputValue}
+                              on:input={(event) => handleInput(event,jsonToItem({ valeursRegion }, 'valeursRegion'),'region')}
+                            />
+                          </div>
+                          {#if regionInputValue.length===0}
+                            <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                              <Checkbox
+                                class="region-all-checkbox"
+                                checked={filterCheckedAll.region}
+                                on:change={() =>
+                                  toggleAllCheckbox(
+                                    "region"
+                                  )}>Tout sélectionner</Checkbox
+                              >
+                            </li>
+                          {/if}
+                          
+                          {#each valeursRegion as region}
+                            {#if filterList(region, regionSearchResult)}
+                              <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                <Checkbox class="region-checkbox"
+                                  checked={region.checked}
+                                  on:change={() =>
+                                    toggleCheckbox(
+                                      region,
+                                      dropdownSelectionIndicateur9,
+                                      valeursRegion,
+                                      'accord'
+                                    )}>{region.key}</Checkbox
+                                >
+                              </li>
+                            {/if}
+                          {/each}
+                        </Dropdown>
+                        <div class="px-2 pt-1 pb-2">
+                          {#if arrayAllIndicateurs.accord}
+                            {#each arrayAllIndicateurs.accord as indicateur}
+                              {#if indicateur.indicateur === dropdownSelectionIndicateur9.indicateur}
+                                {#each indicateur.data as word (word)}
+                                  <div
+                                    class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg"
+                                  >
+                                    {word}
+                                    <CloseButton
+                                      on:click={() =>
+                                        closeDiv(
+                                          word,
+                                          dropdownSelectionIndicateur9,
+                                          valeursRegion,
+                                          'accord'
+                                        )}
+                                      class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                                    />
+                                  </div>
+                                {/each}
+                              {/if}
+                            {/each}
+                          {/if}
                         </div>
-                        {#if regionInputValue.length===0}
+                      </SidebarDropdownWrapper>
+                    </SidebarGroup>
+
+                    <SidebarGroup class={cardForSideBar}>
+                      <SidebarDropdownWrapper label="Département">
+                        <svelte:fragment slot="icon">
+                          <UsersOutline
+                            class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                          />
+                          {#if accordFilterIndicators.departement }
+                            <div class={filterIndicatorStyle} ></div>
+                          {/if}
+                        </svelte:fragment>
+                        <Button class="bg-[#234099] hover:bg-[#182D73]"
+                          >Sélection des Département<ChevronDownSolid
+                            class="w-3 h-3 ms-2 text-white dark:text-white"
+                          /></Button
+                        >
+                        <Dropdown class={dropdownStyle}>
+                          <div slot="header" class="p-3">
+                            <SearchBar
+                              bind:inputValue={departementInputValue}
+                              on:input={(event) => handleInput(event,jsonToItem({ valeursDepartement }, 'valeursDepartement'),'departement')}
+                            />
+                          </div>
+
+                          {#if departementInputValue.length===0}
+                            <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                              <Checkbox
+                                class="departement-all-checkbox"
+                                checked={filterCheckedAll.departement}
+                                on:change={() =>
+                                  toggleAllCheckbox(
+                                    "departement"
+                                  )}>Tout sélectionner</Checkbox
+                              >
+                            </li>
+                          {/if}
+                          
+                          {#each valeursDepartement.filter((departement) => {
+                            // Vérifie si toutes les valeurs de région ont checked à false
+                            const allUnchecked = valeursRegion.every((region) => !region.checked);
+                            // Si toutes les valeurs de région sont unchecked, inclure tous les bénéficiaires
+                            if (allUnchecked) {
+                              return true;
+                            } else {
+                              // Sinon, inclure les bénéficiaires dont la région correspond à une région sélectionnée
+                              return valeursRegion.find((region) => region.id === departement.id_REGION && region.checked);
+                            }
+                          }) as departement}
+                            {#if filterList(departement, departementSearchResult)}
+                              <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                <Checkbox class="departement-checkbox" 
+                                  checked={departement.checked}
+                                  on:change={() =>
+                                    toggleCheckbox(
+                                      departement,
+                                      dropdownSelectionIndicateur8,
+                                      valeursDepartement,
+                                      'accord'
+                                    )}>{departement.key}</Checkbox
+                                >
+                              </li>
+                            {/if}
+                          {/each}
+                        </Dropdown>
+                        <div class="px-2 pt-1 pb-2">
+                          {#if arrayAllIndicateurs.accord}
+                            {#each arrayAllIndicateurs.accord as indicateur}
+                              {#if indicateur.indicateur === dropdownSelectionIndicateur8.indicateur}
+                                {#each indicateur.data as word (word)}
+                                  <div class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg" >
+                                    {word}
+                                    <CloseButton
+                                      on:click={() =>
+                                        closeDiv(
+                                          word,
+                                          dropdownSelectionIndicateur8,
+                                          valeursDepartement,
+                                          'accord'
+                                        )}
+                                      class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                                    />
+                                  </div>
+                                {/each}
+                              {/if}
+                            {/each}
+                          {/if}
+                        </div>
+                      </SidebarDropdownWrapper>
+                    </SidebarGroup>
+                    <SidebarGroup class={cardForSideBar}>
+                      <SidebarDropdownWrapper label="Bénéficiaire">
+                        <svelte:fragment slot="icon">
+                          <UsersGroupOutline
+                            class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                          />
+                          {#if accordFilterIndicators.beneficiaire}
+                            <div class={filterIndicatorStyle} ></div>
+                          {/if}
+                        </svelte:fragment>
+                        <Button class="bg-[#234099] hover:bg-[#182D73]"
+                          >Sélection des bénéficiaires<ChevronDownSolid
+                            class="w-3 h-3 ms-2 text-white dark:text-white"
+                          /></Button
+                        >
+                        <Dropdown class={dropdownStyle}>
+                          <div slot="header" class="p-3">
+                            <SearchBar
+                              bind:inputValue={beneficiaireAccordInputValue}
+                              on:input={(event) => handleInput(event,jsonToItem({ valeursBeneficiaire }, 'valeursBeneficiaire'),'beneficiaireAccord')}
+                            />
+                          </div>
+                          {#if beneficiaireAccordInputValue.length===0 }
+                            <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                              <Checkbox
+                                class="beneficiaireAccord-all-checkbox"
+                                checked={filterCheckedAll.beneficiaireAccord}
+                                on:change={() =>
+                                  toggleAllCheckbox(
+                                    "beneficiaireAccord"
+                                  )}>Tout sélectionner</Checkbox
+                              >
+                            </li>  
+                          {/if}
+                          
+                          {#each valeursBeneficiaire.filter((beneficiaire) => {
+                            // Vérifie si toutes les valeurs de région ont checked à false
+                            const allUnchecked = valeursDepartement.every((departement) => !departement.checked);
+                            // Si toutes les valeurs de région sont unchecked, inclure tous les bénéficiaires
+                            if (allUnchecked) {
+                              return true;
+                            } else {
+                              // Sinon, inclure les bénéficiaires dont la région correspond à une région sélectionnée
+                              return valeursDepartement.find((departement) => departement.id === beneficiaire.id_DEPARTEMENT && departement.checked);
+                            }
+                          }) as beneficiaires}
+                            {#if filterList(beneficiaires, beneficiaireAccordSearchResult) && beneficiaires.id !==undefined && beneficiaires.id!==null}
+                              <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                <Checkbox class="beneficiaireAccord-checkbox"
+                                  id={beneficiaires.id_COMMUNE}
+                                  checked={beneficiaires.checked}
+                                  on:change={() =>
+                                    toggleCheckbox(
+                                      beneficiaires,
+                                      dropdownSelectionIndicateur4,
+                                      valeursBeneficiaire,
+                                      'accord'
+                                    )}>{beneficiaires.key}</Checkbox
+                                >
+                              </li>
+                            {/if}
+                          {/each}
+                        </Dropdown>
+                        <div class="px-2 pt-1 pb-2">
+                          {#if arrayAllIndicateurs.accord}
+                            {#each arrayAllIndicateurs.accord as indicateur}
+                              {#if indicateur.indicateur === dropdownSelectionIndicateur4.indicateur}
+                                {#each indicateur.data as word (word)}
+                                  <div
+                                    class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg"
+                                  >
+                                    {word}
+                                    <CloseButton
+                                      on:click={() =>
+                                        closeDiv(
+                                          word,
+                                          dropdownSelectionIndicateur4,
+                                          valeursBeneficiaire,
+                                          'accord'
+                                        )}
+                                      class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                                    />
+                                  </div>
+                                {/each}
+                              {/if}
+                            {/each}
+                          {/if}
+                        </div>
+                      </SidebarDropdownWrapper>
+                    </SidebarGroup>
+                  {:else}
+                    <SidebarGroup class={cardForSideBar}>
+                      <SidebarDropdownWrapper label="Bénéficiaires">
+                        <svelte:fragment slot="icon">
+                          <UsersGroupOutline
+                            class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                          />
+                          {#if accordFilterIndicators.conseilR && !filterCheckedAll.conseilR}
+                            <div class={filterIndicatorStyle} ></div>
+                          {/if}
+                        </svelte:fragment>
+                        <Button class="bg-[#234099] hover:bg-[#182D73]"
+                          >Sélection des conseils régionaux<ChevronDownSolid
+                            class="w-3 h-3 ms-2 text-white dark:text-white"
+                          /></Button
+                        >
+                        <Dropdown class={dropdownStyle}>
                           <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                             <Checkbox
-                              class="region-all-checkbox"
-                              checked={filterCheckedAll.region}
+                              class="conseilR-all-checkbox"
+                              checked={filterCheckedAll.conseilR}
                               on:change={() =>
                                 toggleAllCheckbox(
-                                  "region"
+                                  "conseilR"
                                 )}>Tout sélectionner</Checkbox
                             >
                           </li>
-                        {/if}
-                        
-                        {#each valeursRegion as region}
-                          {#if filterList(region, regionSearchResult)}
+                          
+                          {#each valeursConseilsRegionaux as conseilR}
                             <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                              <Checkbox class="region-checkbox"
-                                checked={region.checked}
+                              <Checkbox class="conseilR-checkbox"
+                                checked={conseilR.checked}
                                 on:change={() =>
                                   toggleCheckbox(
-                                    region,
-                                    dropdownSelectionIndicateur9,
-                                    valeursRegion,
+                                    conseilR,
+                                    dropdownSelectionIndicateur11,
+                                    valeursConseilsRegionaux,
                                     'accord'
-                                  )}>{region.key}</Checkbox
+                                  )}>{conseilRegionalMapper[conseilR.key]}</Checkbox
                               >
                             </li>
-                          {/if}
-                        {/each}
-                      </Dropdown>
-                      <div class="px-2 pt-1 pb-2">
-                        {#if arrayAllIndicateurs.accord}
-                          {#each arrayAllIndicateurs.accord as indicateur}
-                            {#if indicateur.indicateur === dropdownSelectionIndicateur9.indicateur}
-                              {#each indicateur.data as word (word)}
-                                <div
-                                  class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg"
-                                >
-                                  {word}
-                                  <CloseButton
-                                    on:click={() =>
-                                      closeDiv(
-                                        word,
-                                        dropdownSelectionIndicateur9,
-                                        valeursRegion,
-                                        'accord'
-                                      )}
-                                    class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
-                                  />
-                                </div>
-                              {/each}
-                            {/if}
                           {/each}
-                        {/if}
-                      </div>
-                    </SidebarDropdownWrapper>
-                  </SidebarGroup>
-
-                  <SidebarGroup class={cardForSideBar}>
-                    <SidebarDropdownWrapper label="Département">
-                      <svelte:fragment slot="icon">
-                        <UsersOutline
-                          class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                        />
-                        {#if accordFilterIndicators.departement }
-                          <div class={filterIndicatorStyle} ></div>
-                        {/if}
-                      </svelte:fragment>
-                      <Button class="bg-[#234099] hover:bg-[#182D73]"
-                        >Sélection des Département<ChevronDownSolid
-                          class="w-3 h-3 ms-2 text-white dark:text-white"
-                        /></Button
-                      >
-                      <Dropdown class={dropdownStyle}>
-                        <div slot="header" class="p-3">
-                          <SearchBar
-                            bind:inputValue={departementInputValue}
-                            on:input={(event) => handleInput(event,jsonToItem({ valeursDepartement }, 'valeursDepartement'),'departement')}
-                          />
+                        </Dropdown>
+                        <div class="px-2 pt-1 pb-2">
+                          {#if arrayAllIndicateurs.accord}
+                            {#each arrayAllIndicateurs.accord as indicateur}
+                              {#if indicateur.indicateur === dropdownSelectionIndicateur9.indicateur}
+                                {#each indicateur.data as word (word)}
+                                  <div
+                                    class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg"
+                                  >
+                                    {word}
+                                    <CloseButton
+                                      on:click={() =>
+                                        closeDiv(
+                                          word,
+                                          dropdownSelectionIndicateur9,
+                                          valeursRegion,
+                                          'accord'
+                                        )}
+                                      class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                                    />
+                                  </div>
+                                {/each}
+                              {/if}
+                            {/each}
+                          {/if}
                         </div>
-
-                        {#if departementInputValue.length===0}
-                          <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                            <Checkbox
-                              class="departement-all-checkbox"
-                              checked={filterCheckedAll.departement}
-                              on:change={() =>
-                                toggleAllCheckbox(
-                                  "departement"
-                                )}>Tout sélectionner</Checkbox
-                            >
-                          </li>
-                        {/if}
-                        
-                        {#each valeursDepartement.filter((departement) => {
-                          // Vérifie si toutes les valeurs de région ont checked à false
-                          const allUnchecked = valeursRegion.every((region) => !region.checked);
-                          // Si toutes les valeurs de région sont unchecked, inclure tous les bénéficiaires
-                          if (allUnchecked) {
-                            return true;
-                          } else {
-                            // Sinon, inclure les bénéficiaires dont la région correspond à une région sélectionnée
-                            return valeursRegion.find((region) => region.id === departement.id_REGION && region.checked);
-                          }
-                        }) as departement}
-                          {#if filterList(departement, departementSearchResult)}
-                            <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                              <Checkbox class="departement-checkbox" 
-                                checked={departement.checked}
-                                on:change={() =>
-                                  toggleCheckbox(
-                                    departement,
-                                    dropdownSelectionIndicateur8,
-                                    valeursDepartement,
-                                    'accord'
-                                  )}>{departement.key}</Checkbox
-                              >
-                            </li>
-                          {/if}
-                        {/each}
-                      </Dropdown>
-                      <div class="px-2 pt-1 pb-2">
-                        {#if arrayAllIndicateurs.accord}
-                          {#each arrayAllIndicateurs.accord as indicateur}
-                            {#if indicateur.indicateur === dropdownSelectionIndicateur8.indicateur}
-                              {#each indicateur.data as word (word)}
-                                <div class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg" >
-                                  {word}
-                                  <CloseButton
-                                    on:click={() =>
-                                      closeDiv(
-                                        word,
-                                        dropdownSelectionIndicateur8,
-                                        valeursDepartement,
-                                        'accord'
-                                      )}
-                                    class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
-                                  />
-                                </div>
-                              {/each}
-                            {/if}
-                          {/each}
-                        {/if}
-                      </div>
-                    </SidebarDropdownWrapper>
-                  </SidebarGroup>
-                  <SidebarGroup class={cardForSideBar}>
-                    <SidebarDropdownWrapper label="Bénéficiaire">
-                      <svelte:fragment slot="icon">
-                        <UsersGroupOutline
-                          class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                        />
-                        {#if accordFilterIndicators.beneficiaire}
-                          <div class={filterIndicatorStyle} ></div>
-                        {/if}
-                      </svelte:fragment>
-                      <Button class="bg-[#234099] hover:bg-[#182D73]"
-                        >Sélection des bénéficiaires<ChevronDownSolid
-                          class="w-3 h-3 ms-2 text-white dark:text-white"
-                        /></Button
-                      >
-                      <Dropdown class={dropdownStyle}>
-                        <div slot="header" class="p-3">
-                          <SearchBar
-                            bind:inputValue={beneficiaireAccordInputValue}
-                            on:input={(event) => handleInput(event,jsonToItem({ valeursBeneficiaire }, 'valeursBeneficiaire'),'beneficiaireAccord')}
-                          />
-                        </div>
-                        {#if beneficiaireAccordInputValue.length===0}
-                          <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                            <Checkbox
-                              class="beneficiaireAccord-all-checkbox"
-                              checked={filterCheckedAll.beneficiaireAccord}
-                              on:change={() =>
-                                toggleAllCheckbox(
-                                  "beneficiaireAccord"
-                                )}>Tout sélectionner</Checkbox
-                            >
-                          </li>  
-                        {/if}
-                        
-                        {#each valeursBeneficiaire.filter((beneficiaire) => {
-                          // Vérifie si toutes les valeurs de région ont checked à false
-                          const allUnchecked = valeursDepartement.every((departement) => !departement.checked);
-                          // Si toutes les valeurs de région sont unchecked, inclure tous les bénéficiaires
-                          if (allUnchecked) {
-                            return true;
-                          } else {
-                            // Sinon, inclure les bénéficiaires dont la région correspond à une région sélectionnée
-                            return valeursDepartement.find((departement) => departement.id === beneficiaire.id_DEPARTEMENT && departement.checked);
-                          }
-                        }) as beneficiaires}
-                          {#if filterList(beneficiaires, beneficiaireAccordSearchResult)}
-                            <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                              <Checkbox class="beneficiaireAccord-checkbox"
-                                id={beneficiaires.id_COMMUNE}
-                                checked={beneficiaires.checked}
-                                on:change={() =>
-                                  toggleCheckbox(
-                                    beneficiaires,
-                                    dropdownSelectionIndicateur4,
-                                    valeursBeneficiaire,
-                                    'accord'
-                                  )}>{beneficiaires.key}</Checkbox
-                              >
-                            </li>
-                          {/if}
-                        {/each}
-                      </Dropdown>
-                      <div class="px-2 pt-1 pb-2">
-                        {#if arrayAllIndicateurs.accord}
-                          {#each arrayAllIndicateurs.accord as indicateur}
-                            {#if indicateur.indicateur === dropdownSelectionIndicateur4.indicateur}
-                              {#each indicateur.data as word (word)}
-                                <div
-                                  class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg"
-                                >
-                                  {word}
-                                  <CloseButton
-                                    on:click={() =>
-                                      closeDiv(
-                                        word,
-                                        dropdownSelectionIndicateur4,
-                                        valeursBeneficiaire,
-                                        'accord'
-                                      )}
-                                    class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
-                                  />
-                                </div>
-                              {/each}
-                            {/if}
-                          {/each}
-                        {/if}
-                      </div>
-                    </SidebarDropdownWrapper>
-                  </SidebarGroup>
-
+                      </SidebarDropdownWrapper>
+                    </SidebarGroup>
+                  {/if}
                   <SidebarGroup class={cardForSideBar}>
                     <SidebarDropdownWrapper label="Instance">
                       <svelte:fragment slot="icon">
