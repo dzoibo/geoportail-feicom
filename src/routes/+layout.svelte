@@ -726,6 +726,7 @@
       accordFilterIndicators.partenaire=false,
       accordFilterIndicators.departement=false,
       accordFilterIndicators.beneficiaire=false,
+      accordFilterIndicators.conseilR=false,
       accordFilterIndicators.niveauAvancement=false
     }
   }

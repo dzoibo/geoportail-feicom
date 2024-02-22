@@ -43,6 +43,7 @@
     Tooltip,
     Chart,
     Tabs,
+    Badge,
     TabItem,
     Table,
     TableBody,
@@ -58,7 +59,13 @@
     DollarOutline,
     ChartOutline,
     LandmarkOutline,
-    GridSolid
+    GridSolid,
+    MailBoxOutline,
+    UsersGroupOutline,
+    UsersOutline,
+    UserOutline,
+    NewspapperOutline,
+    GlobeSolid,
   } from 'flowbite-svelte-icons';
   import { sineIn } from 'svelte/easing';
   import {
@@ -133,6 +140,8 @@
   let showCom = false;
   let showReg = true;
   let toolTipStyle="bg-white text-black font-normal z-10";
+  let generalInfoItemStyle="flex items-center gap-1 mb-2 text-sm font-medium text-gray-900 dark:text-white";
+  let generalInfoValueStyle="ml-1 text-xs text-gray-500 truncate dark:text-gray-400";
   let currentGeo = 'reg';
   let resultat;
   let heightSideBar;
@@ -179,7 +188,7 @@
     duration: 200,
     easing: sineIn
   };
-
+  let currentGeneralInfo;
   // On mount
   onMount(async () => {
     const response = await fetch('./data/limite_region_centroide.geojson');
@@ -390,6 +399,8 @@
       detailsMandatCommune = findAllObjectsByAttribute(mandatData, 'id_COMMUNE', nom_commune);
       anneeDebutMandat = sortByDescendingOrder(detailsMandatCommune, 'DEBUT MANDAT');
       anneeFinMandat = sortByDescendingOrder(detailsMandatCommune, 'FIN MANDAT');
+      const indexCommune = communeData.findIndex((commune)=>commune.id_COMMUNE === e.detail.features[0].properties['ref:COG']) 
+      currentGeneralInfo=communeData[indexCommune];
     }
     if (theme!=='icsp') {
       nom_commune = e.detail.features[0].properties['ref:COG'];
@@ -598,63 +609,97 @@
               id="detailMandatForAMunicipality"
               class="p-3 list-none flex justify-center h-full"
             >
-              <Card padding="xl" class="mb-3 max-w-sm" size="md">
-                <h2 class="mb-4 text-center text-black !uppercase text-4xl poppins-medium">
+              <Card padding="md" class="leading-[24px] mb-4 mt-2 !max-w-md w-full">
+                <h2 class="mb-2 text-center text-black !uppercase text-4xl poppins-medium">
                   {clickedLayerInfo.detail.features[0].properties.name}
                 </h2>
 
                 <dl
-                  class="max-w-screen-xl gap-8 p-4 mx-auto text-gray-900  dark:text-white sm:p-8"
+                  class="max-w-screen-xl gap-8 p-2 mx-auto text-gray-900  dark:text-white sm:p-8"
                 >
                   {#if anneeFinMandat[0].SUPERFICIE}
                     <div class="flex items-center justify-center">
                       <dt class="ml-1 text-3xl font-extrabold w-full text-center">
                         {formattedValue(anneeFinMandat[0].SUPERFICIE) || ''}
                       </dt>
-                      <dd class="text-gray-500 dark:text-gray-400">km²</dd>
+                      <dd class="text-gray-500 ml-1 dark:text-gray-400">km²</dd>
                     </div>
                   {/if}
                   {#if anneeFinMandat[0].POPULATION}
-                    <div class="flex flex-col items-center justify-center">
-                      <dt class="mb-2 text-3xl font-extrabold">
+                    <div class="flex items-center justify-center">
+                      <dt class="ml-1 text-3xl font-extrabold w-full text-center">
                         {formattedValue(anneeFinMandat[0].POPULATION) || ''}
                       </dt>
-                      <dd class="text-gray-500 dark:text-gray-400">habitants</dd>
+                      <dd class="text-gray-500 ml-1 dark:text-gray-400">Habitants</dd>
                     </div>
                   {/if}
                 </dl>
 
-                <Card size="md" class="mb-4 flow-root !shadow-sm">
+                <Card class="mb-2 !px-1 !max-w-xl  w-full">
                   <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
                     {#each anneeFinMandat as detailMandat}
                       {#if detailMandat['FIN MANDAT'] === anneeFinMandat[0]['FIN MANDAT']}
-                        <li class="py-3 sm:py-4">
-                          <div class="flex items-center">
-                            <div class="flex-1 min-w-0 ms-4 mr-4">
-                              <p class="text-sm font-medium text-gray-900 dark:text-white">
-                                {detailMandat.CONSEILLER || ''}
+                        <li class=" py-1 sm:py-2">
+                          <div class="flex items-start">
+                            <div class="leading-3 flex-1 min-w-0 ms-4 mr-4">
+                              <p class={generalInfoItemStyle} >
+                                <UserOutline class="text-gray-700" size="sm" />
+                                Maire: 
+                                <span class={generalInfoValueStyle} >{detailMandat["CONSEILLER"]}</span>
                               </p>
-                              <p class="text-sm text-gray-500 truncate dark:text-gray-400">
-                                {detailMandat.ROLE || ''}
+                              <p class={generalInfoItemStyle}>  
+                                <UsersOutline class="text-gray-700" size="sm" />
+                                Adjoints Au maire: 
+                                <span class={generalInfoValueStyle} >
+                                  {detailMandat["Nombre des adjoints aux Maires"]} 
+                                  {#if (detailMandat["Nombre d'adjoints aux Maires femmes"] !== null)}
+                                    ({detailMandat["Nombre d'adjoints aux Maires femmes"]} femme(s))
+                                  {/if}
+                                </span>
                               </p>
-                              <p class="text-sm text-gray-500 truncate dark:text-gray-400">
-                                {detailMandat.TELEPHONE || ''}
+                              <p class={generalInfoItemStyle}>
+                                <UsersGroupOutline class="text-gray-700" size="sm" />
+                                Conseillers Municipaux: 
+                                <span class={generalInfoValueStyle} >
+                                  {detailMandat["Nombre de conseillers municipaux"]} 
+                                  {#if (detailMandat["Nombres de conseillers municipaux femmes"] !== null)}
+                                    ({detailMandat["Nombres de conseillers municipaux femmes"]} femme(s))
+                                  {/if}
+                                </span>
                               </p>
-                              <p class="text-sm text-gray-500 truncate dark:text-gray-400">
-                                {detailMandat.EMAIL || ''}
+                              <p class={generalInfoItemStyle} >
+                                <MailBoxOutline class="text-gray-700"  size="sm" />
+                                BP:  
+                                <span class={generalInfoValueStyle} >{currentGeneralInfo["Boîte postale de la Mairie"]}</span> 
                               </p>
+                              {#if currentGeneralInfo["Site Web de la Mairie"] !==null}
+                                <p class={generalInfoItemStyle} >
+                                  <GlobeSolid size="sm" />
+                                  <a class={generalInfoValueStyle} href= {currentGeneralInfo["Site Web de la Mairie"]}>Accéder au site Web</a>
+                                </p>
+                              {/if}
+                              <p class={generalInfoItemStyle}>
+                                <NewspapperOutline class="text-gray-700"  size="sm" />
+                                Date de création: 
+                                <span class={generalInfoValueStyle} >{currentGeneralInfo["Annee de creation"]}</span> 
+                              </p>
+
                             </div>
+                            
                             <div
-                              class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white"
+                              class="text-sm font-semibold text-gray-900 dark:text-white"
                             >
-                              {detailMandat.PARTI || ''}
+                              <Badge color="green" rounded class="px-3.5 py-0.5">
+                                {detailMandat.PARTI || ''}
+                              </Badge>
                             </div>
                           </div>
                         </li>
                       {/if}
                     {/each}
                   </ul>
-                </Card>
+                </Card> 
+                
               </Card>
             </div>
           {/if}
@@ -680,7 +725,7 @@
           </h2>
           <ul class=" px-8 w-full flex flex-col items-center">
             {#each sortByAscendingOrder(allProject,'Année financement')  as resultat}
-              <Card padding="lg" size="md" class="leading-[24px] mb-6">
+              <Card class="leading-[24px] mb-6 !max-w-md w-full">
                 <Listgroup class="border-0 dark:!bg-transparent ">
                   <div class="flex items-center space-x-2 rtl:space-x-reverse">
                     <div class="flex-1 min-w-0">
@@ -736,7 +781,7 @@
             {#await dataForLineChart then}
               {#if dataForLineChart.data.data}
                 <!-- Utilisation de h-full pour occuper 100% de la hauteur -->
-                <Card class="!max-w-lg w-full">
+                <Card class="!max-w-md w-full">
                   <div
                     class="w-full flex justify-center items-center pb-4 mb-4 border-b border-gray-200 dark:border-gray-700"
                   >
@@ -772,7 +817,7 @@
             <!-- Contenu de la première div -->
             {#await dataForBarChart then}
               {#if dataForBarChart.data}
-                <Card class="!max-w-lg w-full">
+                <Card class="!max-w-md w-full">
                   <!-- Utilisation de h-full pour occuper 100% de la hauteur -->
                   <div
                     class="w-full h-full flex justify-center items-center pb-4 mb-4 border-b border-gray-200 dark:border-gray-700"
