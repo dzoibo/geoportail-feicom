@@ -21,7 +21,9 @@
     storeIndicateur5,
     storeIndicateur,
     heightNavBar,
-    storeIndicateurICSP
+    scaleStore,
+    storeIndicateurICSP,
+    storeCommune
   } from '../../shared/store.js';
   import { fetchData } from '../../shared/dataService.js';
 
@@ -83,9 +85,8 @@
   let backdrop: boolean = false;
   let drawerHidden = true;
   let activateClickOutside = true;
-
+  let isCommune=false;
   let navbarHeight = 0;
-
   let sidebarWidth = 20;
   let marginRight = sidebarWidth; // Valeur initiale de la marge droite
 
@@ -166,16 +167,18 @@
   let departementSearchResult:any[]=[];
   let beneficiaireAccordSearchResult: any[]=[];
   let beneficiaireIcspSearchResult:any[]=[];
+  let communeSearchResult: any[]=[];
   let instanceSearchResult: any[]=[];
   let secteurSearchResult: any[]=[];
   let domaineSearchResult: any[]=[];
   let partenaireSearchResult: any[]=[];
-
+  let infoCommuneSelected='';
   //filter indicator¸
   let regionInputValue='';
   let departementInputValue='';
   let beneficiaireAccordInputValue='';
   let beneficiareIcspInputValue='';
+  let communeInputValue='';
   let instanceInputValue='';
   let secteurInputValue='';
   let domaineInputValue='';
@@ -260,7 +263,7 @@
         store.mandatData = mandatData;
         store.communeData = communeData;
         store.regionData = regionData;
-        return store;
+        return store;// Récupération de la data provenant de layout.svete
       });
 
       valeursAttribution = uniqueValues(dataArr, indicateur1);
@@ -272,7 +275,7 @@
       valeursSourcefinancement = uniqueValues(dataArr, indicateur5);
       valeursPartenaires = uniqueValues(dataArr, indicateur6);
       valeursDepartement = uniqueValues(dataArr, indicateur8, true, 'id_DEPARTEMENT');
-      valeursRegion = uniqueValues(dataArr, indicateur9, false, 'id_REGION');
+      valeursRegion= uniqueValues(dataArr, indicateur9, false, 'id_REGION');
       valeursAvancement = uniqueValues(dataArr, indicateur10);
       // Fusionner les deux tableaux en un seul
       const mergedArray = [...valeursBeneficiaire, ...valeursBeneficiaire2];
@@ -543,6 +546,15 @@
     return array;
   }
 
+  function updateInfoCommune(event){
+    if(infoCommuneSelected!==event.target.value){
+      infoCommuneSelected=event.target.value;
+    }else{
+      infoCommuneSelected='';
+    }
+    storeCommune.set(infoCommuneSelected);
+  }
+
   function setTypeBeneficiaire(){
     valeursBeneficiaire.forEach((beneficiaire) => (beneficiaire.checked = false));
     valeursDepartement.forEach((departement) => (departement.checked = false));
@@ -685,6 +697,8 @@
       case 'partenaire':
         partenaireSearchResult=searchResult;
         break;
+      case 'communeInfo':
+        communeSearchResult= searchResult;
       default:
       beneficiaireIcspSearchResult=searchResult
     } 
@@ -746,7 +760,7 @@
   <NavBrand href="/" class="lg:ml-64">
     <img src={'/logo-Feicom.png'} alt="Feicom" class=" max-w-full h-11" />
     <span class="self-center whitespace-nowrap text-xl poppins-medium text-white pl-4">
-      Géoportail du FEICOM
+      GÉOPORTAIL DU FEICOM
     </span>
   </NavBrand>
   <!--   <NavHamburger on:click={toggle} />
@@ -789,6 +803,50 @@
                 <LandmarkOutline size="sm" />
                 <span class="-ml-2">Informations générales des territoires</span>
               </div>
+
+              <SidebarGroup  class="!static {cardForSideBar}">
+                <SidebarDropdownWrapper  label="Listes des communes">
+                  <svelte:fragment slot="icon">
+                    <UsersGroupOutline
+                      class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                    /> 
+                    {#if icspFilterIndicator.beneficiaire && !filterCheckedAll.beneficiaireIcsp}
+                      <div class={filterIndicatorStyle} ></div>
+                    {/if}
+                  </svelte:fragment>
+                  <Button class="bg-[#234099] hover:bg-[#182D73]"  data-placement="end"
+                    >Choisissez une commune<ChevronDownSolid
+                      class="w-3 h-3 ms-2 text-white dark:text-white"
+                    /></Button
+                  >
+                  
+                  <Dropdown placement="bottom" class={dropdownStyle}>
+                    <div slot="header" class="p-3">
+                      <SearchBar
+                          bind:inputValue={communeInputValue}
+                          on:input={(event) => handleInput(event,jsonToItem({ valeursBeneficiaire2 }, 'valeursBeneficiaire2'),'communeInfo')}
+                      />
+                    </div>
+                    
+                    
+                    {#each valeursBeneficiaire2 as commune}
+                      {#if filterList(commune, communeSearchResult)}
+                        <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                          <Checkbox
+                            id={commune.id_COMMUNE}
+                            value={commune.id_COMMUNE}
+                            checked={infoCommuneSelected===commune.id_COMMUNE}
+                            on:change={(event) =>
+                              updateInfoCommune(event)
+                            }>{commune.key}
+                          </Checkbox>
+                        </li>
+                      {/if}
+                    {/each}
+                  </Dropdown>
+                </SidebarDropdownWrapper>
+              </SidebarGroup>
+                
             </TabItem>
             <div class="space-x-0 w-full flex !flex-nowrap">
               <TabItem
@@ -844,7 +902,7 @@
                   </SidebarDropdownWrapper>
                 </SidebarGroup>
                 <SidebarGroup class={cardForSideBar} >
-                  <SidebarDropdownWrapper label="Bénéficiaire">
+                  <SidebarDropdownWrapper label="Bénéficiaires">
                     <svelte:fragment slot="icon">
                       <UsersGroupOutline
                         class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"

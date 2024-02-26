@@ -8,7 +8,9 @@
     storeIndicateur5,
     storeIndicateur,
     heightNavBar,
-    accordMode
+    accordMode,
+    scaleStore,
+    storeCommune
   } from '../../shared/store';
   import Pagination from '../components/Pagination.svelte';
   import {
@@ -215,6 +217,15 @@
       valueSliderICSP = $rangeValue;
     });
 
+    storeCommune.subscribe(($idCommune)=>{
+      try {
+        const tab=[$idCommune]
+        updateGetBox(tab);
+      } catch (error) {
+        console.log('the error itself',error);
+      }
+    })
+
     accordMode.subscribe(($accodMode)=>{
       valeurAccordMode = $accodMode;
     })
@@ -273,7 +284,7 @@
       scale = 'id_DEPARTEMENT';
       toggleLayer('dep');
     }
-
+    scaleStore.set(scale);
     if (sidebarId) {
       heightSideBar = sidebarId.offsetHeight;
     }
@@ -312,21 +323,7 @@
               'id_COMMUNE',
               'key'
             );
-            getbbox = fetchIdCommunesFromCommunesID(getID, communeData, 'bbox', 'id_COMMUNE');
-            const overallBbox = getOverallBbox(getbbox);
-
-            if (getbbox.length > 0) {
-              map.fitBounds(overallBbox, {
-                padding: 20, // Espace de marge autour de la BoundingBox
-                maxZoom: 15 // Niveau de zoom maximal
-              });
-            } else {
-              map.fitBounds(bbox, {
-                duration: 500,
-                center: center,
-                zoom: zoom // Niveau de zoom maximal
-              });
-            }
+            updateGetBox(getID);
           }
         }
       } else {
@@ -392,6 +389,23 @@
     }
   }
 
+  function updateGetBox(getID){
+    getbbox = fetchIdCommunesFromCommunesID(getID, communeData, 'bbox', 'id_COMMUNE');
+    const overallBbox = getOverallBbox(getbbox);
+    if (getbbox.length > 0) {
+      map.fitBounds(overallBbox, {
+        padding: 20, // Espace de marge autour de la BoundingBox
+        maxZoom: 15 // Niveau de zoom maximal
+      });
+    } else {
+      map.fitBounds(bbox, {
+        duration: 500,
+        center: center,
+        zoom: zoom // Niveau de zoom maximal
+      });
+    }
+  }
+
   function handleLayerClick(e) {
     // Set the variable with information about the clicked layer
     clickedLayerInfo = e;
@@ -412,7 +426,6 @@
         ...currentGeneralInfo,
         superficy: statisticsPerRegion[indexSuperficy].value
       }
-      console.log('this is the current ',currentGeneralInfo)
       hiddenBackdropFalse=false;
       
     }else if (theme!=='icsp') {
