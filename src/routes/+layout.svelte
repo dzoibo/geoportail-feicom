@@ -805,12 +805,12 @@
               </div>
 
               <SidebarGroup  class="!static {cardForSideBar}">
-                <SidebarDropdownWrapper  label="Listes des communes">
+                <SidebarDropdownWrapper  label="Liste des communes">
                   <svelte:fragment slot="icon">
                     <UsersGroupOutline
                       class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                     /> 
-                    {#if icspFilterIndicator.beneficiaire && !filterCheckedAll.beneficiaireIcsp}
+                    {#if infoCommuneSelected.length > 0}
                       <div class={filterIndicatorStyle} ></div>
                     {/if}
                   </svelte:fragment>

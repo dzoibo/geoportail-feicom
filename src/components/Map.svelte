@@ -154,6 +154,7 @@
 
   let center = [12, 6];
   let zoom = 5;
+  let getIdCommuneForZoom='';
 
   // bbox du Cameroun
   let bbox = [
@@ -218,12 +219,7 @@
     });
 
     storeCommune.subscribe(($idCommune)=>{
-      try {
-        const tab=[$idCommune]
-        updateGetBox(tab);
-      } catch (error) {
-        console.log('the error itself',error);
-      }
+      getIdCommuneForZoom=[$idCommune];
     })
 
     accordMode.subscribe(($accodMode)=>{
@@ -252,11 +248,12 @@
 
     // Abonnez-vous au store pour recevoir les mises à jour
     buttonICSP.subscribe(($theme) => {
-      // Mettez à jour la valeur locale avec la valeur du store
+        // Mettez à jour la valeur locale avec la valeur du store
         theme = $theme; 
         if(showDep){// thius means that we we in the theme "appuis financier " cause it's the only theme to have the scale dep. so when we switch to another theme we have to go back to the scale region 
           toggleLayer('reg');
         }
+        
     });
     if (theme==='icsp') {
       dataForMap = icspData;
@@ -317,13 +314,17 @@
               ).data;
             }
 
-            let getID = fetchIdCommunesFromCommunesID(
+            let getID=fetchIdCommunesFromCommunesID(
               communesCommunes,
               keyCommuneID_Commune,
               'id_COMMUNE',
               'key'
             );
-            updateGetBox(getID);
+            if(theme!=='info'){
+              updateGetBox(getID);
+            }else{
+              updateGetBox(getIdCommuneForZoom);
+            }
           }
         }
       } else {
@@ -675,9 +676,6 @@
                                 Adjoints Au maire: 
                                 <span class={generalInfoValueStyle} >
                                   {detailMandat["Nombre des adjoints aux Maires"]} 
-                                  {#if (detailMandat["Nombre d'adjoints aux Maires femmes"] !== null)}
-                                    ({detailMandat["Nombre d'adjoints aux Maires femmes"]} femme(s))
-                                  {/if}
                                 </span>
                               </p>
                               <p class={generalInfoItemStyle}>
@@ -685,14 +683,11 @@
                                 Conseillers Municipaux: 
                                 <span class={generalInfoValueStyle} >
                                   {detailMandat["Nombre de conseillers municipaux"]} 
-                                  {#if (detailMandat["Nombres de conseillers municipaux femmes"] !== null)}
-                                    ({detailMandat["Nombres de conseillers municipaux femmes"]} femme(s))
-                                  {/if}
                                 </span>
                               </p>
                               <p class={generalInfoItemStyle} >
                                 <MailBoxOutline class="text-gray-700"  size="sm" />
-                                BP:  
+                                BP :  
                                 <span class={generalInfoValueStyle} >{currentGeneralInfo["Boîte postale de la Mairie"]}</span> 
                               </p>
                               {#if currentGeneralInfo["Site Web de la Mairie"] !==null}
@@ -1021,7 +1016,7 @@
                   <div class="text-sm poppins-light text-center">
                     <!-- afficher le nombre de concours financiers ou le montant total de ces concours financers --> 
                     {#if (valeurAccordMode==='projet')}
-                      <div class="text-sm poppins-light">{formattedValue(value)} <i>Financement(s)</i> </div>
+                      <div class="text-sm poppins-light">{formattedValue(value)} <!--Financement(s)--> </div>
                     {:else}
                       <div class="text-sm poppins-light">{formattedValue(value)} XAF</div>
                     {/if}
