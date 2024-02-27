@@ -599,10 +599,19 @@
     return formalizedData
   }
 
+  function displayItemValue(value) {
+  if (value == null) {
+    return `<span class="text-[15px] italic">Non disponible</span>`;
+  } else {
+    return `<span class="text-[15px] font-medium">${value}</span>`;
+  }
+}
+
   // On se désabonne pour éviter les fuites de data
   onDestroy(() => {
     unsubscribe;
   });
+
 </script>
 
 <svelte:window bind:innerWidth={width} />
@@ -789,33 +798,51 @@
                 <Listgroup class="border-0 dark:!bg-transparent ">
                   <div class="flex items-center space-x-2 rtl:space-x-reverse">
                     <div class="flex-1 min-w-0">
-                      {#each Object.keys(resultat) as key}
-                      {#if [
-                        "Date d'octroi financement",
-                        "Bénéficiaire",
-                        "Intitulé projet amélioré",
-                        "Instance d'attribution",
-                        "Montant du financement",
-                        "Niveau d’avancement"
-                        ].includes(key)}
-                          <div >
-                            <span class="text-base font-medium text-gray-900 dark:text-white">
-                              {key} :
-                            </span>
-                            <span class="text-[15px] font-medium">
-                              {#if resultat[key] !== null }
-                                {resultat[key]}
-                                {#if key==="Montant du financement"}XAF{/if}
-                              {:else}
-                                <span class="italic">Non disponible</span>
-                              {/if}
-                            </span>
-                          </div>
-                        {/if}
-                      {/each}
+
+                      <div>
+                        <span class="text-base font-medium text-gray-900 dark:text-white">
+                          Intitulés du projet :
+                        </span>
+                        {@html displayItemValue(resultat['Intitulé projet amélioré'])}
+                      </div>
+
+                      <div>
+                        <span class="text-base font-medium text-gray-900 dark:text-white">
+                          Bénéficiaire :
+                        </span>
+                        {@html displayItemValue(resultat['Bénéficiaire'])}
+                      </div>
+
+                      <div>
+                        <span class="text-base font-medium text-gray-900 dark:text-white">
+                          Date d'octroi financement :
+                        </span>
+                        {@html displayItemValue(resultat["Date d'octroi financement"])}
+                      </div>
+
+                      <div>
+                        <span class="text-base font-medium text-gray-900 dark:text-white">
+                          Montant :
+                        </span>
+                        {@html displayItemValue(resultat["Montant du financement"])}
+                      </div>
+
+                      <div>
+                        <span class="text-base font-medium text-gray-900 dark:text-white">
+                          Instance d'attribution :
+                        </span>
+                        {@html displayItemValue(resultat["Instance d'attribution"])}
+                      </div>
+
+                      <div>
+                        <span class="text-base font-medium text-gray-900 dark:text-white">
+                          Niveau d’avancement :
+                        </span>
+                        {@html displayItemValue(resultat["Niveau d’avancement"])}
+                      </div>
                     </div>
-                  </div></Listgroup
-                >
+                  </div>
+                </Listgroup>
               </Card>
             {/each}
           </ul>
