@@ -67,7 +67,7 @@
     UsersOutline,
     UserOutline,
     NewspapperOutline,
-    GlobeSolid,
+    LinkOutline,
   } from 'flowbite-svelte-icons';
   import { sineIn } from 'svelte/easing';
   import {
@@ -701,8 +701,10 @@
                               </p>
                               {#if currentGeneralInfo["Site Web de la Mairie"] !==null}
                                 <p class={generalInfoItemStyle} >
-                                  <GlobeSolid size="sm" />
-                                  <a class={generalInfoValueStyle} href= {currentGeneralInfo["Site Web de la Mairie"]}>Accéder au site Web</a>
+                                  <LinkOutline size="sm" />:
+                                  <span class={"cursor-pointer "+generalInfoValueStyle} on:click={()=>{
+                                    window.open("https://"+currentGeneralInfo["Site Web de la Mairie"],"_blank");
+                                  }} > Accéder au site Web</span>
                                 </p>
                               {/if}
                               <p class={generalInfoItemStyle}>
