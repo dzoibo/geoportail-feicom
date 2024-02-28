@@ -220,6 +220,11 @@
 
     storeCommune.subscribe(($idCommune)=>{
       getIdCommuneForZoom=[$idCommune];
+      try {
+        updateGetBox(getIdCommuneForZoom);
+      } catch (error) {
+        console.log(error);
+      }
     })
 
     accordMode.subscribe(($accodMode)=>{
