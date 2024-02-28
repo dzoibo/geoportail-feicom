@@ -801,7 +801,7 @@
 
                       <div>
                         <span class="text-base font-medium text-gray-900 dark:text-white">
-                          Intitulés du projet :
+                          Intitulé du projet :
                         </span>
                         {@html displayItemValue(resultat['Intitulé projet amélioré'])}
                       </div>
@@ -1092,7 +1092,7 @@
                 {:else}
                   <!-- Afficher la valeur avec l'unité 'projet' -->
                   {#if (valeurAccordMode==='projet')}
-                    <div class="text-sm poppins-light">{formattedValue(value)} <i>Financement(s)</i> </div>
+                    <div class="text-sm poppins-light">{formattedValue(value)} <!--Financement(s)-->   </div>
                   {:else}
                     <div class="text-sm poppins-light">{formattedValue(value)} XAF</div>
                   {/if}

@@ -377,7 +377,6 @@
     setTimeout(() => {
       updateFilterIndicator(array.indicateur,section)
     }, 12);
-    
   }
 
   function toggleAllCheckbox(
@@ -709,6 +708,22 @@
     return searchResult.length === 0 || searchResult.includes(listItem.key);
   }
 
+function RemoveFilteredDomaineValue(key){
+  const indexDomaine=valeursDomaine.findIndex(domaine=>domaine.key===key);
+  const secteurIndex= valeursSecteur.findIndex(secteur=>secteur.id_SECTEUR=== valeursDomaine[indexDomaine].id_SECTEUR)
+  
+  const checkActive = valeursSecteur[secteurIndex].checked || accordFilterIndicators.secteur === false;  
+  if(checkActive===false){  // if secteur's filter is active and the Secteur of this domiane is not checked we remove it 
+  closeDiv(
+      key,
+      dropdownSelectionIndicateur3,
+      valeursDomaine,
+      'accord'
+    )
+  }  
+  return true;  
+}
+
   // Fonction pour réinitialiser les filtres et vider les dropdowns
   function resetFilters() {
     // Réinitialiser les filtres
@@ -811,7 +826,8 @@
                       class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                     /> 
                     {#if infoCommuneSelected.length > 0}
-                      <div class={filterIndicatorStyle} ></div>
+                      <div class={filterIndicatorStyle}>
+                      </div>
                     {/if}
                   </svelte:fragment>
                   <Button class="bg-[#234099] hover:bg-[#182D73]"  data-placement="end"
@@ -1564,11 +1580,9 @@
                           <div class={filterIndicatorStyle} ></div>
                         {/if}
                       </svelte:fragment>
-                      <Button class="bg-[#234099] hover:bg-[#182D73]"
-                        >Sélection des domaines<ChevronDownSolid
-                          class="w-3 h-3 ms-2 text-white dark:text-white"
-                        /></Button
-                      >
+                      <Button class="bg-[#234099] hover:bg-[#182D73]">
+                        Sélection des domaines<ChevronDownSolid class="w-3 h-3 ms-2 text-white dark:text-white"/>
+                      </Button> 
                       <Dropdown class={dropdownStyle}>
                         <div slot="header" class="p-3">
                           <SearchBar
@@ -1619,21 +1633,23 @@
                           {#each arrayAllIndicateurs.accord as indicateur}
                             {#if indicateur.indicateur === dropdownSelectionIndicateur3.indicateur}
                               {#each indicateur.data as word (word)}
-                                <div
-                                  class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg"
-                                >
-                                  {word}
-                                  <CloseButton
-                                    on:click={() =>
-                                      closeDiv(
-                                        word,
-                                        dropdownSelectionIndicateur3,
-                                        valeursDomaine,
-                                        'accord'
-                                      )}
-                                    class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
-                                  />
-                                </div>
+                                {#if RemoveFilteredDomaineValue(word)}
+                                  <div
+                                    class="inline-flex relative px-5 py-2.5 m-1 font-medium text-center text-sm text-white bg-[#0095DC] rounded-lg"
+                                  >
+                                    {word}
+                                    <CloseButton
+                                      on:click={() =>
+                                        closeDiv(
+                                          word,
+                                          dropdownSelectionIndicateur3,
+                                          valeursDomaine,
+                                          'accord'
+                                        )}
+                                      class=" absolute focus:outline-none whitespace-normal focus:ring-2 p-1.5  hover:bg-red-500 ms-auto inline-flex items-center justify-center w-6 !h-6 font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2"
+                                    />
+                                  </div>
+                                {/if}
                               {/each}
                             {/if}
                           {/each}
