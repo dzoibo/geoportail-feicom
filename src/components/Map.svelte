@@ -420,6 +420,7 @@
       detailsMandatCommune = findAllObjectsByAttribute(mandatData, 'id_COMMUNE', nom_commune);
       anneeDebutMandat = sortByDescendingOrder(detailsMandatCommune, 'DEBUT MANDAT');
       anneeFinMandat = sortByDescendingOrder(detailsMandatCommune, 'FIN MANDAT');
+      console.log('this is the data thta is returned twice',anneeFinMandat);
       const indexCommune = communeData.findIndex((commune)=>commune.id_COMMUNE === e.detail.features[0].properties['ref:COG']) 
       currentGeneralInfo=communeData[indexCommune];
     }
