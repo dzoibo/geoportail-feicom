@@ -68,6 +68,7 @@
     UserOutline,
     NewspapperOutline,
     LinkOutline,
+    EnvelopeOutline
   } from 'flowbite-svelte-icons';
   import { sineIn } from 'svelte/easing';
   import {
@@ -420,7 +421,6 @@
       detailsMandatCommune = findAllObjectsByAttribute(mandatData, 'id_COMMUNE', nom_commune);
       anneeDebutMandat = sortByDescendingOrder(detailsMandatCommune, 'DEBUT MANDAT');
       anneeFinMandat = sortByDescendingOrder(detailsMandatCommune, 'FIN MANDAT');
-      console.log('this is the data thta is returned twice',anneeFinMandat);
       const indexCommune = communeData.findIndex((commune)=>commune.id_COMMUNE === e.detail.features[0].properties['ref:COG']) 
       currentGeneralInfo=communeData[indexCommune];
     }
@@ -485,53 +485,7 @@
     }
   }
 
-  function handleLayerClickOnRegion(e) {
-    if (theme==='icsp') {
-      // Set the variable with information about the clicked layer
-      // Set hiddenBackdropFalse to false to show the Drawer
-      const region = e.detail.features?.[0]?.state.id_REGION;
-      const label_reg = e.detail.features[0].properties.name;
 
-      dataForBarChart.data = transformDataForBarChart(
-        dataForMap,
-        region,
-        valueSliderICSP[0],
-        valueSliderICSP[1],
-        'id_REGION'
-      );
-      dataForLineChart.data = sumISPValues(dataForMap, region, 'id_REGION');
-
-      dataForLineChart.geo = label_reg;
-
-      dataForBarChart.year = valueSliderICSP[0] + ' / ' + valueSliderICSP[1];
-      dataForBarChart.geo = label_reg;
-
-      // Calcul de la somme des valeurs "y"
-      dataForBarChart.sum = dataForBarChart.data.reduce(
-        (total, currentItem) => total + currentItem.y,
-        0
-      );
-
-      hiddenBackdropFalse = false;
-      return dataForBarChart;
-    } else {
-      if (theme!=='icsp' && showReg) {
-        clickedLayerInfo = e;
-
-        nom_commune = e.detail.features[0].properties['ref:COG'];
-        allProject = rechercheMulticriteresPourFEICOM(
-          dataForMap,
-          nom_commune,
-          scale,
-          valueSliderAccord[0],
-          valueSliderAccord[1],
-          storeIndicateurForMap.accord
-        );
-        // Set hiddenBackdropFalse to false to show the Drawer
-        hiddenBackdropFalse = false;
-      }
-    }
-  }
 
   function getUpdatedPaintProperties(MinMax) {
     return {
@@ -650,7 +604,11 @@
           <div id="detailMandatForAMunicipality" class="p-3 list-none flex justify-center h-full" >
             <Card padding="md" class="leading-[24px] mb-4 mt-2 !max-w-md w-full">
               <h2 class="mb-2 text-center text-black !uppercase text-4xl poppins-medium">
-                {clickedLayerInfo.detail.features[0].properties.name}
+                {#if showCom }
+                  {clickedLayerInfo.detail.features[0].properties.name}
+                {:else}
+                  {currentGeneralInfo["nom_REGION"]}
+                {/if}
               </h2>
               {#if showCom && anneeFinMandat}
                 <dl
@@ -705,12 +663,23 @@
                                 BP :  
                                 <span class={generalInfoValueStyle} >{currentGeneralInfo["Boîte postale de la Mairie"]}</span> 
                               </p>
+
+                              {#if currentGeneralInfo["Email mairie"]}
+                                <p class={generalInfoItemStyle} >
+                                  <EnvelopeOutline class="text-gray-700"  size="sm" />
+                                  Adresse email :  
+                                  <span class={generalInfoValueStyle} >
+                                    <a href="mailto:{currentGeneralInfo["Email mairie"]}">{currentGeneralInfo["Email mairie"]}</a>
+                                  </span> 
+                                </p>
+                              {/if}
                               {#if currentGeneralInfo["Site Web de la Mairie"] !==null}
                                 <p class={generalInfoItemStyle} >
-                                  <LinkOutline size="sm" />:
+                                  <LinkOutline size="sm" />
+                                  Site web:
                                   <span class={"cursor-pointer "+generalInfoValueStyle} on:click={()=>{
                                     window.open("https://"+currentGeneralInfo["Site Web de la Mairie"],"_blank");
-                                  }} > Accéder au site Web</span>
+                                  }} > {currentGeneralInfo["Site Web de la Mairie"]}</span>
                                 </p>
                               {/if}
                               <p class={generalInfoItemStyle}>
@@ -740,7 +709,7 @@
                   >
                 <div class="flex items-center justify-center">
                   <dt class="ml-1 text-3xl font-extrabold w-full text-center">
-                    {currentGeneralInfo.superficy}
+                    {formattedValue(currentGeneralInfo.superficy)|| ''}
                   </dt>
                   <dd class="text-gray-500 ml-1 dark:text-gray-400">km²</dd>
                 </div>
