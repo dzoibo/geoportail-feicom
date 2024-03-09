@@ -18,7 +18,6 @@
     buttonICSP,
     rangeValueAccord,
     accordMode,
-    storeIndicateur5,
     storeIndicateur,
     heightNavBar,
     scaleStore,
@@ -50,13 +49,16 @@
     Label,
     Tabs,
     TabItem,
-    Spinner
+    Spinner,
+
+    Card
+
   } from 'flowbite-svelte';
   import {
     FolderOutline,
     SwatchbookOutline,
     LandmarkOutline,
-    DollarOutline,
+    CashOutline,
     UsersGroupOutline,
     ChevronDownSolid,
     CheckPlusCircleOutline,
@@ -203,6 +205,7 @@
     'relative bg-white dark:bg-#23409A-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 divide-gray-200 dark:divide-gray-700 shadow-md p-2 mb-2';
   let filterIndicatorStyle='w-2.5 h-2.5 mb-2 rounded-[50%] bg-[#234099]'
   let dropdownStyle = 'w-48 overflow-y-auto py-1 h-48';
+  let cardStyle = 'w-auto my-2 overflow-y-auto rounded-lg py-1 h-48';
 
   let theme='info';
   //variables to handle the filter indicator for each filter
@@ -242,7 +245,7 @@
   let typeBeneficiaireSelected='commune'
 
   let accordDisplayModes = [
-    { value: 'projet', name: 'Afficher par nombre de projet' },
+    { value: 'projet', name: 'Afficher par nombre de financements' },
     { value: 'amount', name: 'Afficher par montant' },
   ];
 
@@ -250,6 +253,14 @@
     {value: 'commune', name:'Communes et C. urbaines '},
     {value: 'conseil-regional',name: 'Conseils régionaux' }
   ]
+
+     scaleStore.subscribe(($scale) => {
+        console.log( 'the scale ', $scale);
+        if($scale!=='id_COMMUNE'){
+          infoCommuneSelected='';
+          storeCommune.set('');
+        }
+    });
 
   onMount(async function () {
     try {
@@ -545,9 +556,9 @@
     return array;
   }
 
-  function updateInfoCommune(event){
-    if(infoCommuneSelected!==event.target.value){
-      infoCommuneSelected=event.target.value;
+  function updateInfoCommune(idCommune){
+    if(infoCommuneSelected!==idCommune){
+      infoCommuneSelected=idCommune;
     }else{
       infoCommuneSelected='';
     }
@@ -807,38 +818,29 @@ function RemoveFilteredDomaineValue(key){
             <TabItem
               class="text-xs poppins-medium w-full !border-b  !border-gray-200 "
               open
-              on:click={()=>{
-                showICSP=true;
-                showFinancement= false;
-                theme='info';
-                buttonICSP.set('info');
-              }}
+              
             >
-              <div slot="title" class="flex px-2.5 items-center gap-0.5">
-                <LandmarkOutline size="sm" />
-                <span class="-ml-2">Informations générales des territoires</span>
-              </div>
-
-              <SidebarGroup  class="!static {cardForSideBar}">
-                <SidebarDropdownWrapper  label="Liste des communes">
-                  <svelte:fragment slot="icon">
-                    <UsersGroupOutline
-                      class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                    /> 
-                    {#if infoCommuneSelected.length > 0}
-                      <div class={filterIndicatorStyle}>
-                      </div>
-                    {/if}
-                  </svelte:fragment>
-                  <Button class="bg-[#234099] hover:bg-[#182D73]"  data-placement="end"
-                    >Choisissez une commune<ChevronDownSolid
-                      class="w-3 h-3 ms-2 text-white dark:text-white"
-                    /></Button
-                  >
-                  
-                  <Dropdown placement="bottom" class={dropdownStyle}>
-                    <div slot="header" class="p-3">
+              <div slot="title" class="flex flex-col px-2.5 ">
+                <div
+                class="flex items-center gap-0.5"
+                on:click={()=>{
+                  showICSP=true;
+                  showFinancement= false;
+                  theme='info';
+                  buttonICSP.set('info');
+                  }
+                }
+                >
+                  <LandmarkOutline size="sm" />
+                  <span 
+                    class="-ml-2">Informations générales des territoires</span>
+                </div>
+                
+                {#if theme==='info'}
+                  <Card class={cardStyle}>
+                    <div  class="pb-1 -ml-1">
                       <SearchBar
+                          placeholder={'Rechercher commune...'}
                           bind:inputValue={communeInputValue}
                           on:input={(event) => handleInput(event,jsonToItem({ valeursBeneficiaire2 }, 'valeursBeneficiaire2'),'communeInfo')}
                       />
@@ -847,7 +849,7 @@ function RemoveFilteredDomaineValue(key){
                     
                     {#each valeursBeneficiaire2 as commune}
                       {#if filterList(commune, communeSearchResult)}
-                        <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                        <!-- <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
                           <Checkbox
                             id={commune.id_COMMUNE}
                             value={commune.id_COMMUNE}
@@ -856,12 +858,21 @@ function RemoveFilteredDomaineValue(key){
                               updateInfoCommune(event)
                             }>{commune.key}
                           </Checkbox>
+                        </li> -->
+                        <li 
+                          class="rounded p-2 hover:bg-gray-100 text-left dark:hover:bg-gray-600"
+                          id={commune.id_COMMUNE}
+                          on:click={() =>updateInfoCommune(commune.id_COMMUNE)}
+                        >{commune.key}
                         </li>
                       {/if}
                     {/each}
-                  </Dropdown>
-                </SidebarDropdownWrapper>
-              </SidebarGroup>
+                  </Card>
+                {/if}
+                
+              </div>
+
+              
                 
             </TabItem>
             <div class="space-x-0 w-full flex !flex-nowrap">
@@ -875,7 +886,7 @@ function RemoveFilteredDomaineValue(key){
                 }}
               >
                 <div slot="title" class="flex items-center gap-1 !rounded-none">
-                  <DollarOutline size="sm" />
+                  <CashOutline size="sm" />
                   Finance locale
                 </div>
                 <SidebarGroup class={cardForSideBar} id="icsp">
@@ -1661,7 +1672,7 @@ function RemoveFilteredDomaineValue(key){
                   <SidebarGroup class={cardForSideBar}>
                     <SidebarDropdownWrapper label="Sources de financement">
                       <svelte:fragment slot="icon">
-                        <DollarOutline
+                        <CashOutline
                           class="w-auto text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                         />
                         {#if accordFilterIndicators.sourceF && !filterCheckedAll.sourceF}

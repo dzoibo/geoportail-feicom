@@ -58,7 +58,7 @@
     InfoCircleSolid,
     ArrowRightOutline,
     BadgeCheckOutline,
-    DollarOutline,
+    CashOutline,
     ChartOutline,
     LandmarkOutline,
     GridSolid,
@@ -194,6 +194,8 @@
     easing: sineIn
   };
   let currentGeneralInfo;
+  let layer='reg';
+  let lastLayerUpdateTime='0';
   // On mount
   onMount(async () => {
     const response = await fetch('./data/limite_region_centroide.geojson');
@@ -507,10 +509,26 @@
     };
   }
 
+  /**
+   * when a commune is selected, we need to remove zoom before being able to toggle the layer
+  */
+  function clearFilterBeforeToggleZoom(layer){
+    if(getbbox!==[]){
+      updateGetBox('');
+      setTimeout(() => {
+        toggleLayer(layer);
+      }, 1000);
+    }else{
+       toggleLayer(layer);
+    }
+  } 
+
   function toggleLayer(layer) {
+    
     showReg = layer === 'reg' ? true : false;
     showDep = layer === 'dep' ? true : false;
     showCom = layer === 'com' ? true : false;
+    
     // Supprimez la classe "active" de tous les boutons
     const buttons = document.querySelectorAll('.maplibregl-ctrl-icon');
     buttons.forEach((button) => {
@@ -533,20 +551,31 @@
   
   //automalticaly change the scale
   function toggleLayerOnZoom(){
+    const currentTime = Date.now();
+    let tempLayer=layer;
     if(currentZoom>previousZoom){
       if(currentZoom>5.1 && showReg && theme==='accord'){
-        toggleLayer('dep')
+        tempLayer ='dep';
       }else if(currentZoom>=5.75 && !showCom){
-        toggleLayer('com')
+        tempLayer='com';
       }
     }else{
       if(currentZoom<5.1 && !showReg){
-        toggleLayer('reg')
+        tempLayer='reg';
       }else if(currentZoom<=5.75 && showCom && theme==='accord'){
-        toggleLayer('dep')
+        tempLayer='dep';
       }
     }
-    previousZoom=currentZoom;
+    if(currentTime-lastLayerUpdateTime<1000 && layer===tempLayer){
+      return;
+    }else{
+      layer=tempLayer;
+      lastLayerUpdateTime=Date.now();
+      toggleLayer(layer);
+      
+      previousZoom=currentZoom;
+    }
+    
   }
 
   //changer l'affichage ISP par ICSP
@@ -801,7 +830,11 @@
                         <span class="text-base font-medium text-gray-900 dark:text-white">
                           Montant :
                         </span>
-                        {@html displayItemValue(resultat["Montant du financement"])}
+                        {#if (value == null)} 
+                          <span class="text-[15px] italic">Non disponible</span>
+                        {:else}
+                          <span class="text-[15px] font-medium">${value} FCFA</span>
+                        {/if}
                       </div>
 
                       <div>
@@ -890,7 +923,7 @@
                       <div
                         class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center me-3"
                       >
-                        <DollarOutline class="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                        <CashOutline class="w-6 h-6 text-gray-500 dark:text-gray-400" />
                       </div>
                       <div>
                         <h5
@@ -903,7 +936,7 @@
                             Total ICSP pour la période {dataForBarChart.year} :
                           </dt>
                           <dd class="text-gray-900 text-sm dark:text-white font-semibold">
-                            {formattedValue(dataForBarChart.sum)}
+                            {formattedValue(dataForBarChart.sum)} FCFA
                           </dd>
                         </p>
                       </div>
@@ -950,23 +983,23 @@
       <ControlGroup >
 
         <Tooltip triggeredBy="#reg-tooltip" class={toolTipStyle} placement ='right' >
-          Échelle régional
+          Échelle régionale
         </Tooltip>
         <div id="reg-tooltip">
-          <ControlButton id="reg" class={showReg ? 'bg-gray-200' : ''} on:click={() => toggleLayer('reg')}>REG</ControlButton>
+          <ControlButton id="reg" class={showReg ? 'bg-gray-200' : ''} on:click={() => clearFilterBeforeToggleZoom('reg')}>REG</ControlButton>
         </div>
 
         {#if theme==='accord'}
           <Tooltip triggeredBy="#dep-tooltip" class={toolTipStyle} placement ='right' >
-            Échelle départemental
+            Échelle départementale
           </Tooltip>
           <div id="dep-tooltip">
-            <ControlButton id="dep" class={showDep ? 'bg-gray-200' : ''} on:click={() => toggleLayer('dep')}>DEP</ControlButton>
+            <ControlButton id="dep" class={showDep ? 'bg-gray-200' : ''} on:click={() => clearFilterBeforeToggleZoom('dep')}>DEP</ControlButton>
           </div>
         {/if}
 
         <Tooltip triggeredBy="#com-tooltip" class={toolTipStyle} placement ='right' >
-          Échelle communal
+          Échelle communale
         </Tooltip>
         <div id="com-tooltip">
           <ControlButton id="com" class={showCom ? 'bg-gray-200 rounded-bl rounded-br' : ''} on:click={() => toggleLayer('com')}>COM</ControlButton>
@@ -1009,8 +1042,8 @@
               >
                 <div class="text-sm poppins-medium">{feature.properties.name}</div>
                 {#if (theme==='icsp')}
-                  <!-- Afficher la valeur avec l'unité 'XAF' -->
-                  <div class="text-sm poppins-light">{formattedValue(value)} XAF</div>
+                  <!-- Afficher la valeur avec l'unité 'FCFA' -->
+                  <div class="text-sm poppins-light">{formattedValue(value)} FCFA</div>
                 {:else if (theme==='info')}
                   <!-- Afficher la valeur avec l'unité 'Km2' -->
                   <div class="text-sm poppins-light text-center">
@@ -1022,7 +1055,7 @@
                     {#if (valeurAccordMode==='projet')}
                       <div class="text-sm poppins-light">{formattedValue(value)} <!--Financement(s)--> </div>
                     {:else}
-                      <div class="text-sm poppins-light">{formattedValue(value)} XAF</div>
+                      <div class="text-sm poppins-light">{formattedValue(value)} FCFA</div>
                     {/if}
                   </div>
                 {/if}
@@ -1064,14 +1097,14 @@
               >
                 <div class="text-sm poppins-medium">{feature.properties.name}</div>
                 {#if (theme==='icsp')}
-                  <!-- Afficher la valeur avec l'unité 'XAF' -->
-                  <div class="text-sm poppins-light">{formattedValue(value)} XAF</div>
+                  <!-- Afficher la valeur avec l'unité 'FCFA' -->
+                  <div class="text-sm poppins-light">{formattedValue(value)} FCFA</div>
                 {:else}
                   <!-- Afficher la valeur avec l'unité 'projet' -->
                   {#if (valeurAccordMode==='projet')}
                     <div class="text-sm poppins-light">{formattedValue(value)} <!--Financement(s)-->   </div>
                   {:else}
-                    <div class="text-sm poppins-light">{formattedValue(value)} XAF</div>
+                    <div class="text-sm poppins-light">{formattedValue(value)} FCFA</div>
                   {/if}
                 {/if}
                 <div class="text-sm font-italic"></div>
