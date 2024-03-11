@@ -279,7 +279,7 @@
   $: {
     let indicateur;
     let communesCommunes = [];
-    if (showCom ) {
+    if (showCom) {
       scale = 'id_COMMUNE';
       toggleLayer('com');
     } else if (showReg) {
@@ -330,7 +330,10 @@
             );
             if(theme!=='info'){
               updateGetBox(getID);
+              storeCommune.set('');
+              console.log(' This is your place',getID);
             }else{
+              console.log('You are not suppose to be here' ,getIdCommuneForZoom);
               updateGetBox(getIdCommuneForZoom);
             }
           }
