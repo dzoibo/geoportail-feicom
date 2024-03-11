@@ -226,7 +226,7 @@
       try {
         updateGetBox(getIdCommuneForZoom);
       } catch (error) {
-        console.log(error);
+        
       }
     })
 
@@ -515,6 +515,7 @@
   function clearFilterBeforeToggleZoom(layer){
     if(getbbox!==[]){
       updateGetBox('');
+      storeCommune.set('');
       setTimeout(() => {
         toggleLayer(layer);
       }, 1000);

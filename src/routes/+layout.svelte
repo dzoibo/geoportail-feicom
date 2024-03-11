@@ -254,13 +254,13 @@
     {value: 'conseil-regional',name: 'Conseils régionaux' }
   ]
 
-     scaleStore.subscribe(($scale) => {
+     /* scaleStore.subscribe(($scale) => {
         console.log( 'the scale ', $scale);
         if($scale!=='id_COMMUNE'){
-          infoCommuneSelected='';
-          storeCommune.set('');
+          //infoCommuneSelected='';
+          //storeCommune.set('');
         }
-    });
+    }); */
 
   onMount(async function () {
     try {
@@ -344,7 +344,7 @@
         heightNavBar.set(navbarHeight);
       }
     } catch (error) {
-      console.error(error);
+      //console.error(error);
     }
 
     loadData();
@@ -557,11 +557,7 @@
   }
 
   function updateInfoCommune(idCommune){
-    if(infoCommuneSelected!==idCommune){
-      infoCommuneSelected=idCommune;
-    }else{
-      infoCommuneSelected='';
-    }
+    infoCommuneSelected=idCommune;
     storeCommune.set(infoCommuneSelected);
   }
 
