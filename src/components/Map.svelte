@@ -10,7 +10,9 @@
     heightNavBar,
     accordMode,
     scaleStore,
-    storeCommune
+    storeCommune,
+    storeAccordsBeneficiaire,
+    storeIcspCommune,
   } from '../../shared/store';
   import Pagination from '../components/Pagination.svelte';
   import {
@@ -304,10 +306,8 @@
         // Déclarez l'indicateur dans une variable
         if (dataForMap.length > 0 && trigger == true) {
           if (map && loaded) {
-            if (
-              storeIndicateurForMap.accord.some((item) => item.indicateur === 'Bénéficiaire') &&
-              !(theme==='icsp')
-            ) {
+            if (storeIndicateurForMap.accord.some((item) => item.indicateur === 'Bénéficiaire') &&!(theme==='icsp'))
+            {
               indicateur = 'Bénéficiaire';
               communesCommunes = storeIndicateurForMap.accord.find(
                 (item) => item.indicateur === indicateur
@@ -331,9 +331,7 @@
             if(theme!=='info'){
               updateGetBox(getID);
               storeCommune.set('');
-              console.log(' This is your place',getID);
             }else{
-              console.log('You are not suppose to be here' ,getIdCommuneForZoom);
               updateGetBox(getIdCommuneForZoom);
             }
           }
@@ -517,8 +515,13 @@
   */
   function clearFilterBeforeToggleZoom(layer){
     if(getbbox!==[]){
-      updateGetBox('');
+      if(theme==='icsp'){
+        storeIcspCommune.set(false);
+      }else if (theme==='accord'){
+        storeAccordsBeneficiaire.set(false);
+      }
       storeCommune.set('');
+      updateGetBox('');
       setTimeout(() => {
         toggleLayer(layer);
       }, 1000);

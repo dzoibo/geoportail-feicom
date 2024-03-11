@@ -17,3 +17,5 @@ export const heightNavBar = writable(0);
 export const map = writable({});
 export const scaleStore= writable('id_REGION');
 export const storeCommune= writable('');
+export const storeAccordsBeneficiaire= writable(true);
+export const storeIcspCommune= writable(true);

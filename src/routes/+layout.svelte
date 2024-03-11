@@ -20,21 +20,19 @@
     accordMode,
     storeIndicateur,
     heightNavBar,
-    scaleStore,
     storeIndicateurICSP,
-    storeCommune
+    storeCommune,
+    storeAccordsBeneficiaire,
+    storeIcspCommune
   } from '../../shared/store.js';
   import { fetchData } from '../../shared/dataService.js';
 
   import {
     Navbar,
     NavBrand,
-    NavLi,
-    NavUl,
     NavHamburger,
     Sidebar,
     SidebarGroup,
-    SidebarItem,
     SidebarWrapper,
     Drawer,
     CloseButton,
@@ -43,16 +41,12 @@
     Dropdown,
     Select,
     Checkbox,
-    ButtonGroup,
     Range,
-    Radio,
     Label,
     Tabs,
     TabItem,
     Spinner,
-
     Card
-
   } from 'flowbite-svelte';
   import {
     FolderOutline,
@@ -68,10 +62,8 @@
     UserAddOutline,
     UserOutline,
     UsersOutline,
-    InfoCircleSolid,
     OrdoredListOutline
   } from 'flowbite-svelte-icons';
-  import { Cog } from 'svelte-heros-v2';
   import { sineIn } from 'svelte/easing';
 
   let transitionParams = {
@@ -254,13 +246,28 @@
     {value: 'conseil-regional',name: 'Conseils régionaux' }
   ]
 
-     /* scaleStore.subscribe(($scale) => {
-        console.log( 'the scale ', $scale);
-        if($scale!=='id_COMMUNE'){
-          //infoCommuneSelected='';
-          //storeCommune.set('');
-        }
-    }); */
+    
+    
+  storeAccordsBeneficiaire.subscribe(($value: any)=>{
+    if($value===false && accordFilterIndicators.beneficiaire){ 
+      valeursBeneficiaire.forEach((beneficiaire) => (beneficiaire.checked = false));
+      accordFilterIndicators.beneficiaire=false;
+      const index=arrayAllIndicateurs.accord.findIndex((item: any) => item.indicateur === 'Bénéficiaire');
+      arrayAllIndicateurs.accord[index].data=[];
+    }
+    storeAccordsBeneficiaire.set(true);
+
+  });
+
+  storeIcspCommune.subscribe(($value: any)=>{
+    if($value===false && icspFilterIndicator.beneficiaire){
+      valeursBeneficiaire2.forEach((beneficiaire) => (beneficiaire.checked = false));
+      icspFilterIndicator.beneficiaire=false;
+      const index=arrayAllIndicateurs.icsp.findIndex((item: any) => item.indicateur === "COMMUNE");
+      arrayAllIndicateurs.icsp[index].data=[];
+    }
+    storeIcspCommune.set(true);
+  });
 
   onMount(async function () {
     try {
@@ -414,7 +421,7 @@
     setTimeout(() => {// this is to restore the value changed in the function updateFilterIndicator()
         filterCheckedAll[filter] =checkedAllfilter;
     }, 12);
-    
+  
   }
 
   //this object is just to map the display of regional concil get in the database
@@ -817,13 +824,14 @@ function RemoveFilteredDomaineValue(key){
               
             >
               <div slot="title" class="flex flex-col px-2.5 ">
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
                 <div
                 class="flex items-center gap-0.5"
                 on:click={()=>{
-                  showICSP=true;
-                  showFinancement= false;
-                  theme='info';
-                  buttonICSP.set('info');
+                    theme='info';
+                    showICSP=true;
+                    buttonICSP.set('info');
+                    showFinancement= false;
                   }
                 }
                 >
@@ -878,6 +886,7 @@ function RemoveFilteredDomaineValue(key){
                   showICSP = true;
                   showFinancement = false;
                   theme='icsp';
+                  storeCommune.set('');
                   buttonICSP.set('icsp');
                 }}
               >
@@ -1012,6 +1021,7 @@ function RemoveFilteredDomaineValue(key){
                   showICSP = false;
                   showFinancement = true;
                   theme='accord';
+                  storeCommune.set('');
                   buttonICSP.set('accord');
                 }}
               >
