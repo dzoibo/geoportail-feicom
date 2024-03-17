@@ -70,7 +70,8 @@
     UserOutline,
     NewspapperOutline,
     LinkOutline,
-    EnvelopeOutline
+    EnvelopeOutline,
+    MapPinAltSolid
   } from 'flowbite-svelte-icons';
   import { sineIn } from 'svelte/easing';
   import {
@@ -709,6 +710,15 @@
                                   </span> 
                                 </p>
                               {/if}
+
+                              {#if currentGeneralInfo["Longitude"] &&  currentGeneralInfo["Latitude"] }
+                                <p class={generalInfoItemStyle} >
+                                  <MapPinAltSolid class="text-gray-700"  size="sm" />
+                                  Coordonnées(long, lat) :  
+                                  <span class={generalInfoValueStyle}> {currentGeneralInfo["Longitude"]} ;  {currentGeneralInfo["Latitude"]}</span> 
+                                </p>
+                              {/if}
+
                               {#if currentGeneralInfo["Site Web de la Mairie"] !==null}
                                 <p class={generalInfoItemStyle} >
                                   <LinkOutline size="sm" />
@@ -1014,9 +1024,9 @@
       </ControlGroup>
     </Control>
 
-    <GeoJSON data="/data/mask.geojson">
+     <GeoJSON data="/data/mask.geojson">
       <FillLayer paint={{ 'fill-color': 'black', 'fill-opacity': 0.6 }} />
-    </GeoJSON> 
+    </GeoJSON>
     {#if showReg}
       <VectorTileSource url="pmtiles://data/regions.pmtiles" id="regions" promoteId="ref:COG">
         <FillLayer

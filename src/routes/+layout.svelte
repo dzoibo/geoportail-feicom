@@ -892,7 +892,7 @@ function RemoveFilteredDomaineValue(key){
               >
                 <div slot="title" class="flex items-center gap-1 !rounded-none">
                   <CashOutline size="sm" />
-                  Finance locale
+                  Finances locales
                 </div>
                 <SidebarGroup class={cardForSideBar} id="icsp">
                   <SidebarDropdownWrapper label="Années">
@@ -1102,7 +1102,7 @@ function RemoveFilteredDomaineValue(key){
                   </SidebarGroup>
                   {#if (typeBeneficiaireSelected==='commune')}
                     <SidebarGroup class={cardForSideBar}>
-                      <SidebarDropdownWrapper label="Région">
+                      <SidebarDropdownWrapper label="Régions">
                         <svelte:fragment slot="icon">
                           <UserOutline
                             class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
@@ -1182,7 +1182,7 @@ function RemoveFilteredDomaineValue(key){
                     </SidebarGroup>
 
                     <SidebarGroup class={cardForSideBar}>
-                      <SidebarDropdownWrapper label="Département">
+                      <SidebarDropdownWrapper label="Départements">
                         <svelte:fragment slot="icon">
                           <UsersOutline
                             class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
@@ -1270,7 +1270,7 @@ function RemoveFilteredDomaineValue(key){
                       </SidebarDropdownWrapper>
                     </SidebarGroup>
                     <SidebarGroup class={cardForSideBar}>
-                      <SidebarDropdownWrapper label="Bénéficiaire">
+                      <SidebarDropdownWrapper label="Bénéficiaires">
                         <svelte:fragment slot="icon">
                           <UsersGroupOutline
                             class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
@@ -1431,7 +1431,7 @@ function RemoveFilteredDomaineValue(key){
                     </SidebarGroup>
                   {/if}
                   <SidebarGroup class={cardForSideBar}>
-                    <SidebarDropdownWrapper label="Instance">
+                    <SidebarDropdownWrapper label="Instances">
                       <svelte:fragment slot="icon">
                         <LandmarkOutline
                           class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
@@ -1510,7 +1510,7 @@ function RemoveFilteredDomaineValue(key){
                   </SidebarGroup>
 
                   <SidebarGroup class={cardForSideBar}>
-                    <SidebarDropdownWrapper label="Secteur">
+                    <SidebarDropdownWrapper label="Secteurs">
                       <svelte:fragment slot="icon">
                         <SwatchbookOutline
                           class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
@@ -1588,7 +1588,7 @@ function RemoveFilteredDomaineValue(key){
                     </SidebarDropdownWrapper></SidebarGroup
                   >
                   <SidebarGroup class={cardForSideBar}>
-                    <SidebarDropdownWrapper label="Domaine">
+                    <SidebarDropdownWrapper label="Domaines">
                       <svelte:fragment slot="icon">
                         <FolderOutline
                           class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
