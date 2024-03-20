@@ -661,8 +661,6 @@
     activeUrl = $page.url.pathname;
     let spanClass = 'pl-2 self-center text-md text-gray-900 dark:text-white';
     let divClass = 'w-full md:block md:w-auto pr-8';
-    let ulClass =
-      'flex flex-col p-4 mt-4 md:flex-row md:space-x-8 md:mt-0 md:text-lg md:font-medium';
 
     storeIndicateur.update((items) => {
       //@ts-ignore
@@ -792,14 +790,7 @@ function RemoveFilteredDomaineValue(key){
       GÉOPORTAIL DU FEICOM
     </span>
   </NavBrand>
-  <!--   <NavHamburger on:click={toggle} />
- <NavUl {hidden} {divClass} {ulClass}>
-    <NavLi href="/">Home</NavLi>
-    <NavLi href="/pages/about">About</NavLi>
-    <NavLi href="https://github.com/shinokada/flowbite-sveltekit-responsive-sidebar-layout"
-      >GitHub</NavLi
-    >
-  </NavUl> -->
+  
 </Navbar>
 {#if !loadingData}
   <Drawer
@@ -812,76 +803,15 @@ function RemoveFilteredDomaineValue(key){
     class="overflow-y-auto pb-32 !p-0 sidebar"
     id="sidebar"
   >
-    <div class="h-full w-full bg-[#00862b14]">
+    <div class="h-full w-full bg-[#B8DFC3]">
       <Sidebar asideClass="w-54">
         <!-- Bouton Reset Filter -->
 
         <SidebarWrapper divClass="overflow-y-auto" style=" overflow-x: hidden">
-          <Tabs style="full" >
-            <TabItem
-              class="text-xs poppins-medium w-full !border-b  !border-gray-200 "
-              open
-              
-            >
-              <div slot="title" class="flex flex-col px-2.5 ">
-                <!-- svelte-ignore a11y-click-events-have-key-events -->
-                <div
-                class="flex items-center gap-0.5"
-                on:click={()=>{
-                    theme='info';
-                    showICSP=true;
-                    buttonICSP.set('info');
-                    showFinancement= false;
-                  }
-                }
-                >
-                  <LandmarkOutline size="sm" />
-                  <span 
-                    class="-ml-2">Informations générales des territoires</span>
-                </div>
-                
-                {#if theme==='info'}
-                  <Card class={cardStyle}>
-                    <div  class="pb-1 -ml-1">
-                      <SearchBar
-                          placeholder={'Rechercher commune...'}
-                          bind:inputValue={communeInputValue}
-                          on:input={(event) => handleInput(event,jsonToItem({ valeursBeneficiaire2 }, 'valeursBeneficiaire2'),'communeInfo')}
-                      />
-                    </div>
-                    
-                    
-                    {#each valeursBeneficiaire2 as commune}
-                      {#if filterList(commune, communeSearchResult)}
-                        <!-- <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
-                          <Checkbox
-                            id={commune.id_COMMUNE}
-                            value={commune.id_COMMUNE}
-                            checked={infoCommuneSelected===commune.id_COMMUNE}
-                            on:change={(event) =>
-                              updateInfoCommune(event)
-                            }>{commune.key}
-                          </Checkbox>
-                        </li> -->
-                        <li 
-                          class="rounded p-2 hover:bg-gray-100 text-left dark:hover:bg-gray-600"
-                          id={commune.id_COMMUNE}
-                          on:click={() =>updateInfoCommune(commune.id_COMMUNE)}
-                        >{commune.key}
-                        </li>
-                      {/if}
-                    {/each}
-                  </Card>
-                {/if}
-                
-              </div>
-
-              
-                
-            </TabItem>
+          <Tabs class="!space-x-0" style="full" >
             <div class="space-x-0 w-full flex !flex-nowrap">
               <TabItem
-                class="text-xs poppins-medium w-full !border-r !border-gray-200  "
+                class="text-xs tab-item poppins-medium w-full !border-r !border-gray-200  "
                 on:click={() => {
                   showICSP = true;
                   showFinancement = false;
@@ -1013,10 +943,9 @@ function RemoveFilteredDomaineValue(key){
                   </SidebarDropdownWrapper>
                 </SidebarGroup>
               </TabItem>
-
               <!--   ACCORD DE FINANCEMENT -->
               <TabItem
-                class="text-xs poppins-medium   w-full"
+                class="text-xs poppins-medium tab-item w-full"
                 on:click={() => {
                   showICSP = false;
                   showFinancement = true;
@@ -1025,7 +954,7 @@ function RemoveFilteredDomaineValue(key){
                   buttonICSP.set('accord');
                 }}
               >
-                <div slot="title" class="flex items-center gap-1">
+                <div slot="title" class="tab-main-title flex items-center gap-1">
                   <CheckPlusCircleOutline size="sm" />
                   Appuis financiers
                 </div>
@@ -1897,9 +1826,62 @@ function RemoveFilteredDomaineValue(key){
                 </SidebarGroup>
               </TabItem>  
             </div>
-            
-
-            
+            <TabItem class="tab-item info-gen text-xs poppins-medium !important w-full  " open >
+              <div slot="title" class="flex flex-col  ">
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <div
+                class="flex items-center gap-0.5 px-4 py-5"
+                on:click={()=>{
+                    theme='info';
+                    showICSP=true;
+                    buttonICSP.set('info');
+                    showFinancement= false;
+                  }
+                }
+                >
+                  <LandmarkOutline size="sm" />
+                  <span>Informations générales des territoires</span>
+                </div>
+                
+                {#if theme==='info'}
+                <div class="w-full mt-1 px-4 bg-[#B8DFC3]">
+                  <Card class={cardStyle}>
+                    <div  class="pb-1 -ml-1">
+                      <SearchBar
+                          placeholder={'Rechercher commune...'}
+                          bind:inputValue={communeInputValue}
+                          on:input={(event) => handleInput(event,jsonToItem({ valeursBeneficiaire2 }, 'valeursBeneficiaire2'),'communeInfo')}
+                      />
+                    </div>
+                    
+                    
+                    {#each valeursBeneficiaire2 as commune}
+                      {#if filterList(commune, communeSearchResult)}
+                        <!-- <li class="rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                          <Checkbox
+                            id={commune.id_COMMUNE}
+                            value={commune.id_COMMUNE}
+                            checked={infoCommuneSelected===commune.id_COMMUNE}
+                            on:change={(event) =>
+                              updateInfoCommune(event)
+                            }>{commune.key}
+                          </Checkbox>
+                        </li> -->
+                        <li 
+                          class="rounded p-2 hover:bg-gray-100 text-left dark:hover:bg-gray-600"
+                          id={commune.id_COMMUNE}
+                          on:click={() =>updateInfoCommune(commune.id_COMMUNE)}
+                        >{commune.key}
+                        </li>
+                      {/if}
+                    {/each}
+                  </Card>
+                </div>
+                  
+                {/if}
+                
+              </div>
+            </TabItem> 
           </Tabs>
         </SidebarWrapper>
         <!-- Bouton Reset Filter -->
