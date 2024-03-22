@@ -126,9 +126,7 @@
   let valueSliderICSP = 0; // Initialisez avec une valeur par défaut
   let valueSliderAccord = []; // Initialisez avec une valeur par défaut
   let valeurAccordMode ='' ; // determine if data in the card of "appuis financiers " should be base number of projects or amount of projects 
-  let storeIndicateur5ForMap = {};
   let storeIndicateurForMap = {};
-  let mapFilterIndicateur5 = {};
   let mapFilterIndicateur = {};
   let hidden8 = true;
   let dataForBarChart = {};
@@ -236,11 +234,6 @@
     accordMode.subscribe(($accodMode)=>{
       valeurAccordMode = $accodMode;
     })
-    
-    // Récupération de la data provenant de layout.svete
-    storeIndicateur5.subscribe(($storeIndicateur5) => {
-      storeIndicateur5ForMap = $storeIndicateur5;
-    });
 
     // Récupération de la data provenant de layout.svete
     storeIndicateur.subscribe(($storeIndicateur) => {
@@ -303,7 +296,6 @@
         (storeIndicateurForMap.icsp.some((item) => item.indicateur === 'COMMUNE') &&
           dataForMap.length > 0)
       ) {
-
         // Déclarez l'indicateur dans une variable
         if (dataForMap.length > 0 && trigger == true) {
           if (map && loaded) {
@@ -322,13 +314,15 @@
                 (item) => item.indicateur === indicateur
               ).data;
             }
-
             let getID=fetchIdCommunesFromCommunesID(
               communesCommunes,
               keyCommuneID_Commune,
               'id_COMMUNE',
               'key'
             );
+            console.log('commune selected',communesCommunes);
+            console.log('this is the keycommune',keyCommuneID_Commune);
+            console.log('this is the id',getID);
             if(theme!=='info'){
               updateGetBox(getID);
               storeCommune.set('');
@@ -354,8 +348,6 @@
           scale,
           storeIndicateurForMap.icsp
         );
-
-
         MinMax = findMinMax(statisticsPerRegion, 'value');
       } else if(theme==='accord'){
         if (getbbox.length > 0) {
@@ -371,7 +363,6 @@
           valeurAccordMode,
           scale
         );
-
         if (statisticsPerRegion.length > 0) {
           MinMax = findMinMax(statisticsPerRegion, 'value');
         } else {
@@ -395,7 +386,6 @@
           MinMax = { min: 0, max: 0 };
         }
       }
-
       paintProperties = getUpdatedPaintProperties(MinMax);
     }
   }

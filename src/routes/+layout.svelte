@@ -1842,17 +1842,20 @@ function RemoveFilteredDomaineValue(key){
                   <LandmarkOutline size="sm" />
                   <span>Informations générales des territoires</span>
                 </div>
+                {#if  theme==='info'}
+                  <div  class="pt-1 pb-3 -ml-1">
+                    <SearchBar
+                        placeholder={'Rechercher commune...'}
+                        bind:inputValue={communeInputValue}
+                        on:input={(event) => handleInput(event,jsonToItem({ valeursBeneficiaire2 }, 'valeursBeneficiaire2'),'communeInfo')}
+                    />
+                  </div>
+                {/if}
                 
-                {#if theme==='info'}
-                <div class="w-full mt-1 px-4 bg-[#B8DFC3]">
+                {#if  theme==='info' && communeInputValue.length>0}
+                <div class="w-full px-4 bg-[#B8DFC3]">
                   <Card class={cardStyle}>
-                    <div  class="pb-1 -ml-1">
-                      <SearchBar
-                          placeholder={'Rechercher commune...'}
-                          bind:inputValue={communeInputValue}
-                          on:input={(event) => handleInput(event,jsonToItem({ valeursBeneficiaire2 }, 'valeursBeneficiaire2'),'communeInfo')}
-                      />
-                    </div>
+                    
                     
                     
                     {#each valeursBeneficiaire2 as commune}

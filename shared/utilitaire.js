@@ -354,7 +354,6 @@ export function fetchIdCommunesFromCommunesID(communesArray, correspondanceArray
             idCommunes.push(correspondance[attributASelectionner]);
         }
     }
-
     return idCommunes;
 }
 
