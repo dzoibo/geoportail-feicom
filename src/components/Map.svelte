@@ -837,10 +837,10 @@
                         <span class="text-base font-medium text-gray-900 dark:text-white">
                           Montant :
                         </span>
-                        {#if (value == null)} 
+                        {#if (resultat["Montant du financement"] == null)} 
                           <span class="text-[15px] italic">Non disponible</span>
                         {:else}
-                          <span class="text-[15px] font-medium">${value} FCFA</span>
+                          <span class="text-[15px] font-medium">{formattedValue(resultat["Montant du financement"])} FCFA</span>
                         {/if}
                       </div>
 
