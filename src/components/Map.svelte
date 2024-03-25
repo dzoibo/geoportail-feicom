@@ -320,9 +320,6 @@
               'id_COMMUNE',
               'key'
             );
-            console.log('commune selected',communesCommunes);
-            console.log('this is the keycommune',keyCommuneID_Commune);
-            console.log('this is the id',getID);
             if(theme!=='info'){
               updateGetBox(getID);
               storeCommune.set('');
@@ -459,11 +456,13 @@
       dataForBarChart.year = valueSliderICSP[0] + ' / ' + valueSliderICSP[1];
       dataForBarChart.geo = label_reg;
 
+      console.log("data for chart",dataForBarChart.data );
       // Calcul de la somme des valeurs "y"
       dataForBarChart.sum = dataForBarChart.data.reduce(
         (total, currentItem) => total + currentItem.y,
         0
       );
+    console.log("this is the sum",dataForBarChart.sum);
       hiddenBackdropFalse = false;
 
       return dataForBarChart;
@@ -587,12 +586,12 @@
   }
 
   function displayItemValue(value) {
-  if (value == null) {
-    return `<span class="text-[15px] italic">Non disponible</span>`;
-  } else {
-    return `<span class="text-[15px] font-medium">${value}</span>`;
+    if (value == null) {
+      return `<span class="text-[15px] italic">Non disponible</span>`;
+    } else {
+      return `<span class="text-[15px] font-medium">${value}</span>`;
+    }
   }
-}
 
   // On se désabonne pour éviter les fuites de data
   onDestroy(() => {
