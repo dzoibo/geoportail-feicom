@@ -803,7 +803,7 @@ function RemoveFilteredDomaineValue(key){
     class="overflow-y-auto pb-32 !p-0 sidebar"
     id="sidebar"
   >
-    <div class="h-full w-full bg-[#00862b14]">
+    <div class="h-full w-full bg-[#B8DFC3]">
       <Sidebar asideClass="w-54">
         <!-- Bouton Reset Filter -->
 
@@ -1845,7 +1845,8 @@ function RemoveFilteredDomaineValue(key){
                 {#if  theme==='info'}
                   <div  class="pt-1 pb-3 -ml-1">
                     <SearchBar
-                        placeholder={'Rechercher commune...'}
+                        placeholderFontsize={'placeholder:!text-sm '}
+                        placeholder={'Rechercher une  commune...'}
                         bind:inputValue={communeInputValue}
                         on:input={(event) => handleInput(event,jsonToItem({ valeursBeneficiaire2 }, 'valeursBeneficiaire2'),'communeInfo')}
                     />

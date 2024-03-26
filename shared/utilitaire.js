@@ -89,7 +89,12 @@ export function getSumSuperficy(data,scale){ // for now "Information generale" d
     const superficyByRegion={};
     for(const entry of data){
         const region =entry[scale];
-        const superficy=typeof entry.SUPERFICIE==='number'? entry.SUPERFICIE : parseInt(entry.SUPERFICIE.replace(/\s/g, ''));
+        let superficy=0;
+        try {
+            superficy=typeof entry.SUPERFICIE==='number'? entry.SUPERFICIE : parseInt(entry.SUPERFICIE.replace(/\s/g, ''));
+        } catch (error) {
+            console.log("no suyperficy provided in the database");
+        }
         if(!superficyByRegion[region]) {
             superficyByRegion[region] = superficy;
         }else{

@@ -1,11 +1,12 @@
 <script>
   export let inputValue = '';
+  export let placeholderFontsize='';
   export let placeholder='Rechercher...';
 </script>
 
 <input
   type="text"
-  class=" border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+  class={placeholderFontsize+ "border-gray-300  rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"}
   autocomplete="off"
   placeholder={placeholder}
   id="searchInput"
