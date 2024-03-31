@@ -1903,7 +1903,7 @@ function RemoveFilteredDomaineValue(key){
   </Drawer>
 {:else}
   <div class="flex items-center justify-center h-screen">
-    <Spinner color="green" size={12} />
+    <Spinner class="fill-[#2154A7]" size={12} />
   </div>
 {/if}
 
