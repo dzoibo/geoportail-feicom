@@ -803,7 +803,7 @@ function RemoveFilteredDomaineValue(key){
     class="overflow-y-auto pb-32 !p-0 sidebar"
     id="sidebar"
   >
-    <div class="h-full w-full bg-[#B8DFC3]">
+    <div class="h-full w-full bg-[#d2dfee60]">
       <Sidebar asideClass="w-54">
         <!-- Bouton Reset Filter -->
 
@@ -1854,7 +1854,7 @@ function RemoveFilteredDomaineValue(key){
                 {/if}
                 
                 {#if  theme==='info' && communeInputValue.length>0}
-                <div class="w-full px-4 bg-[#B8DFC3]">
+                <div class="w-full px-4 bg-[#d2dfee50]">
                   <Card class={cardStyle}>
                     
                     
