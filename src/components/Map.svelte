@@ -254,7 +254,7 @@
     buttonICSP.subscribe(($theme) => {
         // Mettez à jour la valeur locale avec la valeur du store
         theme = $theme; 
-        if(showDep){// thius means that we we in the theme "appuis financier " cause it's the only theme to have the scale dep. so when we switch to another theme we have to go back to the scale region 
+        if(showDep){// this means that we we in the theme "appuis financier " cause it's the only theme to have the scale dep. so when we switch to another theme we have to go back to the scale region 
           toggleLayer('reg');
         }
         
@@ -611,11 +611,11 @@
   bind:hidden={hiddenBackdropFalse}
   id="sidebar6"
 >
-  <div class="bg-[#00862b14] div-wrapper min-h-full">
-    <Tabs style="full" class="space-x-0 w-full flex !flex-nowrap bg-white">
+  <div class="bg-[#d2dfee60] div-wrapper min-h-full">
+    <Tabs style="full" class="space-x-0 w-full flex !flex-nowrap">
       {#if (theme==='info')}
         
-        <TabItem class="w-full" open>
+        <TabItem class="w-full map-tab-item" open>
           <div slot="title" class="flex w-full justify-center text-lg items-center gap-2">
             <LandmarkOutline size="md" />
             Informations générales sur le territoire selectionné
@@ -787,7 +787,7 @@
       
       {:else if (theme==='accord')}
         
-        <TabItem open class="w-full" id="projets">
+        <TabItem open class="map-tab-item w-full" id="projets">
           <div slot="title" class="flex w-full justify-center text-lg items-center gap-2">
             <GridSolid size="sm" />
             Liste de l'ensemble des appuis financiers
@@ -864,7 +864,7 @@
           </ul>
         </TabItem>
       {:else}
-        <TabItem open class="w-full hover:text-blue-900">
+        <TabItem open class="map-tab-item w-full hover:text-blue-900">
           <Tooltip triggeredBy="#stat" type="auto">
             Statistique des ICSP dans le temps pour un territoire choisi
           </Tooltip>
