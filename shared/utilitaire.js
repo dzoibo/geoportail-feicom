@@ -143,6 +143,7 @@ export function getSumPerYear(data, startYear, endYear,valeurAccordMode, scale) 
         [scale]: region,
         'value': count
     }));
+    
     return result;   
 }
 
@@ -179,9 +180,6 @@ export function calculateTotalByRegion(data, startYear, endYear, scale, filters)
             [scale]: key,
             'value': value
         }));
-        
-        console.log("this is the result:", result);
-        console.log("this is the scale:",scale);
         
         return result;
     }
