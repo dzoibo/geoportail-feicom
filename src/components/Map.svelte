@@ -456,13 +456,11 @@
       dataForBarChart.year = valueSliderICSP[0] + ' / ' + valueSliderICSP[1];
       dataForBarChart.geo = label_reg;
 
-      console.log("data for chart",dataForBarChart.data );
       // Calcul de la somme des valeurs "y"
       dataForBarChart.sum = dataForBarChart.data.reduce(
         (total, currentItem) => total + currentItem.y,
         0
       );
-    console.log("this is the sum",dataForBarChart.sum);
       hiddenBackdropFalse = false;
 
       return dataForBarChart;

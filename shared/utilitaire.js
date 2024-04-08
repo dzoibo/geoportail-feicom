@@ -174,12 +174,15 @@ export function calculateTotalByRegion(data, startYear, endYear, scale, filters)
 
             }
         }
-
+        
         const result = Object.entries(totalByRegion).map(([key, value]) => ({
             [scale]: key,
             'value': value
         }));
-
+        
+        console.log("this is the result:", result);
+        console.log("this is the scale:",scale);
+        
         return result;
     }
 
