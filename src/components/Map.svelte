@@ -71,7 +71,8 @@
     NewspapperOutline,
     LinkOutline,
     EnvelopeOutline,
-    MapPinAltSolid
+    MapPinAltSolid,
+    CloseOutline,
   } from 'flowbite-svelte-icons';
   import { sineIn } from 'svelte/easing';
   import {
@@ -609,6 +610,9 @@
   bind:hidden={hiddenBackdropFalse}
   id="sidebar6"
 >
+  <CloseOutline 
+    on:click={() => hiddenBackdropFalse=true}
+    class="text-black absolute right-3 top-6 cursor-pointer block sm:hidden"  size="xs" />
   <div class="bg-[#d2dfee60] div-wrapper min-h-full">
     <Tabs style="full" class="space-x-0 w-full flex !flex-nowrap">
       {#if (theme==='info')}
