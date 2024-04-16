@@ -198,7 +198,7 @@
   let filterIndicatorStyle='w-2.5 h-2.5 mb-2 rounded-[50%] bg-[#234099]'
   let dropdownStyle = 'w-48 overflow-y-auto py-1 h-48';
   let cardStyle = 'w-auto my-2 overflow-y-auto rounded-lg py-1 h-48';
-
+  let regionStyle='w-6 h-6 -ml-0.5';
   let theme='info';
   //variables to handle the filter indicator for each filter
   let accordFilterIndicators={
@@ -1033,9 +1033,8 @@ function RemoveFilteredDomaineValue(key){
                     <SidebarGroup class={cardForSideBar}>
                       <SidebarDropdownWrapper label="Régions">
                         <svelte:fragment slot="icon">
-                          <UserOutline
-                            class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                          />
+                         
+                          <img src={'./region.png'} class={regionStyle} alt="region">
                           {#if accordFilterIndicators.region && !filterCheckedAll.region}
                             <div class={filterIndicatorStyle} ></div>
                           {/if}
@@ -1113,9 +1112,7 @@ function RemoveFilteredDomaineValue(key){
                     <SidebarGroup class={cardForSideBar}>
                       <SidebarDropdownWrapper label="Départements">
                         <svelte:fragment slot="icon">
-                          <UsersOutline
-                            class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                          />
+                          <img src={'./departement.png'} class={regionStyle} alt="region">
                           {#if accordFilterIndicators.departement }
                             <div class={filterIndicatorStyle} ></div>
                           {/if}
@@ -1201,9 +1198,8 @@ function RemoveFilteredDomaineValue(key){
                     <SidebarGroup class={cardForSideBar}>
                       <SidebarDropdownWrapper label="Bénéficiaires">
                         <svelte:fragment slot="icon">
-                          <UsersGroupOutline
-                            class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                          />
+                          <img src={'./benef.png'} class={regionStyle} alt="region">
+
                           {#if accordFilterIndicators.beneficiaire}
                             <div class={filterIndicatorStyle} ></div>
                           {/if}
