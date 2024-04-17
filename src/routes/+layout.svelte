@@ -739,14 +739,26 @@ function RemoveFilteredDomaineValue(key){
   // Fonction pour réinitialiser les filtres et vider les dropdowns
   function resetFilters() {
     // Réinitialiser les filtres
+    if(icspFilterIndicator.beneficiaire){ 
+      const index=arrayAllIndicateurs.icsp.findIndex((item: any) => item.indicateur === 'COMMUNE');
+      arrayAllIndicateurs.icsp[index].data.forEach((beneficiaire) => {
+        closeDiv(beneficiaire,dropdownSelectionIndicateur7,valeursBeneficiaire2,'icsp');
+      });
+    }
+
+    if(accordFilterIndicators.beneficiaire){ 
+      const index=arrayAllIndicateurs.accord.findIndex((item: any) => item.indicateur === 'Bénéficiaire');
+      arrayAllIndicateurs.accord[index].data.forEach((beneficiaire) => {
+        closeDiv(beneficiaire,dropdownSelectionIndicateur4,valeursBeneficiaire,'accord');
+      });
+    }
+    
     arrayAllIndicateurs = { accord: [], icsp: [] };
     typeBeneficiaireSelected="commune"; 
     // Vider les dropdowns en réinitialisant les valeurs
     valeursAttribution.forEach((attribution) => (attribution.checked = false));
     valeursSecteur.forEach((secteur) => (secteur.checked = false));
     valeursDomaine.forEach((domaine) => (domaine.checked = false));
-    valeursBeneficiaire.forEach((beneficiaire) => (beneficiaire.checked = false));
-    valeursBeneficiaire2.forEach((beneficiaire) => (beneficiaire.checked = false));
     valeursConseilsRegionaux.forEach((beneficiaire) => (beneficiaire.checked = false));
     valeursSourcefinancement.forEach((financement) => (financement.checked = false));
     valeursPartenaires.forEach((partenaire) => (partenaire.checked = false));
@@ -1288,9 +1300,7 @@ function RemoveFilteredDomaineValue(key){
                     <SidebarGroup class={cardForSideBar}>
                       <SidebarDropdownWrapper label="Bénéficiaires">
                         <svelte:fragment slot="icon">
-                          <UsersGroupOutline
-                            class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                          />
+                          <img src={'./region.png'} class={regionStyle} alt="region">
                           {#if accordFilterIndicators.conseilR && !filterCheckedAll.conseilR}
                             <div class={filterIndicatorStyle} ></div>
                           {/if}
