@@ -552,13 +552,13 @@
     if(currentZoom>previousZoom){
       if(currentZoom>5.1 && showReg && theme==='accord'){
         tempLayer ='dep';
-      }else if(currentZoom>=7 && !showCom){
+      }else if(currentZoom>=7.5 && !showCom){
         tempLayer='com';
       }
     }else{
       if(currentZoom<5.1 && !showReg){
         tempLayer='reg';
-      }else if(currentZoom<=7 && showCom && theme==='accord'){
+      }else if(currentZoom<=7.5 && showCom && theme==='accord'){
         tempLayer='dep';
       }
     }
