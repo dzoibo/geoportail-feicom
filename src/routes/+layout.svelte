@@ -433,7 +433,7 @@
     NW:"Région du Nord-Ouest",
     ES:"Région de l'Est",
     OU:"Région de l'Ouest",
-    NO:"Région du Nord-Ouest",
+    NO:"Région du Nord",
     LT:"Région du Littoral",
     EN:"Région de l'Extreme nord"
   }

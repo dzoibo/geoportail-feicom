@@ -255,8 +255,14 @@
     buttonICSP.subscribe(($theme) => {
         // Mettez à jour la valeur locale avec la valeur du store
         theme = $theme; 
-        if(showDep){// this means that we we in the theme "appuis financier " cause it's the only theme to have the scale dep. so when we switch to another theme we have to go back to the scale region 
+        
+        if(map!==undefined && map!==null && layer!=='reg'){
+          map.zoomTo(5.5,
+          {duration:500}
+        );
+        setTimeout(() => {
           toggleLayer('reg');
+        }, 600);
         }
         
     });
@@ -538,7 +544,7 @@
     }
 
     // Pour forcer l'actualisation des Labels REG et DEP
-    if (map) {
+    if (map ) {
       if (!getOverallBbox) {
         map.setZoom(map.getZoom() + 0.0000001);
       }
