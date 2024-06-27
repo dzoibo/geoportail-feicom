@@ -1207,8 +1207,14 @@
           }}
         ></SymbolLayer>
       </GeoJSON>
+
+      
+
     {/if}
   </MapLibre>
+  <div class="fixed right-2 bottom-2 px-3.5 py-1 rounded bg-gray-200">
+    By <a class="text-[#87a5c8] font-semibold" target="_blank" href="https://wa.me/+237694698607">SOGEFI</a>
+  </div>
 {/if}
 
 <!-- 
