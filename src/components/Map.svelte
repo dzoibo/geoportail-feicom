@@ -809,7 +809,7 @@
           <h2 class="mb-6 text-center text-black-900 text-xl poppins-medium">
             {clickedLayerInfo.detail.features[0].properties.name} <br />
             <span class="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">
-              Nombre de projets : {allProject.length}</span
+              Nombre : {allProject.length}</span
             >
           </h2>
           <ul class=" px-8 w-full flex flex-col items-center">
