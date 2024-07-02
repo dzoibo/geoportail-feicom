@@ -109,12 +109,12 @@
   let showFinancement = false;
   let showICSP = true;
   let minMaxYear: {
-    max: 2022;
+    max: 2024;
     min: 2023;
   };
   let minMaxYearAccord = {
     min: 2022,
-    max: 2023
+    max: 2024
   };
 
   let valueSliderAccord = [minMaxYearAccord.min, minMaxYearAccord.max];
